@@ -1,24 +1,28 @@
-import logo from './logo.svg';
 import './App.css';
+import { Outlet } from "react-router-dom";
+import NavBar from "./features/navbar/Nav-Bar";
+
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC-JxvUJC-_M0WQRR3DBhprC0t20cMNjII",
+  authDomain: "mandi-auction.firebaseapp.com",
+  projectId: "mandi-auction",
+  storageBucket: "mandi-auction.appspot.com",
+  messagingSenderId: "118523225331",
+  appId: "1:118523225331:web:3cab5f145b953b8a420386"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+		<>
+			<NavBar></NavBar>
+			<Outlet/>
+		</>
   );
 }
 
