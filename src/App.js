@@ -1,6 +1,7 @@
 import './App.css';
 import { Outlet } from "react-router-dom";
 import NavBar from "./features/navbar/Nav-Bar";
+import { Box } from '@mui/material';
 
 import { initializeApp } from "firebase/app";
 
@@ -19,10 +20,12 @@ const app = initializeApp(firebaseConfig);
 
 function App() {
   return (
-		<>
-			<NavBar></NavBar>
-			<Outlet/>
-		</>
+    <>
+      <NavBar></NavBar>
+      <Box component="main" sx={{mt:8 }}>
+        <Outlet />
+      </Box>
+    </>
   );
 }
 
