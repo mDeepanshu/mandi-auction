@@ -12,16 +12,16 @@ function PartyMaster() {
         {/* Header Row */}
         <Grid item xs={12}>
           <Typography variant="h4" component="h1" align="left">
-            My Header
+          Party Master
           </Typography>
         </Grid>
 
         {/* TextField and Button Row */}
         <Grid item xs={5}>
-          <TextField fullWidth label="Enter Text" variant="outlined" />
+          <TextField fullWidth label="Party Name" variant="outlined" />
         </Grid>
         <Grid item xs={5}>
-          <TextField fullWidth label="Enter Text" variant="outlined" />
+          <TextField fullWidth label="Party Type" variant="outlined" />
         </Grid>
         <Grid item xs={1}>
           <Button variant="contained" color="primary" startIcon={<AddIcon />} fullWidth>

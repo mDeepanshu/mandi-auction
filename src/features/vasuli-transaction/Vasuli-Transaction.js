@@ -33,15 +33,15 @@ function VasuliTransaction() {
         {/* 1st Row - Heading */}
         <Grid item xs={12}>
           <Typography variant="h4" component="h1" align="left">
-            My Form Heading
+          VASULI TRANSACTION
           </Typography>
         </Grid>
 
         {/* 2nd Row - Search TextField */}
-        <Grid item xs={12}>
+        <Grid item xs={7}>
           <TextField
             fullWidth
-            placeholder="Search..."
+            placeholder="VYAPARI NAME"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -67,7 +67,7 @@ function VasuliTransaction() {
           <TextField
             fullWidth
             type="number"
-            label="Enter Number"
+            label="COLLECTED AMOUNT"
           />
         </Grid>
 

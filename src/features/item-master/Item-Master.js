@@ -12,13 +12,13 @@ function ItemMaster() {
         {/* Header Row */}
         <Grid item xs={12}>
           <Typography variant="h4" component="h1" align="left">
-            My Header
+            Item Master
           </Typography>
         </Grid>
 
         {/* TextField and Button Row */}
         <Grid item xs={8}>
-          <TextField fullWidth label="Enter Text" variant="outlined" />
+          <TextField fullWidth label="Item Name" variant="outlined" />
         </Grid>
         <Grid item xs={2}>
           <Button variant="contained" color="primary" startIcon={<AddIcon />} fullWidth>
