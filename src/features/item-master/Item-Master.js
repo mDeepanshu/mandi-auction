@@ -4,29 +4,43 @@ import { useForm, Controller } from 'react-hook-form';
 import { TextField, Button } from "@mui/material";
 import { Table,Typography ,TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { addItem } from "../../gateway/item-master-apis";
 
-function ItemMaster() {
+const ItemMaster = () => {
+  const { handleSubmit, control } = useForm();
+  
+  const onSubmit = async (data) => {
+    console.log(data);
+    // e.preventDefault();
+    try {
+      const result = await addItem(data);
+    } catch (error) {
+    }
+  };
+
   return (
-    <>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={2} p={3}>
-        {/* Header Row */}
         <Grid item xs={12}>
           <Typography variant="h4" component="h1" align="left">
             Item Master
           </Typography>
         </Grid>
 
-        {/* TextField and Button Row */}
         <Grid item xs={8}>
-          <TextField fullWidth label="Item Name" variant="outlined" />
+          <Controller
+            name="itemName"
+            control={control}
+            defaultValue=""
+            render={({ field }) => <TextField {...field} fullWidth label="Item Name" variant="outlined" />}
+          />
         </Grid>
         <Grid item xs={2}>
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} fullWidth>
+          <Button variant="contained" color="primary" startIcon={<AddIcon />} fullWidth type="submit">
             Add
           </Button>
         </Grid>
 
-        {/* Table Row */}
         <Grid item xs={12}>
           <Table>
             <TableHead>
@@ -42,13 +56,12 @@ function ItemMaster() {
                 <TableCell>Data 2</TableCell>
                 <TableCell>Data 3</TableCell>
               </TableRow>
-              {/* Add more TableRow components as needed */}
             </TableBody>
           </Table>
         </Grid>
       </Grid>
-    </>
+    </form>
   );
-}
+};
 
 export default ItemMaster;

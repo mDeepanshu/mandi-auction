@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Grid, Typography, TextField, InputAdornment, Button, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import { addVasuliTransaction } from "../../gateway/vasuli-transaction-apis";
 
 
 function VasuliTransaction() {
@@ -22,68 +23,93 @@ function VasuliTransaction() {
       ...data,
       rows
     }
-    console.log(billDetails);
-    // let a = await submitKisanBill(billDetails);
-    // console.log("a",a);
+    console.log(data);
+    // e.preventDefault();
+    try {
+      const result = await addVasuliTransaction(data);
+    } catch (error) {
+    }
   };
 
   return (
-    <>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={3} p={3}>
-        {/* 1st Row - Heading */}
         <Grid item xs={12}>
           <Typography variant="h4" component="h1" align="left">
-          VASULI TRANSACTION
+            VASULI TRANSACTION
           </Typography>
         </Grid>
 
-        {/* 2nd Row - Search TextField */}
         <Grid item xs={7}>
-          <TextField
-            fullWidth
-            placeholder="VYAPARI NAME"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
+          <Controller
+            name="vyapariName"
+            control={control}
+            defaultValue=""
+            render={({ field }) => (
+              <TextField
+                {...field}
+                fullWidth
+                placeholder="VYAPARI NAME"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            )}
           />
         </Grid>
 
-        {/* 3rd Row - Date and Number TextFields */}
         <Grid item xs={6}>
-          <TextField
-            fullWidth
-            type="date"
-            label="Select Date"
-            InputLabelProps={{
-              shrink: true,
-            }}
+          <Controller
+            name="selectDate"
+            control={control}
+            defaultValue=""
+            render={({ field }) => (
+              <TextField
+                {...field}
+                fullWidth
+                type="date"
+                label="Select Date"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            )}
           />
         </Grid>
         <Grid item xs={6}>
-          <TextField
-            fullWidth
-            type="number"
-            label="COLLECTED AMOUNT"
+          <Controller
+            name="collectedAmount"
+            control={control}
+            defaultValue=""
+            render={({ field }) => (
+              <TextField
+                {...field}
+                fullWidth
+                type="number"
+                label="COLLECTED AMOUNT"
+              />
+            )}
           />
         </Grid>
 
-        {/* 4th Row - Label and Submit Button */}
         <Grid item xs={12} container spacing={2}>
           <Grid item xs={9}>
-            <Typography variant="body1" fontWeight={700} align='left'>Remaining Amount 23000/-</Typography>
+            <Typography variant="body1" fontWeight={700} align='left'>
+              Remaining Amount 23000/-
+            </Typography>
           </Grid>
           <Grid item alignItems="right">
-            <Button variant="contained" color="primary">
+            <Button variant="contained" color="primary" type="submit">
               Submit
             </Button>
           </Grid>
         </Grid>
       </Grid>
-    </>
+    </form>
   );
 }
 
