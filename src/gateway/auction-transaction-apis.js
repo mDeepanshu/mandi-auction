@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
 
 export const addAuctionTransaction = async (data) => {
     try {
-        const response = await axiosInstance.post('axios', data);
+        const response = await axiosInstance.post('/AuctionTransaction', data);
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);

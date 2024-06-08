@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
 
 export const addParty = async (data) => {
     try {
-        const response = await axiosInstance.post('endPoint', data);
+        const response = await axiosInstance.post('/party', data);
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);

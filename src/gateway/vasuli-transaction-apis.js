@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
 
 export const addVasuliTransaction = async (data) => {
     try {
-        const response = await axiosInstance.post('endPoint', data);
+        const response = await axiosInstance.post('/vasuliTrasaction', data);
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);

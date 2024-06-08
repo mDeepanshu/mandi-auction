@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
 
 export const getKisan = async (data) => {
     try {
-        const response = await axiosInstance.post('axios', data);
+        const response = await axiosInstance.get('/getPartyData', data);
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);
@@ -20,7 +20,7 @@ export const getKisan = async (data) => {
 
 export const getVyapari = async (data) => {
     try {
-        const response = await axiosInstance.post('axios', data);
+        const response = await axiosInstance.get('/getPartyData', data);
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);
@@ -30,7 +30,7 @@ export const getVyapari = async (data) => {
 
 export const getItems = async (data) => {
     try {
-        const response = await axiosInstance.post('axios', data);
+        const response = await axiosInstance.get('/getItemsData', data);
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);
