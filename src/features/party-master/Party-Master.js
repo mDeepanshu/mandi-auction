@@ -1,22 +1,58 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Grid } from "@mui/material";
 import { useForm, Controller } from 'react-hook-form';
 import { TextField, Button } from "@mui/material";
-import { Table,Typography ,TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Table,Typography ,TableBody, TableCell, TableHead, TableRow, InputAdornment } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { addParty } from "../../gateway/party-master-apis";
+import SearchIcon from '@mui/icons-material/Search';
 
 const PartyMaster = () => {
-  const { handleSubmit, control } = useForm();
-  
+  const { handleSubmit, control, getValues } = useForm();
+  const rows = [
+    { index: 'Frozen yoghurt', name: 159, partyType: 6.0,contact: "@mui/material",delete: 24 },
+    { index: 'Ice cream sandwich', name: 237, partyType: 9.0,contact: "@mui/material",delete: 37 },
+  ];
+  const [tableData, setTableData] = useState(rows);
+
   const onSubmit = async (data) => {
     console.log(data);
     // e.preventDefault();
     try {
-      const result = await addParty(data);
+      // const result = await addParty(data);
+      // console.log(result);
+
     } catch (error) {
     }
   };
+
+  
+  const addToTable = async () => {
+    const values = getValues();
+    // let newTableData = [
+    //   ...tableData,
+    //   {
+    //     name: values.name,
+    //     partyType: values.partyType,
+    //     contact:values.contact
+    //   }
+    // ]
+    const newParty = [{
+      ...values,
+      partyId:Math.floor(Math.random()*1000).toString()
+    }]
+    console.log(newParty);
+    setTableData(newParty);
+    const result = await addParty(newParty);
+    console.log(result);
+
+  }
+
+  const deleteFromTable = (index) => {
+    const newRows = [...tableData];
+    newRows.splice(index, 1);
+    setTableData(newRows);  
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -27,24 +63,50 @@ const PartyMaster = () => {
           </Typography>
         </Grid>
 
-        <Grid item xs={5}>
+        <Grid item xs={3}>
           <Controller
-            name="partyName"
+            name="name"
             control={control}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="Party Name" variant="outlined" />}
+            render={({ field }) => <TextField {...field} fullWidth label="Party Name" variant="outlined" InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}/>}
           />
         </Grid>
-        <Grid item xs={5}>
+        <Grid item xs={3}>
           <Controller
             name="partyType"
             control={control}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="Party Type" variant="outlined" />}
+            render={({ field }) => <TextField {...field} fullWidth label="Party Type" variant="outlined" InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}/>}
+          />
+        </Grid>
+        <Grid item xs={3}>
+          <Controller
+            name="contact"
+            control={control}
+            defaultValue=""
+            render={({ field }) => <TextField {...field} fullWidth label="Contact" variant="outlined" InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}/>}
           />
         </Grid>
         <Grid item xs={1}>
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} fullWidth type="submit">
+          <Button variant="contained" color="primary" startIcon={<AddIcon />} fullWidth type="submit" sx={{ height: '3.438rem' }}  onClick={addToTable}>
             Add
           </Button>
         </Grid>
@@ -53,17 +115,21 @@ const PartyMaster = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Header 1</TableCell>
-                <TableCell>Header 2</TableCell>
-                <TableCell>Header 3</TableCell>
+                <TableCell>Index</TableCell>
+                <TableCell>Party Name</TableCell>
+                <TableCell>Party Type</TableCell>
+                <TableCell>Delete</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              <TableRow>
-                <TableCell>Data 1</TableCell>
-                <TableCell>Data 2</TableCell>
-                <TableCell>Data 3</TableCell>
-              </TableRow>
+            {rows.map((row,index) => (
+                  <TableRow key={index}>
+                    <TableCell>{index+1}</TableCell>
+                    <TableCell>{row.name}</TableCell>
+                    <TableCell>{row.partyType}</TableCell>
+                    <TableCell onClick={() => deleteFromTable(index)}>D</TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </Grid>

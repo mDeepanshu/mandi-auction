@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import { AppBar, Box, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography, Button } from '@mui/material';
+// import PropTypes from 'prop-types';
+import { AppBar, Box, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography, Button } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 const drawerWidth = 240;
@@ -30,11 +30,11 @@ function NavBar(props) {
             </Typography>
             <Divider />
             <List>
-                {navItems.map((item) => (
+                {navItems.map((item,index) => (
                     <Link to={item.name}>
-                        <ListItem key={item.name} disablePadding>
-                            <ListItemButton sx={{ textAlign: 'center' }}>
-                                <ListItemText primary={item.label} />
+                        <ListItem key={index} disablePadding>
+                            <ListItemButton key={index} sx={{ textAlign: 'center' }}>
+                                <ListItemText key={index} primary={item.label} />
                             </ListItemButton>
                         </ListItem>
                     </Link>
@@ -66,9 +66,9 @@ function NavBar(props) {
                         MANDI
                     </Typography>
                     <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                        {navItems.map((item) => (
+                        {navItems.map((item,index) => (
                             <Link to={item.name}>
-                                <Button key={item.name} sx={{ color: '#fff' }}>
+                                <Button key={index} sx={{ color: '#fff' }}>
                                     {item.label}
                                 </Button>
                             </Link>
