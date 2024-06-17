@@ -19,8 +19,9 @@ const ItemMaster = () => {
     console.log("reaching here");
     const values = getValues();
     let newTableData = [
-      ...tableData,
+      // ...tableData,
       {
+        itemId:Math.floor(Math.random()*1000).toString(),
         itemName: values.itemName,
       }
     ];
@@ -36,9 +37,16 @@ const ItemMaster = () => {
   const onSubmit = async (data) => {
     console.log(data);
     // e.preventDefault();
+    const values = getValues();
+    let newTableData = [
+      {
+        itemId:Math.floor(Math.random()*1000).toString(),
+        itemName: values.itemName,
+      }
+    ];
     try {
-      const result = await addItem(data);
-      // console.log(result);
+      const result = await addItem(newTableData);
+      console.log(result);
 
     } catch (error) {
       console.log(error);

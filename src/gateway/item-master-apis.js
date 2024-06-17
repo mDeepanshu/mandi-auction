@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
 
 export const addItem = async (data) => {
     try {
-        const response = await axiosInstance.post('/item', data);
+        const response = await axiosInstance.post('/', data);
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);

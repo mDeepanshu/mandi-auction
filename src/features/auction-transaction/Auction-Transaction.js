@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Grid } from "@mui/material";
 import { useForm, Controller } from 'react-hook-form';
-import { TextField, Button } from "@mui/material";
-import { Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper } from '@mui/material';
+import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, TextField, Button } from '@mui/material';
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
 import { getItems, getAllParties } from "../../gateway/common-apis";
 import SearchIcon from '@mui/icons-material/Search';
+import Autocomplete from '@mui/material/Autocomplete';
 
 function AuctionTransaction() {
 
@@ -15,6 +14,12 @@ function AuctionTransaction() {
     { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
     { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
     { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
+  ];
+
+  const top100Films = [
+    { title: 'The Shawshank Redemption', year: 1994 },
+    { title: 'The Godfather', year: 1972 },
+    // ...other films
   ];
 
   const { handleSubmit, control, getValues } = useForm();
@@ -81,30 +86,60 @@ function AuctionTransaction() {
             <Controller
               name="kisaan"
               control={control}
-              render={({ field }) => <TextField {...field} fullWidth variant="outlined"
-                placeholder="KISAAN"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }} />}
+              render={({ field }) => (
+                <Autocomplete
+                  {...field}
+                  options={top100Films}
+                  getOptionLabel={(option) => option.title}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="KISAAN"
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
+                  onChange={(event, value) => field.onChange(value)}
+                  disablePortal
+                  id="combo-box-demo"
+                />
+              )}
             />
           </Grid>
           <Grid item xs={6}>
             <Controller
               name="itemName"
               control={control}
-              render={({ field }) => <TextField {...field} fullWidth variant="outlined"
-                placeholder="ITEM"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }} />}
+              render={({ field }) => (
+                <Autocomplete
+                  {...field}
+                  options={top100Films}
+                  getOptionLabel={(option) => option.title}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="ITEM"
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
+                  onChange={(event, value) => field.onChange(value)}
+                  disablePortal
+                  id="combo-box-demo"
+                />
+              )}
             />
           </Grid>
           <Grid container item spacing={2}>
@@ -112,15 +147,30 @@ function AuctionTransaction() {
               <Controller
                 name="vyapariName"
                 control={control}
-                render={({ field }) => <TextField {...field} fullWidth variant="outlined"
-                  placeholder="VYAPARI"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }} />}
+                render={({ field }) => (
+                  <Autocomplete
+                    {...field}
+                    options={top100Films}
+                    getOptionLabel={(option) => option.title}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="VYAPARI"
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <SearchIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    )}
+                    onChange={(event, value) => field.onChange(value)}
+                    disablePortal
+                    id="combo-box-demo"
+                  />
+                )}
               />
             </Grid>
             <Grid item xs={2}>
