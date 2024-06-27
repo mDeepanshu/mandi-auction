@@ -5,6 +5,8 @@ import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
 import { getItems, getAllParties } from "../../gateway/common-apis";
 import SearchIcon from '@mui/icons-material/Search';
 import Autocomplete from '@mui/material/Autocomplete';
+import { addItem,deleteItem,getAllItems,getItem } from "../../gateway/curdDB";
+
 
 function AuctionTransaction() {
 
@@ -65,6 +67,19 @@ function AuctionTransaction() {
     setTableData(newRows);
   }
 
+  const fetchItems = async () => {
+    try {
+      const itemsList = await getAllItems('vyapari');
+      console.log("dbRecords",itemsList);
+    } catch (error) {
+      console.error("Fetch items error:", error);
+    }
+  };
+
+
+
+
+
   useEffect(() => {
     const fetchData = async () => {
       let VyapariList = await getAllParties();
@@ -73,6 +88,10 @@ function AuctionTransaction() {
       setVyapariList(VyapariList);
     };
     fetchData();
+    fetchItems();
+    // const dbRecords = getAllItems('vyapari');
+    // console.log("dbRecords",dbRecords);
+
   }, []);
 
   return (

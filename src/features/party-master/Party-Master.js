@@ -6,25 +6,28 @@ import { Table,Typography ,TableBody, TableCell, TableHead, TableRow, InputAdorn
 import AddIcon from '@mui/icons-material/Add';
 import { addParty } from "../../gateway/party-master-apis";
 import SearchIcon from '@mui/icons-material/Search';
+import { addItem,deleteItem,getAllItems,getItem } from "../../gateway/curdDB";
 
 const PartyMaster = () => {
   const { handleSubmit, control, getValues } = useForm();
-  const rows = [
-    { index: 'Frozen yoghurt', name: 159, partyType: 6.0,contact: "@mui/material",delete: 24 },
-    { index: 'Ice cream sandwich', name: 237, partyType: 9.0,contact: "@mui/material",delete: 37 },
-  ];
-  const [tableData, setTableData] = useState(rows);
+  const [tableData, setTableData] = useState([]);
 
-  const onSubmit = async (data) => {
-    console.log(data);
-    // e.preventDefault();
+  
+  const fetchItems = async () => {
     try {
-      // const result = await addParty(data);
-      // console.log(result);
-
+      const itemsList = await getAllItems('vyapari');
+      console.log("dbRecords",itemsList);
+      setTableData(itemsList);
     } catch (error) {
+      console.error("Fetch items error:", error);
     }
   };
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const onSubmit = async (data) => {};
 
   
   const addToTable = async () => {
@@ -37,15 +40,18 @@ const PartyMaster = () => {
     //     contact:values.contact
     //   }
     // ]
-    const newParty = [{
+    const newParty = {
       ...values,
       partyId:Math.floor(Math.random()*1000).toString()
-    }]
+    };
     console.log(newParty);
-    setTableData(newParty);
-    const result = await addParty(newParty);
-    console.log(result);
-
+    // setTableData(newParty);
+    // const result = await addParty(newParty);
+    // console.log(result);
+    addItem(newParty,'vyapari').then((data)=>{
+      console.log(data);
+      setTableData(...tableData,newParty)
+    });
   }
 
   const deleteFromTable = (index) => {
@@ -122,7 +128,7 @@ const PartyMaster = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-            {rows.map((row,index) => (
+            {tableData.map((row,index) => (
                   <TableRow key={index}>
                     <TableCell>{index+1}</TableCell>
                     <TableCell>{row.name}</TableCell>

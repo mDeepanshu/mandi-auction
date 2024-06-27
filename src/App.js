@@ -1,7 +1,10 @@
 import './App.css';
 import { Outlet } from "react-router-dom";
 import NavBar from "./features/navbar/Nav-Bar";
+import IndexedDBOpen from "./gateway/index-db-open";
+import openDB from "./gateway/openDB";
 import { Box } from '@mui/material';
+import { setDB } from "./gateway/curdDB";
 
 import { initializeApp } from "firebase/app";
 
@@ -16,7 +19,16 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
+// IndexedDBOpen();
+const initializeDB = async () => {
+  try {
+    const database = await openDB();
+    setDB(database);
+  } catch (error) {
+    console.error("Database initialization error:", error);
+  }
+};
+initializeDB();
 
 function App() {
   return (

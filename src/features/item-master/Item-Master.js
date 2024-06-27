@@ -2,36 +2,53 @@ import React, { useEffect, useState } from 'react';
 import { Grid } from "@mui/material";
 import { useForm, Controller } from 'react-hook-form';
 import { TextField, Button } from "@mui/material";
-import { Table,Typography ,TableBody, TableCell, TableHead, TableRow,InputAdornment } from '@mui/material';
+import { Table, Typography, TableBody, TableCell, TableHead, TableRow, InputAdornment } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { addItem } from "../../gateway/item-master-apis";
+import { addItemGlobal } from "../../gateway/item-master-apis";
 import SearchIcon from '@mui/icons-material/Search';
+import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
 
 const ItemMaster = () => {
-  const { handleSubmit, control,getValues } = useForm();
-  const rows = [
-    { itemName: 159 },
-    { itemName: 237 },
-  ];
-  const [tableData, setTableData] = useState(rows);
+  const { handleSubmit, control, getValues } = useForm();
+
+  const [tableData, setTableData] = useState([]);
+
+  const fetchItems = async () => {
+    try {
+      const itemsList = await getAllItems('items');
+      console.log("dbRecords", itemsList);
+      setTableData(itemsList);
+    } catch (error) {
+      console.error("Fetch items error:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
 
   const addToTable = () => {
     console.log("reaching here");
     const values = getValues();
-    let newTableData = [
-      // ...tableData,
-      {
-        itemId:Math.floor(Math.random()*1000).toString(),
-        itemName: values.itemName,
-      }
-    ];
-    setTableData(newTableData);
+    let newTableData =
+    // ...tableData,
+    {
+      itemId: Math.floor(Math.random() * 1000).toString(),
+      itemName: values.itemName,
+    }
+      ;
+    // setTableData(newTableData);
+    addItem(newTableData, 'items').then((data) => {
+      console.log(data);
+      setTableData(...tableData, newTableData)
+    });
   }
 
   const deleteFromTable = (index) => {
     const newRows = [...tableData];
     newRows.splice(index, 1);
-    setTableData(newRows);  
+    setTableData(newRows);
   }
 
   const onSubmit = async (data) => {
@@ -40,17 +57,17 @@ const ItemMaster = () => {
     const values = getValues();
     let newTableData = [
       {
-        itemId:Math.floor(Math.random()*1000).toString(),
+        itemId: Math.floor(Math.random() * 1000).toString(),
         itemName: values.itemName,
       }
     ];
     try {
-      const result = await addItem(newTableData);
-      console.log(result);
+      // const result = await addItemGlobal(newTableData);
+      addToTable();
+      // console.log(result);
 
     } catch (error) {
       console.log(error);
-      addToTable();
     }
   };
 
@@ -74,7 +91,7 @@ const ItemMaster = () => {
                   <SearchIcon />
                 </InputAdornment>
               ),
-            }}/>}
+            }} />}
           />
         </Grid>
         <Grid item xs={2}>
@@ -93,13 +110,13 @@ const ItemMaster = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-            {rows.map((row,index) => (
-                  <TableRow key={index}>
-                    <TableCell>{index+1}</TableCell>
-                    <TableCell>{row.itemName}</TableCell>
-                    <TableCell onClick={() => deleteFromTable(index)}>D</TableCell>
-                  </TableRow>
-                ))}
+              {tableData.map((row, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{row.itemName}</TableCell>
+                  <TableCell onClick={() => deleteFromTable(index)}>D</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </Grid>
