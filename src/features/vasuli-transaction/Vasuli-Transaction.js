@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Grid, Typography, TextField, InputAdornment, Button, Box } from '@mui/material';
+import { Grid, Typography, TextField, InputAdornment, Button, Box,Autocomplete } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { addVasuliTransaction } from "../../gateway/vasuli-transaction-apis";
+import {  getAllItems } from "../../gateway/curdDB";
 
 
 function VasuliTransaction() {
@@ -17,6 +18,21 @@ function VasuliTransaction() {
     { name: 'Cupcake', calories: 305, fat: 3.7, carbs: 67, protein: 4.3 },
     { name: 'Gingerbread', calories: 356, fat: 16.0, carbs: 49, protein: 3.9 },
   ];
+  const [vyapariList, setVyapariList] = useState([]);
+
+  const fetchList = async (listName) => {
+    try {
+      const list = await getAllItems(listName);
+      setVyapariList(list);
+    } catch (error) {
+      console.error("Fetch items error:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchList("vyapari");
+  }, []);
+
 
   const onSubmit = async (data) => {
     const billDetails = {
@@ -42,24 +58,33 @@ function VasuliTransaction() {
 
         <Grid item xs={7}>
           <Controller
-            name="vyapariName"
-            control={control}
-            defaultValue=""
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                placeholder="VYAPARI NAME"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
+                name="vyapariName"
+                control={control}
+                render={({ field }) => (
+                  <Autocomplete
+                    {...field}
+                    options={vyapariList}
+                    getOptionLabel={(option) => option.name}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="VYAPARI"
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <SearchIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    )}
+                    onChange={(event, value) => field.onChange(value)}
+                    disablePortal
+                    id="combo-box-demo"
+                  />
+                )}
               />
-            )}
-          />
         </Grid>
 
         <Grid item xs={6}>

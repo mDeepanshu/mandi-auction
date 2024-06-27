@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, TextField, Button } from '@mui/material';
+import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, TextField, Button, useMediaQuery } from '@mui/material';
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
 import { getItems, getAllParties } from "../../gateway/common-apis";
 import SearchIcon from '@mui/icons-material/Search';
 import Autocomplete from '@mui/material/Autocomplete';
-import { addItem,deleteItem,getAllItems,getItem } from "../../gateway/curdDB";
-
+import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
+import "./auction-transaction.css"
 
 function AuctionTransaction() {
 
@@ -18,18 +18,11 @@ function AuctionTransaction() {
     { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
   ];
 
-  const top100Films = [
-    { title: 'The Shawshank Redemption', year: 1994 },
-    { title: 'The Godfather', year: 1972 },
-    // ...other films
-  ];
-
   const { handleSubmit, control, getValues } = useForm();
   const [itemsList, setItemsList] = useState([]);
   const [kisanList, setKisanList] = useState([]);
   const [vyapariList, setVyapariList] = useState([]);
   const [tableData, setTableData] = useState(rows);
-
 
   const onSubmit = async (data) => {
     console.log(data);
@@ -67,28 +60,37 @@ function AuctionTransaction() {
     setTableData(newRows);
   }
 
-  const fetchItems = async () => {
+  const fetchList = async (listName) => {
     try {
-      const itemsList = await getAllItems('vyapari');
-      console.log("dbRecords",itemsList);
+      const list = await getAllItems(listName);
+      console.log(listName, list);
+      switch (listName) {
+        case "vyapari":
+          setVyapariList(list);
+          break;
+        case "kisan":
+          setKisanList(list);
+          break;
+        case "items":
+          setItemsList(list);
+          break;
+      }
     } catch (error) {
       console.error("Fetch items error:", error);
     }
   };
 
-
-
-
-
   useEffect(() => {
-    const fetchData = async () => {
-      let VyapariList = await getAllParties();
-      let ItemsList = await getItems();
-      setItemsList(ItemsList);
-      setVyapariList(VyapariList);
-    };
-    fetchData();
-    fetchItems();
+    // const fetchData = async () => {
+    //   let VyapariList = await getAllParties();
+    //   let ItemsList = await getItems();
+    //   setItemsList(ItemsList);
+    //   setVyapariList(VyapariList);
+    // };
+    // fetchData();
+    fetchList("vyapari");
+    fetchList("kisan");
+    fetchList("items");
     // const dbRecords = getAllItems('vyapari');
     // console.log("dbRecords",dbRecords);
 
@@ -98,18 +100,19 @@ function AuctionTransaction() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2} p={1}>
-          <Grid item xs={12}>
+          <Grid item xs={12} className='hidden-xs'>
             <h1>AUCTION TRANSACTION</h1>
           </Grid>
           <Grid item xs={6}>
+            {console.log("start", kisanList)}
             <Controller
               name="kisaan"
               control={control}
               render={({ field }) => (
                 <Autocomplete
                   {...field}
-                  options={top100Films}
-                  getOptionLabel={(option) => option.title}
+                  options={kisanList}
+                  getOptionLabel={(option) => option.name}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -138,8 +141,8 @@ function AuctionTransaction() {
               render={({ field }) => (
                 <Autocomplete
                   {...field}
-                  options={top100Films}
-                  getOptionLabel={(option) => option.title}
+                  options={itemsList}
+                  getOptionLabel={(option) => option.itemName}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -162,15 +165,15 @@ function AuctionTransaction() {
             />
           </Grid>
           <Grid container item spacing={2}>
-            <Grid item xs={4}>
+            <Grid item md={4} xs={6}>
               <Controller
                 name="vyapariName"
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
                     {...field}
-                    options={top100Films}
-                    getOptionLabel={(option) => option.title}
+                    options={vyapariList}
+                    getOptionLabel={(option) => option.name}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -192,7 +195,7 @@ function AuctionTransaction() {
                 )}
               />
             </Grid>
-            <Grid item xs={2}>
+            <Grid item md={2} xs={6}>
               <Controller
                 name="quantity"
                 control={control}
@@ -200,7 +203,7 @@ function AuctionTransaction() {
                 render={({ field }) => <TextField {...field} fullWidth label="Quantity" type='number' variant="outlined" />}
               />
             </Grid>
-            <Grid item xs={2}>
+            <Grid item md={2} xs={4}>
               <Controller
                 name="rate"
                 control={control}
@@ -208,7 +211,7 @@ function AuctionTransaction() {
                 render={({ field }) => <TextField {...field} fullWidth label="Rate" type='number' variant="outlined" />}
               />
             </Grid>
-            <Grid item xs={2}>
+            <Grid item md={2} xs={4}>
               <Controller
                 name="bag"
                 control={control}
@@ -216,7 +219,7 @@ function AuctionTransaction() {
                 render={({ field }) => <TextField {...field} fullWidth label="Bag" variant="outlined" />}
               />
             </Grid>
-            <Grid item xs={2}>
+            <Grid item md={2} xs={4}>
               <Button variant="contained" color="primary" sx={{ height: '3.438rem' }} onClick={addToTable}>+</Button>
             </Grid>
           </Grid>

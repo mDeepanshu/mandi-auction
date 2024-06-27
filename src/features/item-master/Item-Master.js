@@ -41,7 +41,7 @@ const ItemMaster = () => {
     // setTableData(newTableData);
     addItem(newTableData, 'items').then((data) => {
       console.log(data);
-      setTableData(...tableData, newTableData)
+      setTableData([...tableData, newTableData])
     });
   }
 

@@ -13,6 +13,9 @@ const openDB = () => {
       if (!db.objectStoreNames.contains("vyapari")) {
         db.createObjectStore("vyapari", { keyPath: "id", autoIncrement: true });
       }
+      if (!db.objectStoreNames.contains("kisan")) {
+        db.createObjectStore("kisan", { keyPath: "id", autoIncrement: true });
+      }
       if (!db.objectStoreNames.contains("items")) {
         db.createObjectStore("items", { keyPath: "id", autoIncrement: true });
       }
