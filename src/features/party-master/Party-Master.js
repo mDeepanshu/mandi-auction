@@ -7,6 +7,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { addParty } from "../../gateway/party-master-apis";
 import SearchIcon from '@mui/icons-material/Search';
 import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
+import {Delete,AddCircleOutline} from '@mui/icons-material';
 
 const PartyMaster = () => {
   // const { handleSubmit, control, getValues } = useForm();
@@ -32,27 +33,20 @@ const PartyMaster = () => {
     fetchItems();
   }, []);
 
-  const onSubmit = async (data) => { };
+  const onSubmit = async (data) => {
+    addToTable();
+   };
 
 
   const addToTable = async () => {
     const values = getValues();
-    // let newTableData = [
-    //   ...tableData,
-    //   {
-    //     name: values.name,
-    //     partyType: values.partyType,
-    //     contact:values.contact
-    //   }
-    // ]
+
     const newParty = {
       ...values,
       partyId: Math.floor(Math.random() * 1000).toString()
     };
     console.log(newParty);
-    // setTableData(newParty);
-    // const result = await addParty(newParty);
-    // console.log(result);
+ 
     console.log(newParty.partyType);
     addItem(newParty, newParty.partyType).then((data) => {
       console.log(data);
@@ -101,8 +95,8 @@ const PartyMaster = () => {
                   {...field}
                   label="Party Type"
                 >
-                  <MenuItem value="Kisan">KISAAN</MenuItem>
-                  <MenuItem value="Vyapari">VYAPARI</MenuItem>
+                  <MenuItem value="kisan">KISAAN</MenuItem>
+                  <MenuItem value="vyapari">VYAPARI</MenuItem>
                 </Select>
               </FormControl>
             )}
@@ -119,8 +113,8 @@ const PartyMaster = () => {
           />
         </Grid>
         <Grid item xs={1}>
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} fullWidth type="submit" sx={{ height: '3.438rem' }} onClick={addToTable}>
-            Add
+          <Button variant="contained" color="primary" fullWidth type="submit" sx={{ height: '3.438rem' }}>
+            <AddCircleOutline/> ADD
           </Button>
         </Grid>
 
@@ -140,8 +134,8 @@ const PartyMaster = () => {
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{row.name}</TableCell>
                   <TableCell>{row.partyType}</TableCell>
-                  <TableCell onClick={() => deleteFromTable(index)}>D</TableCell>
-                </TableRow>
+                  <TableCell onClick={() => deleteFromTable(index)}><Button><Delete /></Button></TableCell>
+                  </TableRow>
               ))}
             </TableBody>
           </Table>

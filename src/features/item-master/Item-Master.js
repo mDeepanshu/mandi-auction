@@ -7,6 +7,8 @@ import AddIcon from '@mui/icons-material/Add';
 import { addItemGlobal } from "../../gateway/item-master-apis";
 import SearchIcon from '@mui/icons-material/Search';
 import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
+import "./item-master.css"
+import {Delete,AddCircleOutline} from '@mui/icons-material';
 
 const ItemMaster = () => {
   const { handleSubmit, control, getValues } = useForm();
@@ -29,18 +31,13 @@ const ItemMaster = () => {
 
 
   const addToTable = () => {
-    console.log("reaching here");
     const values = getValues();
     let newTableData =
-    // ...tableData,
     {
       itemId: Math.floor(Math.random() * 1000).toString(),
       itemName: values.itemName,
     }
-      ;
-    // setTableData(newTableData);
     addItem(newTableData, 'items').then((data) => {
-      console.log(data);
       setTableData([...tableData, newTableData])
     });
   }
@@ -95,30 +92,32 @@ const ItemMaster = () => {
           />
         </Grid>
         <Grid item xs={2}>
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} fullWidth type="submit" sx={{ height: '3.438rem' }}>
-            Add
+          <Button variant="contained" color="primary" fullWidth type="submit" sx={{ height: '3.438rem' }}>
+            <AddCircleOutline /> ADD
           </Button>
         </Grid>
 
         <Grid item xs={12}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Index</TableCell>
-                <TableCell>Item Name</TableCell>
-                <TableCell>Delete</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tableData.map((row, index) => (
-                <TableRow key={index}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{row.itemName}</TableCell>
-                  <TableCell onClick={() => deleteFromTable(index)}>D</TableCell>
+          <div className='table-container'>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Index</TableCell>
+                  <TableCell>Item Name</TableCell>
+                  <TableCell>Delete</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {tableData.map((row, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{row.itemName}</TableCell>
+                    <TableCell onClick={() => deleteFromTable(index)}><Button><Delete /></Button></TableCell>
+                    </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </Grid>
       </Grid>
     </form>

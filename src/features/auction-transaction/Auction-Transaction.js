@@ -7,12 +7,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import Autocomplete from '@mui/material/Autocomplete';
 import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
 import "./auction-transaction.css"
+import {Delete,AddCircleOutline} from '@mui/icons-material';
 
 function AuctionTransaction() {
 
   const rows = [
-    { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
-    { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
     { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
     { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
     { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
@@ -30,7 +29,6 @@ function AuctionTransaction() {
       ...data,
       tableData
     }
-    // e.preventDefault();
     try {
       const result = await addAuctionTransaction(auctionData);
       console.log(result);
@@ -43,14 +41,15 @@ function AuctionTransaction() {
     let newTableData = [
       ...tableData,
       {
-        vyapariName: values.vyapariName,
-        itemName: values.itemName,
-        quantity: values.quantity,
-        rate: values.rate,
-        bag: values.bag,
+        vyapariName: values.vyapariName.name,
+        itemName: values.itemName.itemName,
+        quantity: Number(values.quantity),
+        rate: Number(values.rate),
+        bag: Number(values.bag),
         total: values.quantity * values.rate,
       }
-    ]
+    ];
+    console.log(newTableData)
     setTableData(newTableData);
   }
 
@@ -104,7 +103,6 @@ function AuctionTransaction() {
             <h1>AUCTION TRANSACTION</h1>
           </Grid>
           <Grid item xs={6}>
-            {console.log("start", kisanList)}
             <Controller
               name="kisaan"
               control={control}
@@ -220,7 +218,7 @@ function AuctionTransaction() {
               />
             </Grid>
             <Grid item md={2} xs={4}>
-              <Button variant="contained" color="primary" sx={{ height: '3.438rem' }} onClick={addToTable}>+</Button>
+              <Button variant="contained" color="primary" sx={{ height: '3.438rem' }} onClick={addToTable}><AddCircleOutline/></Button>
             </Grid>
           </Grid>
           <Grid item xs={12}>
@@ -246,7 +244,7 @@ function AuctionTransaction() {
                       <TableCell>{row.rate}</TableCell>
                       <TableCell>{row.bag}</TableCell>
                       <TableCell>{row.total}</TableCell>
-                      <TableCell onClick={() => deleteFromTable(index)}>D</TableCell>
+                      <TableCell onClick={() => deleteFromTable(index)}><Button><Delete/></Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
