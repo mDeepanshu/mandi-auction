@@ -19,7 +19,7 @@ const ItemMaster = () => {
     try {
       const itemsList = await getAllItems('items');
       console.log("dbRecords", itemsList);
-      setTableData(itemsList);
+      setTableData([...itemsList]);
     } catch (error) {
       console.error("Fetch items error:", error);
     }
@@ -30,13 +30,7 @@ const ItemMaster = () => {
   }, []);
 
 
-  const addToTable = () => {
-    const values = getValues();
-    let newTableData =
-    {
-      itemId: Math.floor(Math.random() * 1000).toString(),
-      itemName: values.itemName,
-    }
+  const addToTable = (newTableData) => {
     addItem(newTableData, 'items').then((data) => {
       setTableData([...tableData, newTableData])
     });
@@ -49,20 +43,19 @@ const ItemMaster = () => {
   }
 
   const onSubmit = async (data) => {
-    console.log(data);
-    // e.preventDefault();
     const values = getValues();
     let newTableData = [
       {
-        itemId: Math.floor(Math.random() * 1000).toString(),
-        itemName: values.itemName,
+        itemId: Date.now().toString(16),
+        name: values.itemName,
       }
     ];
     try {
-      // const result = await addItemGlobal(newTableData);
-      addToTable();
-      // console.log(result);
-
+      const result = await addItemGlobal(newTableData);
+      if (result.responseCode==200) {
+        addToTable(newTableData[0]);
+        console.log(result);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -111,7 +104,7 @@ const ItemMaster = () => {
                 {tableData.map((row, index) => (
                   <TableRow key={index}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{row.itemName}</TableCell>
+                    <TableCell>{row.name}</TableCell>
                     <TableCell onClick={() => deleteFromTable(index)}><Button><Delete /></Button></TableCell>
                     </TableRow>
                 ))}

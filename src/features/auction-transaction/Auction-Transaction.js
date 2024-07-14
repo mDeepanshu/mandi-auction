@@ -11,42 +11,45 @@ import {Delete,AddCircleOutline} from '@mui/icons-material';
 
 function AuctionTransaction() {
 
-  const rows = [
-    { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
-    { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
-    { vyapariName: 'Frozen yoghurt', itemName: "bhindi", quantity: 6.0, rate: 24, bag: 2, total: 22 },
-  ];
+  const rows = [];
 
   const { handleSubmit, control, getValues } = useForm();
   const [itemsList, setItemsList] = useState([]);
   const [kisanList, setKisanList] = useState([]);
   const [vyapariList, setVyapariList] = useState([]);
-  const [tableData, setTableData] = useState(rows);
+  const [buyItems, setTableData] = useState(rows);
 
   const onSubmit = async (data) => {
     console.log(data);
+    const buyItemsToSubmit = buyItems.map(obj => {
+      const { vyapariName, ...rest } = obj; // Destructure and omit the city property
+      return rest; // Return the rest of the object
+    });
     const auctionData = {
-      ...data,
-      tableData
+      "kisanId": data.kisaan.partyId,
+      "itemId": data.itemName.itemId,
+      buyItemsToSubmit
     }
     try {
-      const result = await addAuctionTransaction(auctionData);
-      console.log(result);
+      console.log(auctionData);
+      // const result = await addAuctionTransaction(auctionData);
+      // console.log(result);
     } catch (error) {
+      console.log(error);
     }
   };
 
   const addToTable = () => {
     const values = getValues();
+    console.log(values.vyapariName);
     let newTableData = [
-      ...tableData,
+      ...buyItems,
       {
-        vyapariName: values.vyapariName.name,
-        itemName: values.itemName.itemName,
+        vyapariName: values.vyapari.name,
+        vyapariId: values.vyapari.partyId,
         quantity: Number(values.quantity),
         rate: Number(values.rate),
         bag: Number(values.bag),
-        total: values.quantity * values.rate,
       }
     ];
     console.log(newTableData)
@@ -54,7 +57,7 @@ function AuctionTransaction() {
   }
 
   const deleteFromTable = (index) => {
-    const newRows = [...tableData];
+    const newRows = [...buyItems];
     newRows.splice(index, 1);
     setTableData(newRows);
   }
@@ -64,10 +67,10 @@ function AuctionTransaction() {
       const list = await getAllItems(listName);
       console.log(listName, list);
       switch (listName) {
-        case "vyapari":
+        case "VYAPARI":
           setVyapariList(list);
           break;
-        case "kisan":
+        case "KISAN":
           setKisanList(list);
           break;
         case "items":
@@ -80,19 +83,9 @@ function AuctionTransaction() {
   };
 
   useEffect(() => {
-    // const fetchData = async () => {
-    //   let VyapariList = await getAllParties();
-    //   let ItemsList = await getItems();
-    //   setItemsList(ItemsList);
-    //   setVyapariList(VyapariList);
-    // };
-    // fetchData();
-    fetchList("vyapari");
-    fetchList("kisan");
+    fetchList("VYAPARI");
+    fetchList("KISAN");
     fetchList("items");
-    // const dbRecords = getAllItems('vyapari');
-    // console.log("dbRecords",dbRecords);
-
   }, []);
 
   return (
@@ -140,7 +133,7 @@ function AuctionTransaction() {
                 <Autocomplete
                   {...field}
                   options={itemsList}
-                  getOptionLabel={(option) => option.itemName}
+                  getOptionLabel={(option) => option.name}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -165,7 +158,7 @@ function AuctionTransaction() {
           <Grid container item spacing={2}>
             <Grid item md={4} xs={6}>
               <Controller
-                name="vyapariName"
+                name="vyapari"
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
@@ -227,7 +220,6 @@ function AuctionTransaction() {
                 <TableHead>
                   <TableRow>
                     <TableCell>Vyapari Name</TableCell>
-                    <TableCell>Item Name</TableCell>
                     <TableCell>Quantity</TableCell>
                     <TableCell>Rate</TableCell>
                     <TableCell>Bag</TableCell>
@@ -236,14 +228,13 @@ function AuctionTransaction() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {tableData.map((row, index) => (
+                  {buyItems.map((row, index) => (
                     <TableRow key={index}>
                       <TableCell>{row.vyapariName}</TableCell>
-                      <TableCell>{row.itemName}</TableCell>
                       <TableCell>{row.quantity}</TableCell>
                       <TableCell>{row.rate}</TableCell>
                       <TableCell>{row.bag}</TableCell>
-                      <TableCell>{row.total}</TableCell>
+                      <TableCell>{row.rate*row.quantity}</TableCell>
                       <TableCell onClick={() => deleteFromTable(index)}><Button><Delete/></Button></TableCell>
                     </TableRow>
                   ))}

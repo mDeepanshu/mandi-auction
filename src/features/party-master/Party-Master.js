@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { TextField, Button } from "@mui/material";
 import { Table, Typography, TableBody, TableCell, TableHead, TableRow, InputAdornment, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { addParty } from "../../gateway/party-master-apis";
+import { addPartyGlobal } from "../../gateway/party-master-apis";
 import SearchIcon from '@mui/icons-material/Search';
 import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
 import {Delete,AddCircleOutline} from '@mui/icons-material';
@@ -13,7 +13,7 @@ const PartyMaster = () => {
   // const { handleSubmit, control, getValues } = useForm();
   const { handleSubmit, control, getValues } = useForm({
     defaultValues: {
-      partyType: 'Kisan', // Ensure this matches one of the MenuItem values
+      partyType: 'KISAN', // Ensure this matches one of the MenuItem values
     },
   });
   const [tableData, setTableData] = useState([]);
@@ -21,9 +21,11 @@ const PartyMaster = () => {
 
   const fetchItems = async () => {
     try {
-      const itemsList = await getAllItems('vyapari');
-      console.log("dbRecords", itemsList);
-      setTableData(itemsList);
+      const vyapariList = await getAllItems('VYAPARI');
+      const kisanList = await getAllItems('KISAN');
+      setTableData([...vyapariList, ...kisanList]);
+
+      console.log(vyapariList,kisanList);
     } catch (error) {
       console.error("Fetch items error:", error);
     }
@@ -33,26 +35,33 @@ const PartyMaster = () => {
     fetchItems();
   }, []);
 
-  const onSubmit = async (data) => {
-    addToTable();
-   };
-
-
-  const addToTable = async () => {
-    const values = getValues();
-
-    const newParty = {
-      ...values,
-      partyId: Math.floor(Math.random() * 1000).toString()
-    };
-    console.log(newParty);
- 
-    console.log(newParty.partyType);
-    addItem(newParty, newParty.partyType).then((data) => {
+  const addToTable = async (newTableData) => {
+    console.log(newTableData);
+    addItem(newTableData, newTableData.partyType).then((data) => {
       console.log(data);
-      setTableData([...tableData, newParty]);
+      setTableData([...tableData, newTableData]);
     });
   }
+  
+  const onSubmit = async (data) => {
+    const values = getValues();
+    let newTableData = [
+      {
+        partyId: Date.now().toString(16) ,
+        ...values
+      }
+    ];
+    try {
+      const result = await addPartyGlobal(newTableData);
+      console.log(result);
+      if (result.responseCode==201) {
+        addToTable(newTableData[0]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   const deleteFromTable = (index) => {
     const newRows = [...tableData];
@@ -87,7 +96,7 @@ const PartyMaster = () => {
           <Controller
             name="partyType"
             control={control}
-            defaultValue="kisan"
+            defaultValue="KISAN"
             render={({ field }) => (
               <FormControl variant="outlined" fullWidth>
                 <InputLabel>Party Type</InputLabel>
@@ -95,8 +104,8 @@ const PartyMaster = () => {
                   {...field}
                   label="Party Type"
                 >
-                  <MenuItem value="kisan">KISAAN</MenuItem>
-                  <MenuItem value="vyapari">VYAPARI</MenuItem>
+                  <MenuItem value="KISAN">KISAAN</MenuItem>
+                  <MenuItem value="VYAPARI">VYAPARI</MenuItem>
                 </Select>
               </FormControl>
             )}
