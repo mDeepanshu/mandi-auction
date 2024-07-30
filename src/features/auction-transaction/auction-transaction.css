@@ -7,3 +7,8 @@
       display: block;
     }
   }
+
+.err-msg{
+  color: rgb(224, 67, 67);
+  font-weight: 500;
+}

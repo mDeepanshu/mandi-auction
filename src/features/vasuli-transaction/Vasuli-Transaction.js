@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Grid, Typography, TextField, InputAdornment, Button, Box,Autocomplete } from '@mui/material';
+import { Grid, Typography, TextField, InputAdornment, Button, Box, Autocomplete } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { addVasuliTransaction } from "../../gateway/vasuli-transaction-apis";
-import {  getAllItems } from "../../gateway/curdDB";
+import { getAllItems } from "../../gateway/curdDB";
 
 
 function VasuliTransaction() {
@@ -30,7 +30,7 @@ function VasuliTransaction() {
   };
 
   useEffect(() => {
-    fetchList("vyapari");
+    fetchList("VYAPARI");
   }, []);
 
 
@@ -58,39 +58,42 @@ function VasuliTransaction() {
 
         <Grid item xs={7}>
           <Controller
-                name="vyapariName"
-                control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    {...field}
-                    options={vyapariList}
-                    getOptionLabel={(option) => option.name}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="VYAPARI"
-                        InputProps={{
-                          ...params.InputProps,
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <SearchIcon />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    )}
-                    onChange={(event, value) => field.onChange(value)}
-                    disablePortal
-                    id="combo-box-demo"
+            name="vyapariName"
+            control={control}
+            rules={{ required: "Enter Vyapari Name" }}
+            render={({ field }) => (
+              <Autocomplete
+                {...field}
+                options={vyapariList}
+                getOptionLabel={(option) => option.name}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="VYAPARI"
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon />
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 )}
+                onChange={(event, value) => field.onChange(value)}
+                disablePortal
+                id="combo-box-demo"
               />
+            )}
+          />
+          <p className='err-msg'>{errors.vyapariName?.message}</p>
         </Grid>
 
         <Grid item xs={6}>
           <Controller
             name="selectDate"
             control={control}
+            rules={{ required: "Enter selectDate" }}
             defaultValue=""
             render={({ field }) => (
               <TextField
@@ -104,11 +107,13 @@ function VasuliTransaction() {
               />
             )}
           />
+          <p className='err-msg'>{errors.selectDate?.message}</p>
         </Grid>
         <Grid item xs={6}>
           <Controller
             name="collectedAmount"
             control={control}
+            rules={{ required: "Enter Collected Amount" }}
             defaultValue=""
             render={({ field }) => (
               <TextField
@@ -119,6 +124,7 @@ function VasuliTransaction() {
               />
             )}
           />
+          <p className='err-msg'>{errors.collectedAmount?.message}</p>
         </Grid>
 
         <Grid item xs={12} container spacing={2}>

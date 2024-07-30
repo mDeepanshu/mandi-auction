@@ -11,7 +11,7 @@ import "./item-master.css"
 import {Delete,AddCircleOutline} from '@mui/icons-material';
 
 const ItemMaster = () => {
-  const { handleSubmit, control, getValues } = useForm();
+  const { handleSubmit, control, getValues, formState: { errors } } = useForm();
 
   const [tableData, setTableData] = useState([]);
 
@@ -74,6 +74,7 @@ const ItemMaster = () => {
           <Controller
             name="itemName"
             control={control}
+            rules={{required:"Enter Item Name"}}
             defaultValue=""
             render={({ field }) => <TextField {...field} fullWidth label="Item Name" variant="outlined" InputProps={{
               startAdornment: (
@@ -83,6 +84,7 @@ const ItemMaster = () => {
               ),
             }} />}
           />
+          <p className='err-msg'>{errors.itemName?.message}</p>
         </Grid>
         <Grid item xs={2}>
           <Button variant="contained" color="primary" fullWidth type="submit" sx={{ height: '3.438rem' }}>

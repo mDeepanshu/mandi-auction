@@ -11,7 +11,7 @@ import {Delete,AddCircleOutline} from '@mui/icons-material';
 
 const PartyMaster = () => {
   // const { handleSubmit, control, getValues } = useForm();
-  const { handleSubmit, control, getValues } = useForm({
+  const { handleSubmit, control, getValues, formState: { errors } } = useForm({
     defaultValues: {
       partyType: 'KISAN', // Ensure this matches one of the MenuItem values
     },
@@ -82,6 +82,7 @@ const PartyMaster = () => {
           <Controller
             name="name"
             control={control}
+            rules={{required:"Enter Name"}}
             defaultValue=""
             render={({ field }) => <TextField {...field} fullWidth label="Party Name" variant="outlined" InputProps={{
               startAdornment: (
@@ -91,11 +92,13 @@ const PartyMaster = () => {
               ),
             }} />}
           />
+          <p className='err-msg'>{errors.name?.message}</p>
         </Grid>
         <Grid item xs={6} sm={3}>
           <Controller
             name="partyType"
             control={control}
+            rules={{required:"Enter Party Type"}}
             defaultValue="KISAN"
             render={({ field }) => (
               <FormControl variant="outlined" fullWidth>
@@ -110,16 +113,18 @@ const PartyMaster = () => {
               </FormControl>
             )}
           />
-
+        <p className='err-msg'>{errors.partyType?.message}</p>
         </Grid>
         <Grid item xs={6} sm={3}>
           <Controller
             name="contact"
             control={control}
+            rules={{required:"Enter Contact"}}
             defaultValue=""
             render={({ field }) => <TextField {...field} fullWidth label="Contact" variant="outlined" InputProps={{
             }} />}
           />
+          <p className='err-msg'>{errors.contact?.message}</p>
         </Grid>
         <Grid item xs={1}>
           <Button variant="contained" color="primary" fullWidth type="submit" sx={{ height: '3.438rem' }}>

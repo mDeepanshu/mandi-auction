@@ -31,10 +31,10 @@ function NavBar(props) {
             <Divider />
             <List>
                 {navItems.map((item,index) => (
-                    <Link to={item.name}>
-                        <ListItem key={index} disablePadding>
-                            <ListItemButton key={index} sx={{ textAlign: 'center' }}>
-                                <ListItemText key={index} primary={item.label} />
+                    <Link to={item.name} key={index}>
+                        <ListItem disablePadding>
+                            <ListItemButton sx={{ textAlign: 'center' }}>
+                                <ListItemText primary={item.label} />
                             </ListItemButton>
                         </ListItem>
                     </Link>
@@ -67,8 +67,8 @@ function NavBar(props) {
                     </Typography>
                     <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                         {navItems.map((item,index) => (
-                            <Link to={item.name}>
-                                <Button key={index} sx={{ color: '#fff' }}>
+                            <Link to={item.name} key={index}>
+                                <Button sx={{ color: '#fff' }}>
                                     {item.label}
                                 </Button>
                             </Link>
