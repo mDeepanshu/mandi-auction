@@ -7,22 +7,24 @@ import SearchIcon from '@mui/icons-material/Search';
 import Autocomplete from '@mui/material/Autocomplete';
 import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
 import "./auction-transaction.css"
-import {Delete,AddCircleOutline} from '@mui/icons-material';
+import { Delete, AddCircleOutline } from '@mui/icons-material';
+import Snackbar from '@mui/material/Snackbar';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
 function AuctionTransaction() {
 
-  const rows = [];
-
-  const { handleSubmit, control, getValues, formState: { errors },trigger  } = useForm();
+  const { handleSubmit, control, getValues, formState: { errors }, trigger } = useForm();
   const [itemsList, setItemsList] = useState([]);
   const [kisanList, setKisanList] = useState([]);
   const [vyapariList, setVyapariList] = useState([]);
-  const [buyItemsArr, setTableData] = useState(rows);
+  const [buyItemsArr, setTableData] = useState([]);
+  const [open, setOpen] = useState(false);
 
   const onSubmit = async () => {
     const data = getValues();
-    const isValid = await trigger(['kisaan','vyapari','itemName']);
-    if (isValid) {
+    const isValid = await trigger(['kisaan', 'vyapari', 'itemName']);
+    if (isValid && buyItemsArr.length) {
       const buyItems = buyItemsArr.map(obj => {
         const { vyapariName, ...rest } = obj; // Destructure and omit the city property
         return rest; // Return the rest of the object
@@ -39,12 +41,14 @@ function AuctionTransaction() {
         console.log(error);
       }
     } else {
-      console.log('Validation failed');
+      if (!buyItemsArr.length) {
+        setOpen(true);
+      }
     }
   };
 
   const addToTable = async () => {
-    const result = await trigger(["kisaan","itemName","vyapari","quantity","rate","bag"]);
+    const result = await trigger(["kisaan", "itemName", "vyapari", "quantity", "rate", "bag"]);
     if (result) {
       const values = getValues();
       console.log(values.vyapariName);
@@ -98,6 +102,27 @@ function AuctionTransaction() {
     fetchList("items");
   }, []);
 
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
+
+  const action = (
+    <React.Fragment>
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleClose}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </React.Fragment>
+  );
+
+
   return (
     <>
       <form>
@@ -109,10 +134,11 @@ function AuctionTransaction() {
             <Controller
               name="kisaan"
               control={control}
-              rules={{required:"Enter Kisaan Name"}}
+              rules={{ required: "Enter Kisaan Name" }}
               render={({ field }) => (
                 <Autocomplete
                   {...field}
+                  value={field.value || null}
                   options={kisanList}
                   getOptionLabel={(option) => option.name}
                   renderInput={(params) => (
@@ -141,7 +167,7 @@ function AuctionTransaction() {
             <Controller
               name="itemName"
               control={control}
-              rules={{required:"Enter Item"}}
+              rules={{ required: "Enter Item" }}
               render={({ field }) => (
                 <Autocomplete
                   {...field}
@@ -174,7 +200,7 @@ function AuctionTransaction() {
               <Controller
                 name="vyapari"
                 control={control}
-                rules={{required:"Enter Vyapari Name"}}
+                rules={{ required: "Enter Vyapari Name" }}
                 render={({ field }) => (
                   <Autocomplete
                     {...field}
@@ -200,40 +226,40 @@ function AuctionTransaction() {
                   />
                 )}
               />
-            <p className='err-msg'>{errors.vyapari?.message}</p>
+              <p className='err-msg'>{errors.vyapari?.message}</p>
             </Grid>
             <Grid item md={2} xs={6}>
               <Controller
                 name="quantity"
                 control={control}
-                rules={{required:"Enter Quantity"}}
+                rules={{ required: "Enter Quantity" }}
                 defaultValue=""
-                render={({ field }) => <TextField {...field} fullWidth label="Quantity" type='number' variant="outlined" />}
+                render={({ field }) => <TextField {...field} fullWidth label="QUANTITY" type='number' variant="outlined" />}
               />
-            <p className='err-msg'>{errors.quantity?.message}</p>
+              <p className='err-msg'>{errors.quantity?.message}</p>
             </Grid>
             <Grid item md={2} xs={4}>
               <Controller
                 name="rate"
                 control={control}
-                rules={{required:"Enter Rate"}}
+                rules={{ required: "Enter Rate" }}
                 defaultValue=""
-                render={({ field }) => <TextField {...field} fullWidth label="Rate" type='number' variant="outlined" />}
+                render={({ field }) => <TextField {...field} fullWidth label="RATE" type='number' variant="outlined" />}
               />
-            <p className='err-msg'>{errors.rate?.message}</p>
+              <p className='err-msg'>{errors.rate?.message}</p>
             </Grid>
             <Grid item md={2} xs={4}>
               <Controller
                 name="bag"
                 control={control}
-                rules={{required:"Enter Bag"}}
+                rules={{ required: "Enter Bag" }}
                 defaultValue=""
-                render={({ field }) => <TextField {...field} fullWidth label="Bag" variant="outlined" />}
+                render={({ field }) => <TextField {...field} fullWidth label="BAG" variant="outlined" />}
               />
-            <p className='err-msg'>{errors.bag?.message}</p>
+              <p className='err-msg'>{errors.bag?.message}</p>
             </Grid>
             <Grid item md={2} xs={4}>
-              <Button variant="contained" color="primary" sx={{ height: '3.438rem' }} onClick={addToTable}><AddCircleOutline/></Button>
+              <Button variant="contained" color="primary" sx={{ height: '3.438rem' }} onClick={addToTable}><AddCircleOutline /></Button>
             </Grid>
           </Grid>
           <Grid item xs={12}>
@@ -241,12 +267,12 @@ function AuctionTransaction() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Vyapari Name</TableCell>
-                    <TableCell>Quantity</TableCell>
-                    <TableCell>Rate</TableCell>
-                    <TableCell>Bag</TableCell>
-                    <TableCell>Total</TableCell>
-                    <TableCell>Delete</TableCell>
+                    <TableCell>VYAPARI NAME</TableCell>
+                    <TableCell>QUANTITY</TableCell>
+                    <TableCell>RATE</TableCell>
+                    <TableCell>BAG</TableCell>
+                    <TableCell>TOTAL</TableCell>
+                    <TableCell>DELETE</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -256,14 +282,23 @@ function AuctionTransaction() {
                       <TableCell>{row.quantity}</TableCell>
                       <TableCell>{row.rate}</TableCell>
                       <TableCell>{row.bag}</TableCell>
-                      <TableCell>{row.rate*row.quantity}</TableCell>
-                      <TableCell onClick={() => deleteFromTable(index)}><Button><Delete/></Button></TableCell>
+                      <TableCell>{row.rate * row.quantity}</TableCell>
+                      <TableCell onClick={() => deleteFromTable(index)}><Button><Delete /></Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </TableContainer>
           </Grid>
+          <div>
+            <Snackbar
+              open={open}
+              autoHideDuration={1000}
+              message="ADD ATLEST ONE TRANSACTION"
+              action={action}
+              onClose={handleClose}
+            />
+          </div>
           <Grid item xs={12} container justifyContent="flex-end">
             <Button type="button" variant="contained" color="primary" onClick={onSubmit}>
               Submit

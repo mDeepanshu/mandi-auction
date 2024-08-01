@@ -74,7 +74,7 @@ const PartyMaster = () => {
       <Grid container spacing={2} p={3}>
         <Grid item xs={0} md={12}>
           <Typography variant="h4" component="h1" align="left">
-            Party Master
+            PARTY MASTER
           </Typography>
         </Grid>
 
@@ -84,7 +84,7 @@ const PartyMaster = () => {
             control={control}
             rules={{required:"Enter Name"}}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="Party Name" variant="outlined" InputProps={{
+            render={({ field }) => <TextField {...field} fullWidth label="PARTY NAME" variant="outlined" InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon />
@@ -102,7 +102,7 @@ const PartyMaster = () => {
             defaultValue="KISAN"
             render={({ field }) => (
               <FormControl variant="outlined" fullWidth>
-                <InputLabel>Party Type</InputLabel>
+                <InputLabel>PARTY TYPE</InputLabel>
                 <Select
                   {...field}
                   label="Party Type"
@@ -121,7 +121,7 @@ const PartyMaster = () => {
             control={control}
             rules={{required:"Enter Contact"}}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="Contact" variant="outlined" InputProps={{
+            render={({ field }) => <TextField {...field} fullWidth label="CONTACT" variant="outlined" InputProps={{
             }} />}
           />
           <p className='err-msg'>{errors.contact?.message}</p>
@@ -136,10 +136,10 @@ const PartyMaster = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Index</TableCell>
-                <TableCell>Party Name</TableCell>
-                <TableCell>Party Type</TableCell>
-                <TableCell>Delete</TableCell>
+                <TableCell>INDEX</TableCell>
+                <TableCell>PARTY NAME</TableCell>
+                <TableCell>PARTY TYPE</TableCell>
+                <TableCell>DELETE</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

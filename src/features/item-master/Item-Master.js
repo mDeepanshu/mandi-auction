@@ -66,7 +66,7 @@ const ItemMaster = () => {
       <Grid container spacing={2} p={3}>
         <Grid item xs={12}>
           <Typography variant="h4" component="h1" align="left">
-            Item Master
+            ITEM MASTER
           </Typography>
         </Grid>
 
@@ -76,13 +76,7 @@ const ItemMaster = () => {
             control={control}
             rules={{required:"Enter Item Name"}}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="Item Name" variant="outlined" InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }} />}
+            render={({ field }) => <TextField {...field} fullWidth label="ITEM NAME" variant="outlined" />}
           />
           <p className='err-msg'>{errors.itemName?.message}</p>
         </Grid>
@@ -97,9 +91,9 @@ const ItemMaster = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Index</TableCell>
-                  <TableCell>Item Name</TableCell>
-                  <TableCell>Delete</TableCell>
+                  <TableCell>INDEX</TableCell>
+                  <TableCell>ITEM NAME</TableCell>
+                  <TableCell>DELETE</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
