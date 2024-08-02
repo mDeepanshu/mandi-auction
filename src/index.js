@@ -10,7 +10,7 @@ import VasuliTransaction from "./features/vasuli-transaction/Vasuli-Transaction"
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 
-import {RouterProvider,createBrowserRouter} from 'react-router-dom'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 
 const router = createBrowserRouter([
 	{
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
 				path: 'item-master',
 				element: <ItemMaster />
 			},
-      {
+			{
 				path: 'party-master',
 				element: <PartyMaster />
 			},
@@ -46,9 +46,9 @@ const router = createBrowserRouter([
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <RouterProvider router={router}/>
-  </React.StrictMode>
+	<React.StrictMode>
+		<RouterProvider router={router} />
+	</React.StrictMode>
 );
 
 serviceWorkerRegistration.register();

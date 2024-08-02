@@ -20,6 +20,8 @@ function AuctionTransaction() {
   const [vyapariList, setVyapariList] = useState([]);
   const [buyItemsArr, setTableData] = useState([]);
   const [open, setOpen] = useState(false);
+  const matches = useMediaQuery('(min-width:600px)');
+  const matchesTwo = useMediaQuery('(max-width:599px)');
 
   const onSubmit = async () => {
     const data = getValues();
@@ -35,7 +37,7 @@ function AuctionTransaction() {
         buyItems
       }
       try {
-        // const result = await addAuctionTransaction(auctionData);
+        const result = await addAuctionTransaction(auctionData);
         console.log(auctionData);
       } catch (error) {
         console.log(error);
@@ -266,13 +268,21 @@ function AuctionTransaction() {
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
-                  <TableRow>
+                  <TableRow style={{ display: matches ? 'table-row' : 'none' }}>
                     <TableCell>VYAPARI NAME</TableCell>
                     <TableCell>QUANTITY</TableCell>
                     <TableCell>RATE</TableCell>
                     <TableCell>BAG</TableCell>
                     <TableCell>TOTAL</TableCell>
                     <TableCell>DELETE</TableCell>
+                  </TableRow>
+                  <TableRow style={{ display: matchesTwo ? 'table-row' : 'none' }}>
+                    <TableCell>VYAPARI</TableCell>
+                    <TableCell>Q</TableCell>
+                    <TableCell>R</TableCell>
+                    <TableCell>B</TableCell>
+                    <TableCell>T</TableCell>
+                    <TableCell>D</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

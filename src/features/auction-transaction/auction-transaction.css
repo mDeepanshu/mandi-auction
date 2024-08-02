@@ -1,14 +1,26 @@
 .hidden-xs {
-    display: none;
-  }
-  
-  @media (min-width: 600px) {
-    .hidden-xs {
-      display: block;
-    }
-  }
+  display: none;
+}
 
-.err-msg{
+@media (min-width: 600px) {
+  .hidden-xs {
+    display: block;
+  }
+}
+
+.err-msg {
   color: rgb(224, 67, 67);
   font-weight: 500;
+}
+
+/* Default: hide the row */
+.hidden-lg {
+  display: none;
+}
+
+/* Show the row when the width is less than 600px */
+@media (max-width: 599px) {
+  .hidden-lg {
+    display: table-cell; /* Correct display value for table rows */
+  }
 }

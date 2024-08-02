@@ -8,8 +8,8 @@ const drawerWidth = 240;
 const navItems = [
     { name: '', label: 'Home' },
     { name: 'auction-transaction', label: 'Auction Transaction' },
-    { name: 'item-master', label: 'Item Master' },
-    { name: 'party-master', label: 'Party Master' },
+    // { name: 'item-master', label: 'Item Master' },
+    // { name: 'party-master', label: 'Party Master' },
     { name: 'vasuli-transaction', label: 'Vasuli Transaction' },
 ];
 
