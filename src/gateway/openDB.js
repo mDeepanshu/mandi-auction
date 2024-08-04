@@ -6,6 +6,16 @@ let db;
 
 const openDB = () => {
   return new Promise((resolve, reject) => {
+
+    const localObj = {
+      auction:[],
+      vasuli:[]
+    }
+
+    if (!localStorage.getItem("localObj")) {
+      localStorage.setItem("localObj",JSON.stringify(localObj));
+    }
+
     const request = indexedDB.open(dbName, dbVersion);
 
     request.onupgradeneeded = (event) => {

@@ -6,20 +6,30 @@ const setDB = (database) => {
   db = database;
 };
 
-const addItem = (item,collectionName) => {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([collectionName], "readwrite");
-    const store = transaction.objectStore(collectionName);
+const addItem = (data,collectionName) => {
+  const transaction = db.transaction([collectionName], "readwrite");
+  const store = transaction.objectStore(collectionName);
+  store.clear();
+
+  data.forEach(item => {
     const request = store.add(item);
 
     request.onsuccess = () => {
-      resolve(item);
+      // resolve(item);
     };
 
     request.onerror = (event) => {
-      reject(event.target.errorCode);
+      // reject(event.target.errorCode);
     };
   });
+
+  transaction.oncomplete = () => {
+    console.log('All items added successfully');
+  };
+
+  transaction.onerror = (event) => {
+    console.error('Transaction error:', event.target.errorCode);
+  };
 };
 
 const getItem = (id,collectionName) => {

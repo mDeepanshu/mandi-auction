@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 // import PropTypes from 'prop-types';
 import { AppBar, Box, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography, Button } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-
+import { syncAll } from "../../gateway/gateway";
 const drawerWidth = 240;
 const navItems = [
     { name: '', label: 'Home' },
@@ -23,6 +23,10 @@ function NavBar(props) {
         setMobileOpen((prevState) => !prevState);
     };
 
+    const syncData = () => {
+        syncAll();
+    }
+
     const drawer = (
         <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
             <Typography variant="h6" sx={{ my: 2 }}>
@@ -39,6 +43,7 @@ function NavBar(props) {
                         </ListItem>
                     </Link>
                 ))}
+                <Button sx={{ color: 'black' }} onClick={syncData}>Sync</Button>
             </List>
         </Box>
     );
@@ -73,6 +78,7 @@ function NavBar(props) {
                                 </Button>
                             </Link>
                         ))}
+                    <Button sx={{ color: 'black' }} onClick={syncData}>Sync</Button>
                     </Box>
                 </Toolbar>
             </AppBar>
