@@ -4,19 +4,6 @@ import axiosHttp from "../interceptors/error-handling-interceptor";
 export const syncAll = async () => {
 
     const dataToSync = JSON.parse(localStorage.getItem('localObj'));
-    for (const key in dataToSync) {
-        if (dataToSync.hasOwnProperty(key)) {
-            console.log(key, dataToSync[key]);
-            if (dataToSync[key].length) {
-                syncTransactions(key, dataToSync[key]);
-            }
-        }
-    }
-    const localObj = {
-        auction: [],
-        vasuli: []
-    }
-    localStorage.setItem("localObj", JSON.stringify(localObj));
 
     let p1 = new Promise((res, rej) => syncItems().then((data) => {
         if (data) {
@@ -33,11 +20,36 @@ export const syncAll = async () => {
             res();
         }
     }));
+    let p4 = new Promise((res, rej) => syncTransactions("auction", dataToSync.auction).then((data) => {
+        if (data) {
+            res();
+        } else {
+            rej("errorp4");
+        }
+    }));
+    let p5 = new Promise((res, rej) => syncTransactions("vasuli", dataToSync.vasuli).then((data) => {
+        if (data != "error") {
+            console.log(data);
+            res();
+        } else {
+            rej("errorp5");
+        }
+    }));
 
-    Promise.all([p1, p2, p3]).then(() => console.log("Done all three")).catch(err => {
-        console.log("Promise All Error");
-    });
+    Promise.all([p1, p2, p3, p4, p5])
+        .then((data) => {
+            console.log("Done all Five", data)
+            return "syncDone";
+        })
+        .catch((err) => {
+            console.log("Sync Failed. Try Again.");
+        });
 
+    const localObj = {
+        auction: [],
+        vasuli: []
+    }
+    localStorage.setItem("localObj", JSON.stringify(localObj));
 
 };
 
@@ -67,7 +79,7 @@ export const syncItems = async () => {
 
 export const syncParties = async (api) => {
     try {
-        const response = await axiosHttp.get(`/party/listAllParties?partyType=${api}temp`);
+        const response = await axiosHttp.get(`/party/listAllParties?partyType=${api}`);
         console.log(response.data.responseBody);
         addItem(response.data.responseBody, api);
     } catch (error) {
@@ -77,3 +89,12 @@ export const syncParties = async (api) => {
 
     }
 }
+
+// for (const key in dataToSync) {
+//     if (dataToSync.hasOwnProperty(key)) {
+//         console.log(key, dataToSync[key]);
+//         if (dataToSync[key].length) {
+//             syncTransactions(key, dataToSync[key]);
+//         }
+//     }
+// }

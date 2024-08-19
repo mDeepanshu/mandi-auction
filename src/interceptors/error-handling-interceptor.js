@@ -19,7 +19,7 @@ axiosHttp.interceptors.response.use(
         // Example: Handle unauthorized errors (401)
         console.log("Interceptor error");
 
-        if (error.response.status != 200) {
+        if (error?.response?.status != 200) {
             // Handle unauthorized case (e.g., redirect to login)
         }
           return Promise.reject('error');

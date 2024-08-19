@@ -5,6 +5,7 @@ import IndexedDBOpen from "./gateway/index-db-open";
 import openDB from "./gateway/openDB";
 import { Box } from '@mui/material';
 import { setDB } from "./gateway/curdDB";
+import {  useState } from 'react';
 
 import { initializeApp } from "firebase/app";
 
@@ -31,12 +32,25 @@ const initializeDB = async () => {
 initializeDB();
 
 function App() {
+
+  const [loading, setLoading] = useState(false);
+
+  const changeLoading = (newState) => {
+    setLoading(newState);
+  }
+
   return (
     <>
-      <NavBar></NavBar>
-      <Box component="main" sx={{mt:8 }}>
-        <Outlet />
-      </Box>
+      {loading ? (
+        <div className="loader" /> // Render the loader when loading is true
+      ) : (
+        <div>
+          <NavBar changeLoadingState={changeLoading}></NavBar>
+          <Box component="main" sx={{ mt: 8 }}>
+            <Outlet />
+          </Box>
+        </div>
+      )}
     </>
   );
 }

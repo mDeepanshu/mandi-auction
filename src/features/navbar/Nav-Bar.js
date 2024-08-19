@@ -23,8 +23,11 @@ function NavBar(props) {
         setMobileOpen((prevState) => !prevState);
     };
 
-    const syncData = () => {
-        syncAll();
+    const syncData = async () => {
+        props.changeLoadingState(true);
+        let syncStatus = await syncAll();
+        console.log(syncStatus);
+        props.changeLoadingState(false);
     }
 
     const drawer = (
@@ -34,7 +37,7 @@ function NavBar(props) {
             </Typography>
             <Divider />
             <List>
-                {navItems.map((item,index) => (
+                {navItems.map((item, index) => (
                     <Link to={item.name} key={index}>
                         <ListItem disablePadding>
                             <ListItemButton sx={{ textAlign: 'center' }}>
@@ -71,14 +74,14 @@ function NavBar(props) {
                         MANDI
                     </Typography>
                     <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                        {navItems.map((item,index) => (
+                        {navItems.map((item, index) => (
                             <Link to={item.name} key={index}>
                                 <Button sx={{ color: '#fff' }}>
                                     {item.label}
                                 </Button>
                             </Link>
                         ))}
-                    <Button sx={{ color: 'black' }} onClick={syncData}>Sync</Button>
+                        <Button sx={{ color: 'black' }} onClick={syncData}>Sync</Button>
                     </Box>
                 </Toolbar>
             </AppBar>

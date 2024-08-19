@@ -11,13 +11,6 @@ function VasuliTransaction() {
 
   const { register, handleSubmit, control, formState: { errors } } = useForm();
 
-  const rows = [
-    { name: 'Frozen yoghurt', calories: 159, fat: 6.0, carbs: 24, protein: 4.0 },
-    { name: 'Ice cream sandwich', calories: 237, fat: 9.0, carbs: 37, protein: 4.3 },
-    { name: 'Eclair', calories: 262, fat: 16.0, carbs: 24, protein: 6.0 },
-    { name: 'Cupcake', calories: 305, fat: 3.7, carbs: 67, protein: 4.3 },
-    { name: 'Gingerbread', calories: 356, fat: 16.0, carbs: 49, protein: 3.9 },
-  ];
   const [vyapariList, setVyapariList] = useState([]);
 
   const fetchList = async (listName) => {
@@ -35,10 +28,6 @@ function VasuliTransaction() {
 
 
   const onSubmit = async (data) => {
-    const billDetails = {
-      ...data,
-      rows
-    }
     console.log(data);
     // e.preventDefault();
     try {
@@ -80,7 +69,7 @@ function VasuliTransaction() {
                     }}
                   />
                 )}
-                onChange={(event, value) => field.onChange(value)}
+                onChange={(event, value) => field.onChange(value.partyId)}
                 disablePortal
                 id="combo-box-demo"
               />
