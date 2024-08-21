@@ -11,6 +11,7 @@ import { Delete, AddCircleOutline } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import Alert from '@mui/material/Alert';
 
 function AuctionTransaction() {
 
@@ -20,6 +21,8 @@ function AuctionTransaction() {
   const [vyapariList, setVyapariList] = useState([]);
   const [buyItemsArr, setTableData] = useState([]);
   const [open, setOpen] = useState(false);
+  const [openSuccessTransactionDialog, setSuccessTransactionDialog] = useState(false);
+
   const matches = useMediaQuery('(min-width:600px)');
   const matchesTwo = useMediaQuery('(max-width:599px)');
 
@@ -38,7 +41,7 @@ function AuctionTransaction() {
       }
       try {
         const result = await addAuctionTransaction(auctionData);
-        console.log(auctionData);
+        setSuccessTransactionDialog(true);
       } catch (error) {
         console.log(error);
       }
@@ -78,7 +81,6 @@ function AuctionTransaction() {
   }
 
   const fetchList = async (listName) => {
-    console.log("t");
     try {
       const list = await getAllItems(listName);
       // console.log(listName, list);
@@ -109,6 +111,7 @@ function AuctionTransaction() {
       return;
     }
     setOpen(false);
+    setSuccessTransactionDialog(false);
   };
 
   const action = (
@@ -308,6 +311,22 @@ function AuctionTransaction() {
               action={action}
               onClose={handleClose}
             />
+          </div>
+          <div>
+            <Snackbar
+              open={openSuccessTransactionDialog}
+              autoHideDuration={1000}
+              onClose={handleClose}
+            >
+              <Alert
+                onClose={handleClose}
+                severity="success"
+                variant="filled"
+                sx={{ width: '100%' }}
+              >
+                TRANSACTION SUCCESSFULLY ADDED.
+              </Alert>
+            </Snackbar>
           </div>
           <Grid item xs={12} container justifyContent="flex-end">
             <Button type="button" variant="contained" color="primary" onClick={onSubmit}>
