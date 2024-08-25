@@ -6,21 +6,21 @@ export const syncAll = async () => {
     const dataToSync = JSON.parse(localStorage.getItem('localObj'));
 
     let p1 = new Promise((res, rej) => syncItems().then((data) => {
-        if (data != "error") {
+        if (data !== "error") {
             res();
         } else {
             rej("errorp1");
         }
     }));
     let p2 = new Promise((res, rej) => syncParties("VYAPARI").then((data) => {
-        if (data != "error") {
+        if (data !== "error") {
             res();
         } else {
             rej("errorp2");
         }
     }));
     let p3 = new Promise((res, rej) => syncParties("KISAN").then((data) => {
-        if (data != "error") {
+        if (data !== "error") {
             res();
         } else {
             rej("errorp3");
@@ -34,7 +34,7 @@ export const syncAll = async () => {
         }
     }));
     let p5 = new Promise((res, rej) => syncTransactions("vasuli", dataToSync.vasuli).then((data) => {
-        if (data != "error") {
+        if (data !== "error") {
             res();
         } else {
             rej("errorp5");
@@ -51,7 +51,7 @@ export const syncAll = async () => {
 
     // return Promise.all([promise])
     return Promise.all([p1, p2, p3, p4, p5])
-        .then((data) => {
+        .then(() => {
             const localObj = {
                 auction: [],
                 vasuli: []
@@ -60,8 +60,6 @@ export const syncAll = async () => {
             return true;
         })
         .catch((err) => {
-            console.log("localObj");
-            
             return false;
         });
 
@@ -90,9 +88,10 @@ export const syncItems = async () => {
     }
 };
 
-export const syncParties = async (api) => {
+export const syncParties = async (partyType) => {
     try {
-        const response = await axiosHttp.get(`/party/listAllParties?partyType=${api}`);
+        const response = await axiosHttp.get(`/party/listAllParties?partyType=${partyType}`);
+        addItem(response.data.responseBody, partyType);
     } catch (error) {
         console.error('Error posting data:', error);
         return 'error';

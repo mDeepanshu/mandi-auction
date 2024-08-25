@@ -10,7 +10,7 @@ const addItem = (data,collectionName) => {
   const transaction = db.transaction([collectionName], "readwrite");
   const store = transaction.objectStore(collectionName);
   store.clear();
-
+  
   data.forEach(item => {
     const request = store.add(item);
 
@@ -50,6 +50,7 @@ const getItem = (id,collectionName) => {
 
 const getAllItems = (collectionName) => {
   return new Promise((resolve, reject) => {
+    
     const transaction = db.transaction([collectionName], "readonly");
     const store = transaction.objectStore(collectionName);
     const request = store.getAll();
@@ -62,7 +63,7 @@ const getAllItems = (collectionName) => {
       reject(event.target.errorCode);
     };
   });
-};
+}; 
 
 const updateItem = (item,collectionName) => {
   return new Promise((resolve, reject) => {

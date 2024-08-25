@@ -1,27 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, TextField, Button, useMediaQuery, colors } from '@mui/material';
+import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, TextField, Button, useMediaQuery } from '@mui/material';
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
-import { getItems, getAllParties } from "../../gateway/common-apis";
 import SearchIcon from '@mui/icons-material/Search';
 import Autocomplete from '@mui/material/Autocomplete';
-import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
+import { getAllItems } from "../../gateway/curdDB";
 import "./auction-transaction.css"
 import { Delete, AddCircleOutline } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Alert from '@mui/material/Alert';
+import { useOutletContext } from 'react-router-dom';
 
 function AuctionTransaction() {
 
-  const { handleSubmit, control, getValues, formState: { errors }, trigger } = useForm();
+  const { control, getValues, formState: { errors }, trigger } = useForm();
   const [itemsList, setItemsList] = useState([]);
   const [kisanList, setKisanList] = useState([]);
   const [vyapariList, setVyapariList] = useState([]);
   const [buyItemsArr, setTableData] = useState([]);
   const [open, setOpen] = useState(false);
   const [openSuccessTransactionDialog, setSuccessTransactionDialog] = useState(false);
+  const { loading } = useOutletContext();
 
   const matches = useMediaQuery('(min-width:600px)');
   const matchesTwo = useMediaQuery('(max-width:599px)');
@@ -40,7 +41,7 @@ function AuctionTransaction() {
         buyItems
       }
       try {
-        const result = await addAuctionTransaction(auctionData);
+        await addAuctionTransaction(auctionData);
         setSuccessTransactionDialog(true);
       } catch (error) {
         console.log(error);
@@ -56,7 +57,6 @@ function AuctionTransaction() {
     const result = await trigger(["kisaan", "itemName", "vyapari", "quantity", "rate", "bag"]);
     if (result) {
       const values = getValues();
-      console.log(values.vyapariName);
       let newTableData = [
         ...buyItemsArr,
         {
@@ -67,7 +67,6 @@ function AuctionTransaction() {
           bag: Number(values.bag),
         }
       ];
-      console.log(newTableData)
       setTableData(newTableData);
     } else {
       console.log('Validation failed');
@@ -94,6 +93,8 @@ function AuctionTransaction() {
         case "items":
           setItemsList(list);
           break;
+        default:
+          break;
       }
     } catch (error) {
       console.error("Fetch items error:", error);
@@ -104,7 +105,7 @@ function AuctionTransaction() {
     fetchList("VYAPARI");
     fetchList("KISAN");
     fetchList("items");
-  }, []);
+  }, [loading]);
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {

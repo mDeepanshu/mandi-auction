@@ -39,7 +39,6 @@ const createCollection = () => {
 }
 
 function IndexedDBOpen() {
-    console.log("hello");
     createCollection();
 }
 

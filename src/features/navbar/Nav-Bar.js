@@ -6,14 +6,10 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { syncAll } from "../../gateway/gateway";
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
-import CloseIcon from '@mui/icons-material/Close';
 
-const drawerWidth = 240;
 const navItems = [
     { name: '', label: 'Home' },
     { name: 'auction-transaction', label: 'Auction Transaction' },
-    // { name: 'item-master', label: 'Item Master' },
-    // { name: 'party-master', label: 'Party Master' },
     { name: 'vasuli-transaction', label: 'Vasuli Transaction' },
 ];
 
@@ -29,56 +25,23 @@ function NavBar(props) {
         setMobileOpen((prevState) => !prevState);
     };
 
-    const handleClick = () => {
-        setOpen(true);
-    };
-
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
-
         setOpen(false);
     };
 
     const syncData = async () => {
-
-        // props.changeLoadingState(true);
-        syncAll().then((data) => {
-
-            props.changeLoadingState(false);
-            if (data) {
-                setSync({
-                    syncSeverity: 'success',
-                    syncStatus: 'SYNC SUCCESSFUL'
-                });
-            } else {
-                setSync({
-                    syncSeverity: 'error',
-                    syncStatus: 'SYNC UNSUCCESSFUL'
-                });
-            }
-            console.log(data);
-
-            setOpen(true);
+        props.changeLoadingState(true);
+        let data = await syncAll();
+        props.changeLoadingState(false);
+        setSync({
+            syncSeverity: data ? 'success' : 'error',
+            syncStatus: data ? 'SYNC SUCCESSFUL' : 'SYNC UNSUCCESSFUL'
         });
+        setOpen(true);
     }
-
-    const action = (
-        <React.Fragment>
-            <Button color="secondary" size="small" onClick={handleClose}>
-                UNDO
-            </Button>
-            <IconButton
-                size="small"
-                aria-label="close"
-                color="inherit"
-                onClick={handleClose}
-            >
-                <CloseIcon fontSize="small" />
-            </IconButton>
-        </React.Fragment>
-    );
 
 
     const drawer = (
@@ -147,7 +110,7 @@ function NavBar(props) {
                     }}
                     sx={{
                         display: { xs: 'block', sm: 'none' },
-                        '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                        '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240 },
                     }}
                 >
                     {drawer}
@@ -156,7 +119,7 @@ function NavBar(props) {
             <div>
                 <Snackbar
                     open={open}
-                    autoHideDuration={1000}
+                    autoHideDuration={5000}
                     onClose={handleClose}
                 >
                     <Alert
