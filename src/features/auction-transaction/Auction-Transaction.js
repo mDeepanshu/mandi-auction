@@ -54,7 +54,7 @@ function AuctionTransaction() {
   };
 
   const addToTable = async () => {
-    const result = await trigger(["kisaan", "itemName", "vyapari", "quantity", "rate", "bag"]);
+    const result = await trigger(["kisaan", "itemName", "vyapari", "quantity", "rate", "bags"]);
     if (result) {
       const values = getValues();
       let newTableData = [
@@ -64,7 +64,7 @@ function AuctionTransaction() {
           vyapariId: values.vyapari.partyId,
           quantity: Number(values.quantity),
           rate: Number(values.rate),
-          bag: Number(values.bag),
+          bags: Number(values.bags),
         }
       ];
       setTableData(newTableData);
@@ -256,13 +256,13 @@ function AuctionTransaction() {
             </Grid>
             <Grid item md={2} xs={4}>
               <Controller
-                name="bag"
+                name="bags"
                 control={control}
-                rules={{ required: "Enter Bag" }}
+                rules={{ required: "Enter Bags" }}
                 defaultValue=""
-                render={({ field }) => <TextField {...field} fullWidth label="BAG" variant="outlined" />}
+                render={({ field }) => <TextField {...field} fullWidth label="BAGS" variant="outlined" />}
               />
-              <p className='err-msg'>{errors.bag?.message}</p>
+              <p className='err-msg'>{errors.bags?.message}</p>
             </Grid>
             <Grid item md={2} xs={4}>
               <Button variant="contained" color="primary" sx={{ height: '3.438rem' }} onClick={addToTable}><AddCircleOutline /></Button>
@@ -276,7 +276,7 @@ function AuctionTransaction() {
                     <TableCell>VYAPARI NAME</TableCell>
                     <TableCell>QUANTITY</TableCell>
                     <TableCell>RATE</TableCell>
-                    <TableCell>BAG</TableCell>
+                    <TableCell>BAGS</TableCell>
                     <TableCell>TOTAL</TableCell>
                     <TableCell>DELETE</TableCell>
                   </TableRow>
@@ -295,7 +295,7 @@ function AuctionTransaction() {
                       <TableCell>{row.vyapariName}</TableCell>
                       <TableCell>{row.quantity}</TableCell>
                       <TableCell>{row.rate}</TableCell>
-                      <TableCell>{row.bag}</TableCell>
+                      <TableCell>{row.bags}</TableCell>
                       <TableCell>{row.rate * row.quantity}</TableCell>
                       <TableCell onClick={() => deleteFromTable(index)}><Button><Delete /></Button></TableCell>
                     </TableRow>
