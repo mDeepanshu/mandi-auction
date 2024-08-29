@@ -1,39 +1,35 @@
-// src/api.js
-import axios from 'axios';
-import config from "../constants/config";
+import { addItem } from "./curdDB";
+import axiosHttp from "../interceptors/error-handling-interceptor";
 
-
-const axiosInstance = axios.create({
-    baseURL: config.apiBaseUrl,
-});
-
-
-export const getKisan = async (data) => {
+export const syncTransactions = async (api, data) => {
     try {
-        const response = await axiosInstance.get('/getPartyData', data);
+        const response = await axiosHttp.post(api, data);
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);
-        throw error;
+        return 'error';
+        // throw error;
     }
 };
 
-export const getAllParties = async (data) => {
+export const syncItems = async () => {
     try {
-        const response = await axiosInstance.get('/party/listAllParties', data);
-        return response.data;
+        const response = await axiosHttp.get('/listItems');
+        addItem(response.data.responseBody, "items");
     } catch (error) {
         console.error('Error posting data:', error);
-        throw error;
+        return 'error';
+        // throw error;
+
     }
 };
 
-export const getItems = async (data) => {
+export const syncParties = async (partyType) => {
     try {
-        const response = await axiosInstance.get('/listItems', data);
-        return response.data;
+        const response = await axiosHttp.get(`/party/listAllParties?partyType=${partyType}`);
+        addItem(response.data.responseBody, partyType);
     } catch (error) {
         console.error('Error posting data:', error);
-        throw error;
+        return 'error';
     }
-};
+}

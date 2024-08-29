@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Grid, Typography, TextField, InputAdornment, Button, Box, Autocomplete } from '@mui/material';
+import { Grid, Typography, TextField, InputAdornment, Button, Autocomplete } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { addVasuliTransaction } from "../../gateway/vasuli-transaction-apis";
 import { getAllItems } from "../../gateway/curdDB";
@@ -9,7 +9,7 @@ import { getAllItems } from "../../gateway/curdDB";
 function VasuliTransaction() {
 
 
-  const { register, handleSubmit, control, formState: { errors } } = useForm();
+  const { handleSubmit, control, formState: { errors } } = useForm();
 
   const [vyapariList, setVyapariList] = useState([]);
 
@@ -31,7 +31,7 @@ function VasuliTransaction() {
     console.log(data);
     // e.preventDefault();
     try {
-      const result = await addVasuliTransaction(data);
+      await addVasuliTransaction(data);
     } catch (error) {
     }
   };
@@ -47,7 +47,7 @@ function VasuliTransaction() {
 
         <Grid item xs={7}>
           <Controller
-            name="vyapariName"
+            name="vyapariId"
             control={control}
             rules={{ required: "Enter Vyapari Name" }}
             render={({ field }) => (
@@ -75,12 +75,12 @@ function VasuliTransaction() {
               />
             )}
           />
-          <p className='err-msg'>{errors.vyapariName?.message}</p>
+          <p className='err-msg'>{errors.vyapariId?.message}</p>
         </Grid>
 
         <Grid item xs={6}>
           <Controller
-            name="selectDate"
+            name="date"
             control={control}
             rules={{ required: "Enter selectDate" }}
             defaultValue=""
@@ -96,11 +96,11 @@ function VasuliTransaction() {
               />
             )}
           />
-          <p className='err-msg'>{errors.selectDate?.message}</p>
+          <p className='err-msg'>{errors.date?.message}</p>
         </Grid>
         <Grid item xs={6}>
           <Controller
-            name="collectedAmount"
+            name="amount"
             control={control}
             rules={{ required: "Enter Collected Amount" }}
             defaultValue=""
@@ -113,7 +113,7 @@ function VasuliTransaction() {
               />
             )}
           />
-          <p className='err-msg'>{errors.collectedAmount?.message}</p>
+          <p className='err-msg'>{errors.amount?.message}</p>
         </Grid>
 
         <Grid item xs={12} container spacing={2}>
