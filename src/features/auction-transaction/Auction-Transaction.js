@@ -15,7 +15,7 @@ import { useOutletContext } from 'react-router-dom';
 
 function AuctionTransaction() {
 
-  const { control, getValues, formState: { errors }, trigger } = useForm();
+  const { control, getValues, formState: { errors }, trigger, reset } = useForm();
   const [itemsList, setItemsList] = useState([]);
   const [kisanList, setKisanList] = useState([]);
   const [vyapariList, setVyapariList] = useState([]);
@@ -29,11 +29,11 @@ function AuctionTransaction() {
 
   const onSubmit = async () => {
     const data = getValues();
-    const isValid = await trigger(['kisaan', 'vyapari', 'itemName']);
+    const isValid = await trigger(['kisaan', 'itemName']);
     if (isValid && buyItemsArr.length) {
       const buyItems = buyItemsArr.map(obj => {
-        const { vyapariName, ...rest } = obj; // Destructure and omit the city property
-        return rest; // Return the rest of the object
+        const { vyapariName, ...rest } = obj;
+        return rest;
       });
       const auctionData = {
         "kisanId": data.kisaan.partyId,
@@ -43,6 +43,8 @@ function AuctionTransaction() {
       try {
         await addAuctionTransaction(auctionData);
         setSuccessTransactionDialog(true);
+        reset();
+        setTableData([]);
       } catch (error) {
         console.log(error);
       }
@@ -115,6 +117,16 @@ function AuctionTransaction() {
     setSuccessTransactionDialog(false);
   };
 
+  // temp
+  const defaultValues = {
+    kisaan: kisanList[0] // Default to the first item in kisanList, adjust based on your needs
+  };
+
+  // const { control } = useForm({
+  //   defaultValues
+  // });
+  // temp close
+
   const action = (
     <React.Fragment>
       <IconButton
@@ -177,6 +189,7 @@ function AuctionTransaction() {
               render={({ field }) => (
                 <Autocomplete
                   {...field}
+                  value={field.value || null}
                   options={itemsList}
                   getOptionLabel={(option) => option.name}
                   renderInput={(params) => (
@@ -210,6 +223,7 @@ function AuctionTransaction() {
                 render={({ field }) => (
                   <Autocomplete
                     {...field}
+                    value={field.value || null}
                     options={vyapariList}
                     getOptionLabel={(option) => option.name}
                     renderInput={(params) => (
