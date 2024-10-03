@@ -19,7 +19,7 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: '/',
-				element: <Home />
+				element: <AuctionTransaction />
 			},
 			{
 				path: 'auction-transaction',

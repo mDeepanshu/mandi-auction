@@ -8,7 +8,7 @@ import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 
 const navItems = [
-    { name: '', label: 'Home' },
+    // { name: '', label: 'Home' },
     { name: 'auction-transaction', label: 'Auction Transaction' },
     { name: 'vasuli-transaction', label: 'Vasuli Transaction' },
 ];
