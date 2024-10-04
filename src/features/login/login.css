@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&family=Lato&family=Montserrat&family=Poppins&family=Open+Sans&family=Pacifico&family=Dancing+Script&display=swap');
+
+.container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-image: linear-gradient(to bottom right, #659ed3, #e5e5e5);
+    background-size: cover;
+    background-attachment: fixed;
+    flex-direction: column;
+}
+
+.password-input{
+    height: 2.3rem;
+    width: 8rem;
+    border: none;
+    /* border-width: 3px;
+    border-color: rgba(121, 121, 121, 0.733); */
+    font-size: 30px;
+    text-align: center;
+    border-radius: 15px;
+    caret-color: rgba(158, 157, 157, 0.315);
+    background-color: #e6e6e6;
+    outline: none; /* Remove the outline */
+    box-shadow: none; /* Remove the box-shadow */
+    
+}
+
+.login-text{
+    font-family: 'Lato', sans-serif; 
+}
+
