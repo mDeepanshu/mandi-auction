@@ -50,9 +50,6 @@ const getItem = (id,collectionName) => {
 
 const getAllItems = (collectionName) => {
   return new Promise((resolve, reject) => {
-    console.log("db",db);
-    
-    
     const transaction = db.transaction([collectionName], "readonly");
     const store = transaction.objectStore(collectionName);
     const request = store.getAll();

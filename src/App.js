@@ -11,7 +11,6 @@ const initializeDB = async () => {
   try {
     const database = await openDB();
     setDB(database);
-    console.log("db setting done");
 
   } catch (error) {
     console.error("Database initialization error:", error);

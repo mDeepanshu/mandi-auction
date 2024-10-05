@@ -84,7 +84,6 @@ function AuctionTransaction() {
   const fetchList = async (listName) => {
     try {
       const list = await getAllItems(listName);
-      // console.log(listName, list);
       switch (listName) {
         case "VYAPARI":
           setVyapariList(list);

@@ -2,16 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Grid, Typography, TextField, InputAdornment, Button, Autocomplete } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { addVasuliTransaction } from "../../gateway/vasuli-transaction-apis";
+import { addVasuliTransaction, getOwedAmount } from "../../gateway/vasuli-transaction-apis";
 import { getAllItems } from "../../gateway/curdDB";
 
 
 function VasuliTransaction() {
 
 
-  const { handleSubmit, control, formState: { errors } } = useForm();
+  const { handleSubmit, control, formState: { errors }, watch } = useForm();
 
   const [vyapariList, setVyapariList] = useState([]);
+  const [owedAmount, setOwedAmount] = useState("");
+
+  const currentVyapariId = watch("vyapariId");
 
   const fetchList = async (listName) => {
     try {
@@ -28,13 +31,25 @@ function VasuliTransaction() {
 
 
   const onSubmit = async (data) => {
-    console.log(data);
     // e.preventDefault();
     try {
       await addVasuliTransaction(data);
     } catch (error) {
     }
   };
+
+  const onPartySelect = (field) => async (event, value) => {
+    field.onChange(value?.partyId ?? ""); // Update the form value
+    if (value?.partyId) {
+      const partyDetails = await getOwedAmount(value?.partyId);
+      console.log("partyDetails",partyDetails?.data?.responseBody?.owedAmount);
+      
+      setOwedAmount(partyDetails?.data?.responseBody?.owedAmount);
+    }else setOwedAmount("");
+    
+    
+    
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -69,7 +84,7 @@ function VasuliTransaction() {
                     }}
                   />
                 )}
-                onChange={(event, value) => field.onChange(value.partyId)}
+                onChange={onPartySelect(field)}                
                 disablePortal
                 id="combo-box-demo"
               />
@@ -119,7 +134,7 @@ function VasuliTransaction() {
         <Grid item xs={12} container spacing={2}>
           <Grid item xs={9}>
             <Typography variant="body1" fontWeight={700} align='left'>
-              Remaining Amount 23000/-
+              Remaining Amount {owedAmount}/-
             </Typography>
           </Grid>
           <Grid item alignItems="right">
