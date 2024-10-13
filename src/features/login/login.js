@@ -25,7 +25,7 @@ function Login({ changeLoginState }) {
 
     return (
         <>
-            <div className='container'>
+            <div className='login-container'>
                 <h3 className='login-text'>LOGIN</h3>
                 <input ref={inputRef}  onChange={OnPasswordInput} value={password} className='password-input' type='password' maxLength={4}></input>
             </div>

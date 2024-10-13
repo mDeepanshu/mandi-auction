@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto&family=Lato&family=Montserrat&family=Poppins&family=Open+Sans&family=Pacifico&family=Dancing+Script&display=swap');
 
-.container{
+.login-container{
     display: flex;
     align-items: center;
     justify-content: center;

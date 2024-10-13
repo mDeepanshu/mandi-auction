@@ -55,6 +55,11 @@ function AuctionTransaction() {
     }
   };
 
+
+  const addBag = async () => {
+
+  }
+
   const addToTable = async () => {
     const result = await trigger(["kisaan", "itemName", "vyapari", "quantity", "rate", "bags"]);
     if (result) {
@@ -143,11 +148,11 @@ function AuctionTransaction() {
   return (
     <>
       <form>
-        <Grid container spacing={2} p={1}>
-          <Grid item xs={12} className='hidden-xs'>
+        <div className='container'>
+          <div className='full-grid hidden-xs'>
             <h1>AUCTION TRANSACTION</h1>
-          </Grid>
-          <Grid item xs={6}>
+          </div>
+          <div className='kisan'>
             <Controller
               name="kisaan"
               control={control}
@@ -179,8 +184,8 @@ function AuctionTransaction() {
               )}
             />
             <p className='err-msg'>{errors.kisaan?.message}</p>
-          </Grid>
-          <Grid item xs={6}>
+          </div>
+          <div className='item'>
             <Controller
               name="itemName"
               control={control}
@@ -212,76 +217,87 @@ function AuctionTransaction() {
               )}
             />
             <p className='err-msg'>{errors.itemName?.message}</p>
-          </Grid>
-          <Grid container item spacing={2}>
-            <Grid item md={4} xs={6}>
-              <Controller
-                name="vyapari"
-                control={control}
-                rules={{ required: "Enter Vyapari Name" }}
-                render={({ field }) => (
-                  <Autocomplete
-                    {...field}
-                    value={field.value || null}
-                    options={vyapariList}
-                    getOptionLabel={(option) => option.name}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="VYAPARI"
-                        InputProps={{
-                          ...params.InputProps,
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <SearchIcon />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    )}
-                    onChange={(event, value) => field.onChange(value)}
-                    disablePortal
-                    id="combo-box-demo"
-                  />
-                )}
-              />
-              <p className='err-msg'>{errors.vyapari?.message}</p>
-            </Grid>
-            <Grid item md={2} xs={6}>
-              <Controller
-                name="quantity"
-                control={control}
-                rules={{ required: "Enter Quantity" }}
-                defaultValue=""
-                render={({ field }) => <TextField {...field} fullWidth label="QUANTITY" type='number' variant="outlined" />}
-              />
-              <p className='err-msg'>{errors.quantity?.message}</p>
-            </Grid>
-            <Grid item md={2} xs={4}>
-              <Controller
-                name="rate"
-                control={control}
-                rules={{ required: "Enter Rate" }}
-                defaultValue=""
-                render={({ field }) => <TextField {...field} fullWidth label="RATE" type='number' variant="outlined" />}
-              />
-              <p className='err-msg'>{errors.rate?.message}</p>
-            </Grid>
-            <Grid item md={2} xs={4}>
-              <Controller
-                name="bags"
-                control={control}
-                rules={{ required: "Enter Bags" }}
-                defaultValue=""
-                render={({ field }) => <TextField {...field} fullWidth label="BAGS" variant="outlined" />}
-              />
-              <p className='err-msg'>{errors.bags?.message}</p>
-            </Grid>
-            <Grid item md={2} xs={4}>
-              <Button variant="contained" color="primary" sx={{ height: '3.438rem' }} onClick={addToTable}><AddCircleOutline /></Button>
-            </Grid>
-          </Grid>
-          <Grid item xs={12}>
+          </div>
+          <div className='vyapari'>
+            <Controller
+              name="vyapari"
+              control={control}
+              rules={{ required: "Enter Vyapari Name" }}
+              render={({ field }) => (
+                <Autocomplete
+                  {...field}
+                  value={field.value || null}
+                  options={vyapariList}
+                  getOptionLabel={(option) => option.name}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="VYAPARI"
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
+                  onChange={(event, value) => field.onChange(value)}
+                  disablePortal
+                  id="combo-box-demo"
+                />
+              )}
+            />
+            <p className='err-msg'>{errors.vyapari?.message}</p>
+          </div>
+          <div className='quantity'>
+            <Controller
+              name="quantity"
+              control={control}
+              rules={{ required: "Enter Quantity" }}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="QUANTITY"
+                  type="number"
+                  variant="outlined"
+                />
+              )}
+            />
+            <p className='err-msg'>{errors.quantity?.message}</p>
+          </div>
+          <div className='btn-1'>
+            <button onClick={addBag} className='add-btn secondary-btn'>
+              <AddCircleOutline />
+            </button>
+          </div>
+          <div className='rate'>
+            <Controller
+              name="rate"
+              control={control}
+              rules={{ required: "Enter Rate" }}
+              defaultValue=""
+              render={({ field }) => <TextField {...field} fullWidth label="RATE" type='number' variant="outlined" />}
+            />
+            <p className='err-msg'>{errors.rate?.message}</p>
+          </div>
+          <div className='bags'>
+            <Controller
+              name="bags"
+              control={control}
+              rules={{ required: "Enter Bags" }}
+              defaultValue=""
+              render={({ field }) => <TextField {...field} fullWidth label="BAGS" variant="outlined" />}
+            />
+            <p className='err-msg'>{errors.bags?.message}</p>
+          </div>
+          <div className='btn-2'>
+            <button onClick={addToTable} className='add-btn'>Add Entry  <AddCircleOutline /></button>
+          </div>
+          <div className='full-grid'>
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
@@ -316,39 +332,39 @@ function AuctionTransaction() {
                 </TableBody>
               </Table>
             </TableContainer>
-          </Grid>
-          <div>
-            <Snackbar
-              open={open}
-              autoHideDuration={1000}
-              message="ADD ATLEST ONE TRANSACTION"
-              action={action}
-              onClose={handleClose}
-            />
           </div>
-          <div>
-            <Snackbar
-              open={openSuccessTransactionDialog}
-              autoHideDuration={1000}
-              onClose={handleClose}
-            >
-              <Alert
-                onClose={handleClose}
-                severity="success"
-                variant="filled"
-                sx={{ width: '100%' }}
-              >
-                TRANSACTION SUCCESSFULLY ADDED.
-              </Alert>
-            </Snackbar>
-          </div>
-          <Grid item xs={12} container justifyContent="flex-end">
+          <div className='full-grid'>
             <Button type="button" variant="contained" color="primary" onClick={onSubmit}>
               Submit
             </Button>
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       </form>
+      <div>
+        <Snackbar
+          open={open}
+          autoHideDuration={1000}
+          message="ADD ATLEST ONE TRANSACTION"
+          action={action}
+          onClose={handleClose}
+        />
+      </div>
+      <div>
+        <Snackbar
+          open={openSuccessTransactionDialog}
+          autoHideDuration={1000}
+          onClose={handleClose}
+        >
+          <Alert
+            onClose={handleClose}
+            severity="success"
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            TRANSACTION SUCCESSFULLY ADDED.
+          </Alert>
+        </Snackbar>
+      </div>
     </>
   );
 }

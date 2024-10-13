@@ -9,12 +9,10 @@ import { getAllItems } from "../../gateway/curdDB";
 function VasuliTransaction() {
 
 
-  const { handleSubmit, control, formState: { errors }, watch } = useForm();
+  const { handleSubmit, control, formState: { errors } } = useForm();
 
   const [vyapariList, setVyapariList] = useState([]);
   const [owedAmount, setOwedAmount] = useState("");
-
-  const currentVyapariId = watch("vyapariId");
 
   const fetchList = async (listName) => {
     try {
