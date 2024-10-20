@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, TextField, Button, useMediaQuery } from '@mui/material';
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
@@ -15,21 +15,26 @@ import { useOutletContext } from 'react-router-dom';
 
 function AuctionTransaction() {
 
-  const { control, getValues, formState: { errors }, trigger, reset } = useForm();
+  const { control, getValues, formState: { errors }, register, trigger, reset, setValue, setFocus } = useForm();
   const [itemsList, setItemsList] = useState([]);
   const [kisanList, setKisanList] = useState([]);
   const [vyapariList, setVyapariList] = useState([]);
   const [buyItemsArr, setTableData] = useState([]);
   const [open, setOpen] = useState(false);
+  const [qtyTotal, setQtyTotal] = useState(0);
   const [openSuccessTransactionDialog, setSuccessTransactionDialog] = useState(false);
   const { loading } = useOutletContext();
 
   const matches = useMediaQuery('(min-width:600px)');
   const matchesTwo = useMediaQuery('(max-width:599px)');
+  const [qty, setQty] = useState([]);
 
   const onSubmit = async () => {
+
     const data = getValues();
     const isValid = await trigger(['kisaan', 'itemName']);
+
+
     if (isValid && buyItemsArr.length) {
       const buyItems = buyItemsArr.map(obj => {
         const { vyapariName, ...rest } = obj;
@@ -56,12 +61,24 @@ function AuctionTransaction() {
   };
 
 
-  const addBag = async () => {
+  const addBag = (event, adding) => {
+    event.preventDefault();
+    const currentVal = getValues('bags');
+    if (adding) {
+      setValue('bags', Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
+    } else {
+      setValue('bags', Number(currentVal) - 1, { shouldValidate: true, shouldDirty: true });
+    }
 
   }
 
-  const addToTable = async () => {
-    const result = await trigger(["kisaan", "itemName", "vyapari", "quantity", "rate", "bags"]);
+  const addToTable = async (event) => {
+    event.preventDefault();
+
+    const result = await trigger(["kisaan", "itemName", "vyapari", "rate", "bags"]);
+    if (!qtyTotal || qtyTotal<=0) {
+      return;
+    }
     if (result) {
       const values = getValues();
       let newTableData = [
@@ -69,12 +86,16 @@ function AuctionTransaction() {
         {
           vyapariName: values.vyapari.name,
           vyapariId: values.vyapari.partyId,
-          quantity: Number(values.quantity),
+          quantity: Number(qtyTotal),
           rate: Number(values.rate),
           bags: Number(values.bags),
         }
       ];
       setTableData(newTableData);
+      setQty([]);
+      setQtyTotal(0);
+      setValue('rate',null);
+      setValue('bags','');
     } else {
       console.log('Validation failed');
     }
@@ -113,6 +134,13 @@ function AuctionTransaction() {
     fetchList("items");
   }, [loading]);
 
+  useEffect(() => {
+    const sum = qty.reduce((accumulator, currentValue) => {
+      return accumulator + Number(currentValue);
+    }, 0);
+    setQtyTotal(sum);
+  }, [qty]);
+
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -121,15 +149,34 @@ function AuctionTransaction() {
     setSuccessTransactionDialog(false);
   };
 
-  // temp
-  const defaultValues = {
-    kisaan: kisanList[0] // Default to the first item in kisanList, adjust based on your needs
+  const newQty = (event) => {
+
+    event.preventDefault();
+    const value = getValues('quantity');
+    if (!value) {
+      setFocus('rate');
+      return;
+    }
+    setQty([...qty, value]);
+    const currentVal = getValues('bags');
+    setValue('bags', Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
+    setValue('quantity', '', { shouldValidate: false, shouldDirty: true });
+
+    // qtyRef.current.focus();
+    // setFocus('rate');
+
+
   };
 
-  // const { control } = useForm({
-  //   defaultValues
-  // });
-  // temp close
+  const removeQty = (event, index) => {
+    event.preventDefault();
+    const newQty = [...qty];
+    newQty.splice(index, 1);
+    setQty(newQty);
+    const currentVal = getValues('bags');
+    setValue('bags', Number(currentVal) - 1, { shouldValidate: true, shouldDirty: true });
+
+  }
 
   const action = (
     <React.Fragment>
@@ -252,50 +299,78 @@ function AuctionTransaction() {
             <p className='err-msg'>{errors.vyapari?.message}</p>
           </div>
           <div className='quantity'>
-            <Controller
-              name="quantity"
-              control={control}
-              rules={{ required: "Enter Quantity" }}
-              defaultValue=""
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  label="QUANTITY"
-                  type="number"
-                  variant="outlined"
+            <div className='qty-input'>
+              <div>
+                <Controller
+                  name="quantity"
+                  control={control}
+                  rules={{ required: "Enter Quantity" }}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      label="QUANTITY"
+                      type="number"
+                      variant="outlined"
+                    />
+                  )}
                 />
-              )}
-            />
-            <p className='err-msg'>{errors.quantity?.message}</p>
-          </div>
-          <div className='btn-1'>
-            <button onClick={addBag} className='add-btn secondary-btn'>
-              <AddCircleOutline />
-            </button>
+                <p className='err-msg'>{errors.quantity?.message}</p>
+              </div>
+              <button className='add-qty-btn' onClick={newQty}>ADD</button>
+            </div>
+            <div className='quantity-list'>
+              <ul className="horizontal-list">
+                {qty.map((item, index) => (
+                  <li
+                    key={index}
+                  >{item}<button className='qty-btn' onClick={(event) => removeQty(event, index)}>x</button></li>
+                ))}
+              </ul>
+              <div className='qty-total'>{qtyTotal}</div>
+            </div>
           </div>
           <div className='rate'>
-            <Controller
+            {/* <Controller
               name="rate"
               control={control}
               rules={{ required: "Enter Rate" }}
               defaultValue=""
-              render={({ field }) => <TextField {...field} fullWidth label="RATE" type='number' variant="outlined" />}
+              render={({ field }) => <TextField {...field} useRef={rateRef} fullWidth label="RATE" type='number' variant="outlined" />}
             />
-            <p className='err-msg'>{errors.rate?.message}</p>
+            <p className='err-msg'>{errors.rate?.message}</p> */}
+            {/* <label htmlFor="rate">Rate</label> */}
+            <input
+              id="rate"
+              className='rate-field'
+              placeholder='RATE'
+              {...register("rate", { required: "First name is required" })}
+            />
+            {errors.rate && <p className='err-msg'>{errors.rate.message}</p>}
           </div>
-          <div className='bags'>
-            <Controller
-              name="bags"
-              control={control}
-              rules={{ required: "Enter Bags" }}
-              defaultValue=""
-              render={({ field }) => <TextField {...field} fullWidth label="BAGS" variant="outlined" />}
-            />
-            <p className='err-msg'>{errors.bags?.message}</p>
+          <div className='bags-box'>
+            <div className='bag'>
+              <Controller
+                name="bags"
+                control={control}
+                rules={{ required: "Enter Bags" }}
+                defaultValue=""
+                render={({ field }) => <TextField {...field} fullWidth label="BAGS" variant="outlined" type='number' />}
+              />
+              <p className='err-msg'>{errors.bags?.message}</p>
+            </div>
+            <div className='btn-1 count-btn'>
+              <button onClick={(event) => addBag(event, true)} className='add-btn secondary-btn one'>
+                +
+              </button>
+              <button onClick={(event) => addBag(event, false)} className='add-btn secondary-btn one two'>
+                -
+              </button>
+            </div>
           </div>
           <div className='btn-2'>
-            <button onClick={addToTable} className='add-btn'>Add Entry  <AddCircleOutline /></button>
+            <button onClick={(event) => addToTable(event)} className='add-btn'>Add Entry  <AddCircleOutline fontSize='small' /></button>
           </div>
           <div className='full-grid'>
             <TableContainer component={Paper}>
@@ -333,7 +408,7 @@ function AuctionTransaction() {
               </Table>
             </TableContainer>
           </div>
-          <div className='full-grid'>
+          <div className='full-grid submit-area'>
             <Button type="button" variant="contained" color="primary" onClick={onSubmit}>
               Submit
             </Button>
