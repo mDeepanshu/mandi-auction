@@ -17,10 +17,11 @@
     "react-hook-form": "^7.51.5",
     "react-router-dom": "^6.23.1",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "workbox-webpack-plugin": "^7.1.0"
   },
   "scripts": {
-    "homepage":"./mandiAuction/",
+    "homepage": "./mandiAuction/",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

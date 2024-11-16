@@ -6,7 +6,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import Autocomplete from '@mui/material/Autocomplete';
 import { getAllItems } from "../../gateway/curdDB";
 import "./auction-transaction.css"
-import { Delete, AddCircleOutline } from '@mui/icons-material';
+import { Delete, AddCircleOutline, Edit } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
@@ -76,7 +76,7 @@ function AuctionTransaction() {
     event.preventDefault();
 
     const result = await trigger(["kisaan", "itemName", "vyapari", "rate", "bags"]);
-    if (!qtyTotal || qtyTotal<=0) {
+    if (!qtyTotal || qtyTotal <= 0) {
       return;
     }
     if (result) {
@@ -94,11 +94,17 @@ function AuctionTransaction() {
       setTableData(newTableData);
       setQty([]);
       setQtyTotal(0);
-      setValue('rate',null);
-      setValue('bags','');
+      setValue('rate', null);
+      setValue('bags', '');
     } else {
       console.log('Validation failed');
     }
+  }
+
+  const editFromTable = (index) => {
+    const newRows = [...buyItemsArr];
+    newRows.splice(index, 1);
+    setTableData(newRows);
   }
 
   const deleteFromTable = (index) => {
@@ -178,6 +184,14 @@ function AuctionTransaction() {
 
   }
 
+  const vasuliDays = (maxLoanDays, lastVasuliDateString) => {
+    const todaysDate = new Date();
+    const lastVasuliDate = new Date(lastVasuliDateString);
+    const diffInMs = Math.abs(todaysDate - lastVasuliDate);
+    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+    return diffInDays>maxLoanDays;
+  }
+
   const action = (
     <React.Fragment>
       <IconButton
@@ -209,7 +223,29 @@ function AuctionTransaction() {
                   {...field}
                   value={field.value || null}
                   options={kisanList}
-                  getOptionLabel={(option) => option.name}
+                  // getOptionLabel={(option) => (option.id + " | " + option.name + " | " )}
+                  getOptionLabel={(option) => `${option.id} | ${option.name}`}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <span>
+                          <strong>ID:</strong> {option.id} | <strong>Name:</strong> {option.name}
+                        </span>
+                        {vasuliDays(option.maxLoanDays, option.lastVasuliDate) && (
+                          <div
+                            style={{
+                              width: "10px",
+                              height: "10px",
+                              backgroundColor: "red",
+                              marginLeft: "8px",
+                              borderRadius: "50%", // Makes it a circle
+                              display: "inline-block", // Ensures it stays inline
+                            }}
+                          ></div>
+                        )}
+                      </div>
+                    </li>
+                  )}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -377,31 +413,34 @@ function AuctionTransaction() {
               <Table>
                 <TableHead>
                   <TableRow style={{ display: matches ? 'table-row' : 'none' }}>
-                    <TableCell>VYAPARI NAME</TableCell>
-                    <TableCell>QUANTITY</TableCell>
-                    <TableCell>RATE</TableCell>
-                    <TableCell>BAGS</TableCell>
-                    <TableCell>TOTAL</TableCell>
-                    <TableCell>DELETE</TableCell>
+                    <TableCell align="left">VYAPARI NAME</TableCell>
+                    <TableCell align="left">QUANTITY</TableCell>
+                    <TableCell align="left">RATE</TableCell>
+                    <TableCell align="left">BAGS</TableCell>
+                    <TableCell align="left">TOTAL</TableCell>
+                    <TableCell align='centre'>EDIT</TableCell>
+                    <TableCell align='centre'>DELETE</TableCell>
                   </TableRow>
                   <TableRow style={{ display: matchesTwo ? 'table-row' : 'none' }}>
-                    <TableCell>VYAPARI</TableCell>
-                    <TableCell>Q</TableCell>
-                    <TableCell>R</TableCell>
-                    <TableCell>B</TableCell>
-                    <TableCell>T</TableCell>
-                    <TableCell>D</TableCell>
+                    <TableCell align="left">VYAPARI</TableCell>
+                    <TableCell align="left">Q</TableCell>
+                    <TableCell align="left">R</TableCell>
+                    <TableCell align="left">B</TableCell>
+                    <TableCell align="left">T</TableCell>
+                    <TableCell align='centre'>E</TableCell>
+                    <TableCell align='centre'>D</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {buyItemsArr.map((row, index) => (
                     <TableRow key={index}>
-                      <TableCell>{row.vyapariName}</TableCell>
-                      <TableCell>{row.quantity}</TableCell>
-                      <TableCell>{row.rate}</TableCell>
-                      <TableCell>{row.bags}</TableCell>
-                      <TableCell>{row.rate * row.quantity}</TableCell>
-                      <TableCell onClick={() => deleteFromTable(index)}><Button><Delete /></Button></TableCell>
+                      <TableCell align="left">{row.vyapariName}</TableCell>
+                      <TableCell align="left">{row.quantity}</TableCell>
+                      <TableCell align="left">{row.rate}</TableCell>
+                      <TableCell align="left">{row.bags}</TableCell>
+                      <TableCell align="left">{row.rate * row.quantity}</TableCell>
+                      <TableCell align='centre'><Button onClick={() => editFromTable(index)}><Edit /></Button></TableCell>
+                      <TableCell align='centre'><Button onClick={() => deleteFromTable(index)}><Delete /></Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
