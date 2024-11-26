@@ -4,8 +4,8 @@ import './index.css';
 import App from './App';
 import Home from "./features/home/Home";
 import AuctionTransaction from "./features/auction-transaction/Auction-Transaction";
-// import ItemMaster from "./features/item-master/Item-Master";
-// import PartyMaster from "./features/party-master/Party-Master";
+import ItemMaster from "./features/item-master/Item-Master";
+import PartyMaster from "./features/party-master/Party-Master";
 import VasuliTransaction from "./features/vasuli-transaction/Vasuli-Transaction";
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
@@ -25,14 +25,14 @@ const router = createBrowserRouter([
 				path: 'auction-transaction',
 				element: <AuctionTransaction />
 			},
-			// {
-			// 	path: 'item-master',
-			// 	element: <ItemMaster />
-			// },
-			// {
-			// 	path: 'party-master',
-			// 	element: <PartyMaster />
-			// },
+			{
+				path: 'item-master',
+				element: <ItemMaster />
+			},
+			{
+				path: 'party-master',
+				element: <PartyMaster />
+			},
 			{
 				path: 'vasuli-transaction',
 				element: <VasuliTransaction />

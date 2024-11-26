@@ -75,7 +75,7 @@ function AuctionTransaction() {
   const addToTable = async (event) => {
     event.preventDefault();
 
-    const result = await trigger(["kisaan", "itemName", "vyapari", "rate", "bags"]);
+    const result = await trigger(["kisaan", "itemName", "vyapari", "bags"]);
     if (!qtyTotal || qtyTotal <= 0) {
       return;
     }
@@ -231,18 +231,6 @@ function AuctionTransaction() {
                         <span>
                           <strong>ID:</strong> {option.id} | <strong>Name:</strong> {option.name}
                         </span>
-                        {vasuliDays(option.maxLoanDays, option.lastVasuliDate) && (
-                          <div
-                            style={{
-                              width: "10px",
-                              height: "10px",
-                              backgroundColor: "red",
-                              marginLeft: "8px",
-                              borderRadius: "50%", // Makes it a circle
-                              display: "inline-block", // Ensures it stays inline
-                            }}
-                          ></div>
-                        )}
                       </div>
                     </li>
                   )}
@@ -312,6 +300,27 @@ function AuctionTransaction() {
                   value={field.value || null}
                   options={vyapariList}
                   getOptionLabel={(option) => option.name}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <span>
+                        <strong>ID:</strong> {option.idNo} | <strong>Name:</strong> {option.name}
+                        </span>
+                        {vasuliDays(option.maxLoanDays, option.lastVasuliDate) && (
+                          <div
+                            style={{
+                              width: "10px",
+                              height: "10px",
+                              backgroundColor: "red",
+                              marginLeft: "8px",
+                              borderRadius: "50%", // Makes it a circle
+                              display: "inline-block", // Ensures it stays inline
+                            }}
+                          ></div>
+                        )}
+                      </div>
+                    </li>
+                  )}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -368,20 +377,12 @@ function AuctionTransaction() {
             </div>
           </div>
           <div className='rate'>
-            {/* <Controller
-              name="rate"
-              control={control}
-              rules={{ required: "Enter Rate" }}
-              defaultValue=""
-              render={({ field }) => <TextField {...field} useRef={rateRef} fullWidth label="RATE" type='number' variant="outlined" />}
-            />
-            <p className='err-msg'>{errors.rate?.message}</p> */}
-            {/* <label htmlFor="rate">Rate</label> */}
             <input
               id="rate"
               className='rate-field'
+              type='number'
               placeholder='RATE'
-              {...register("rate", { required: "First name is required" })}
+              {...register("rate", { required: "Rate is required" })}
             />
             {errors.rate && <p className='err-msg'>{errors.rate.message}</p>}
           </div>

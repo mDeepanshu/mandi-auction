@@ -11,6 +11,8 @@ const navItems = [
     // { name: '', label: 'Home' },
     { name: 'auction-transaction', label: 'Auction Transaction' },
     { name: 'vasuli-transaction', label: 'Vasuli Transaction' },
+    { name: 'party-master', label: 'Party Master' },
+    { name: 'item-master', label: 'Item Master' },
 ];
 
 
