@@ -70,7 +70,6 @@ const PartyMaster = () => {
   }, [tableData]);
 
   const partyTypeChange = (value) => {
-    console.log(value);
     
     // setCurrentPartyType
   }
@@ -89,7 +88,6 @@ const PartyMaster = () => {
     ];
     try {
       const result = await addPartyGlobal(newTableData);
-      console.log(result);
       if (result.responseCode == 201) {
         setTableData([...tableData, newTableData[0]]);
         setTableDataFiltered([...tableDataFiltered, newTableData[0]]);

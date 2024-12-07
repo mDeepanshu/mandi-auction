@@ -35,7 +35,6 @@ function MasterTable(props) {
         setOpen(true);
         for (let int = 0; int < props.keyArray.length; int++) {
             if (!(props.keyArray[int] === "edit" || props.keyArray[int] === "delete" || props.keyArray[int] === "index" || props.keyArray[int] === "navigation")) {
-                console.log(keyArray[int], tableData[index]?.[0]?.[keyArray[int]]);
                 setValue(keyArray[int], tableData[index]?.[0]?.[keyArray[int]]);
             }
         }
@@ -73,7 +72,6 @@ function MasterTable(props) {
 
     const handleChange = (event, value) => {
         setPage(value);
-        console.log(value);
         setTableData(allTableData.slice(value * 10, value * 10 + 10));
     };
 

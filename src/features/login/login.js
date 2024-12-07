@@ -1,19 +1,17 @@
-import React, {useState,useRef,useEffect} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 import "./login.css"
 
 function Login({ changeLoginState }) {
 
     const [password, setPassword] = useState("");
-    const inputRef = useRef(null); 
+    const inputRef = useRef(null);
 
     const OnPasswordInput = (value) => {
         setPassword(value.target.value);
-        if (value.target.value==="9876") {
-            setTimeout(() => {                
-                changeLoginState(false);
-            }, 100);
-        }
+        setTimeout(() => {
+            changeLoginState(value.target.value);
+        }, 100);
     }
 
     useEffect(() => {
@@ -27,7 +25,7 @@ function Login({ changeLoginState }) {
         <>
             <div className='login-container'>
                 <h3 className='login-text'>LOGIN</h3>
-                <input ref={inputRef}  onChange={OnPasswordInput} value={password} className='password-input' autoComplete='off' type='password' maxLength={4}></input>
+                <input ref={inputRef} onChange={OnPasswordInput} value={password} className='password-input' autoComplete='off' type='password' maxLength={4}></input>
             </div>
         </>
     );

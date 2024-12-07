@@ -22,11 +22,15 @@ function App() {
 
 
   const [loginStatus, setLoginStatus] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const changeLoginState = (value) => {
-    setLoginStatus(value)
+    if (value === "9876") {
+      setTimeout(() => {
+        setLoginStatus(false);
+      }, 100);
+    }
   }
-  const [loading, setLoading] = useState(true);
 
   const changeLoading = (newState) => {
     setLoading(newState);
