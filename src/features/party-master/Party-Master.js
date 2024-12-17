@@ -29,15 +29,12 @@ const PartyMaster = () => {
   const [keyArray, setKeyArray] = useState(["index", "contact", "idNo", "name", "partyId", "maxLoanDays", "daysExceded", "partyType"]);
   const currentPartyType = watch("partyType", "KISAN");
 
-  const sortOnId = () => {
-    const sortedData = [...tableData].sort((a, b) => a.idNo - b.idNo);
-    setTableData(sortedData); // Update the state with the sorted array
-  };
+  const partyType = watch("partyType", "KISAN");
 
-  const sortOnDaysExceded = () => {
-    const sortedData = [...tableData].sort((a, b) => b.daysExceded - a.daysExceded);
-    setTableData(sortedData); // Update the state with the sorted array
-  };
+  // Conditionally set the validation rules based on partyType
+  const vasuliDayLimitValidation = partyType === "VYAPARI" 
+    ? { required: "Enter Vasuli Day Limit" } 
+    : {}; // No validation for "KISAN"
 
   const fetchItems = async () => {
     try {
@@ -174,21 +171,11 @@ const PartyMaster = () => {
         </Grid>
         <Grid item xs={6} sm={2}>
           <Controller
-            name="vasuliDayLimit"
-            control={control}
-            rules={{ required: "Enter Vasuli Day Limit" }}
-            defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="VASULI DAY LIMIT" variant="outlined" disabled={currentPartyType == "KISAN"}/>}
-          />
-          <p className='err-msg'>{errors.vasuliDayLimit?.message}</p>
-        </Grid>
-        <Grid item xs={6} sm={2}>
-          <Controller
             name="maxLoanDays"
             control={control}
-            rules={{ required: "Max Loan Days" }}
+            rules={vasuliDayLimitValidation}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="MAX LOAN DAYS" variant="outlined" />}
+            render={({ field }) => <TextField {...field} fullWidth type='number' label="VASULI DAY LIMIT" variant="outlined" disabled={currentPartyType == "KISAN"}/>}
           />
           <p className='err-msg'>{errors.maxLoanDays?.message}</p>
         </Grid>
@@ -198,7 +185,7 @@ const PartyMaster = () => {
             control={control}
             rules={{ required: "Enter Contact" }}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="CONTACT" variant="outlined" />}
+            render={({ field }) => <TextField {...field} fullWidth label="CONTACT" variant="outlined" type='number'/>}
           />
           <p className='err-msg'>{errors.contact?.message}</p>
         </Grid>

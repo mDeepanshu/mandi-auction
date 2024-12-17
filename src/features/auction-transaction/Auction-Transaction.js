@@ -24,6 +24,7 @@ function AuctionTransaction() {
   const [qtyTotal, setQtyTotal] = useState(0);
   const [openSuccessTransactionDialog, setSuccessTransactionDialog] = useState(false);
   const { loading } = useOutletContext();
+  const vyapariRef = useRef(null); // Create a ref
 
   const matches = useMediaQuery('(min-width:600px)');
   const matchesTwo = useMediaQuery('(max-width:599px)');
@@ -96,6 +97,8 @@ function AuctionTransaction() {
       setQtyTotal(0);
       setValue('rate', null);
       setValue('bags', '');
+      setValue('vyapari', null);
+      vyapariRef.current.focus();
     } else {
       console.log('Validation failed');
     }
@@ -299,7 +302,7 @@ function AuctionTransaction() {
                   {...field}
                   value={field.value || null}
                   options={vyapariList}
-                  getOptionLabel={(option) => option.name}
+                  getOptionLabel={(option) => `${option.idNo} | ${option.name}`}
                   renderOption={(props, option) => (
                     <li {...props}>
                       <div style={{ display: "flex", alignItems: "center" }}>
@@ -327,6 +330,7 @@ function AuctionTransaction() {
                       label="VYAPARI"
                       InputProps={{
                         ...params.InputProps,
+                        inputRef: vyapariRef, // Attach the ref here
                         startAdornment: (
                           <InputAdornment position="start">
                             <SearchIcon />

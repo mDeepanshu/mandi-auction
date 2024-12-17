@@ -1,27 +1,54 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Grid, Typography, TextField, InputAdornment, Button, Autocomplete } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { addVasuliTransaction, getOwedAmount } from "../../gateway/vasuli-transaction-apis";
 import { getAllItems } from "../../gateway/curdDB";
 import Login from "../login/login";
+import Snackbar from '@mui/material/Snackbar';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import Alert from '@mui/material/Alert';
 
 
 function VasuliTransaction() {
 
 
-  const { handleSubmit, control, formState: { errors } } = useForm();
 
   const [vyapariList, setVyapariList] = useState([]);
   const [owedAmount, setOwedAmount] = useState("");
   const [loginStatus, setLoginStatus] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  const vyapariRef = useRef(null); // Create a ref
+  const amountRef = useRef(null); // Create a ref
+  const remarkRef = useRef(null); // Create a ref
+
+  const oneDaysPrior = new Date();
+  oneDaysPrior.setDate(oneDaysPrior.getDate() - 1);
+  const priorDate = oneDaysPrior.toLocaleDateString('en-CA').split('T')[0];
+  
+  const todaysDate = new Date();
+  const currentHour = todaysDate.getHours();
+
+  if (currentHour >= 18) {
+    priorDate = todaysDate.toLocaleDateString('en-CA').split('T')[0];
+  }
+
+  const { handleSubmit, control, formState: { errors }, getValues,reset,setValue,watch } = useForm({
+    defaultValues: {
+      date: priorDate,
+    },
+  });
+  const watchedVyapariId = watch("vyapariId");
 
   const changeLoginState = (value) => {
     if (value === "1212") {
       setTimeout(() => {
         setLoginStatus(false);
       }, 100);
-    }  }
+    }
+  }
 
   const fetchList = async (listName) => {
     try {
@@ -36,25 +63,97 @@ function VasuliTransaction() {
     fetchList("VYAPARI");
   }, []);
 
+  useEffect(() => {
+    if (watchedVyapariId) {
+      const fetchOwedAmount = async () => {
+        try {
+          if (watchedVyapariId?.partyId) {
+            const partyDetails = await getOwedAmount(watchedVyapariId.partyId);
+            setOwedAmount(partyDetails?.data?.responseBody?.owedAmount || "");
+          } else {
+            setOwedAmount("");
+          }
+        } catch (error) {
+          console.error("Error fetching owed amount:", error);
+          setOwedAmount(""); // Handle error by resetting owed amount
+        }
+      };
+    
+      console.log(watchedVyapariId);
+      fetchOwedAmount();
+    }
+  }, [watchedVyapariId]);
+
+  useEffect(() => {
+    if (vyapariRef.current) {
+      setTimeout(() => {
+        vyapariRef.current.focus();
+      }, 100);
+    }
+  }, [loginStatus]);
+
+  useEffect(() => {
+    if (amountRef.current) {
+      setTimeout(() => {
+        amountRef.current.focus();
+      }, 100);
+    }
+  }, [owedAmount]);
 
   const onSubmit = async (data) => {
-    // e.preventDefault();
+    console.log("onSubmit",);
     try {
-      await addVasuliTransaction(data);
+      await addVasuliTransaction(getValues());
+      reset({
+        vyapariId:null,
+        amount: '',
+        remark: '',
+      });
+      if (vyapariRef.current) {
+        setTimeout(() => {
+          vyapariRef.current.focus();
+        }, 0);
+      }
+      setOpen(true);
     } catch (error) {
     }
   };
 
-  const onPartySelect = (field) => async (event, value) => {
-    field.onChange(value?.partyId ?? ""); // Update the form value
-    if (value?.partyId) {
-      const partyDetails = await getOwedAmount(value?.partyId);
-      setOwedAmount(partyDetails?.data?.responseBody?.owedAmount);
-    } else setOwedAmount("");
+  const onPartySelect = () => async (value) => {
+    console.log("PPPPPPP");
+    
+    // field.onChange(value?.partyId ?? ""); // Update the form value
+    // if (value?.partyId) {
+    //   const partyDetails = await getOwedAmount(value?.partyId);
+    //   setOwedAmount(partyDetails?.data?.responseBody?.owedAmount);
 
-
-
+    // } else setOwedAmount("");
   }
+
+  const handleEnterPress = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (remarkRef.current) {
+        setTimeout(() => {
+          remarkRef.current.focus();
+        }, 100);
+      }
+    }
+  };
+
+  const onEnterPress = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      onSubmit();
+    }
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
 
   return (
     <>
@@ -77,14 +176,16 @@ function VasuliTransaction() {
                     render={({ field }) => (
                       <Autocomplete
                         {...field}
+                        value={field.value || null}
                         options={vyapariList}
-                        getOptionLabel={(option) => option.name}
+                        getOptionLabel={(option) => `${option.idNo} | ${option.name}`}
                         renderInput={(params) => (
                           <TextField
                             {...params}
                             label="VYAPARI"
                             InputProps={{
                               ...params.InputProps,
+                              inputRef: vyapariRef, // Attach the ref here
                               startAdornment: (
                                 <InputAdornment position="start">
                                   <SearchIcon />
@@ -93,7 +194,7 @@ function VasuliTransaction() {
                             }}
                           />
                         )}
-                        onChange={onPartySelect(field)}
+                        onChange={(event, newValue) =>field.onChange(newValue)}                        
                         disablePortal
                         id="combo-box-demo"
                       />
@@ -133,7 +234,9 @@ function VasuliTransaction() {
                         {...field}
                         fullWidth
                         type="number"
+                        inputRef={amountRef}
                         label="COLLECTED AMOUNT"
+                        onKeyDown={handleEnterPress} // Add onKeyDown here
                       />
                     )}
                   />
@@ -150,6 +253,8 @@ function VasuliTransaction() {
                         {...field}
                         fullWidth
                         type="text"
+                        inputRef={remarkRef}
+                        onKeyDown={onEnterPress} // Add onKeyDown here
                         label="REMARK"
                       />
                     )}
@@ -171,6 +276,22 @@ function VasuliTransaction() {
                 </Grid>
               </Grid>
             </form>
+            <div>
+              <Snackbar
+                open={open}
+                autoHideDuration={1500}
+                onClose={handleClose}
+              >
+                <Alert
+                  onClose={handleClose}
+                  severity="success"
+                  variant="filled"
+                  sx={{ width: '100%' }}
+                >
+                  SUCCESSFULLY ADDED. SYNC TO SAVE.
+                </Alert>
+              </Snackbar>
+            </div>
           </>
         )}
     </>
