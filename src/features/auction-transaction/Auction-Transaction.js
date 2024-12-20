@@ -5,7 +5,7 @@ import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
 import SearchIcon from '@mui/icons-material/Search';
 import Autocomplete from '@mui/material/Autocomplete';
 import { getAllItems } from "../../gateway/curdDB";
-import "./auction-transaction.css"
+import styles from "./auction-transaction.css"
 import { Delete, AddCircleOutline, Edit } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
@@ -192,7 +192,7 @@ function AuctionTransaction() {
     const lastVasuliDate = new Date(lastVasuliDateString);
     const diffInMs = Math.abs(todaysDate - lastVasuliDate);
     const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
-    return diffInDays>maxLoanDays;
+    return diffInDays > maxLoanDays;
   }
 
   const action = (
@@ -292,6 +292,16 @@ function AuctionTransaction() {
             />
             <p className='err-msg'>{errors.itemName?.message}</p>
           </div>
+          <div className='totalBags'>
+            <Controller
+              name="totalBag"
+              control={control}
+              rules={{ required: "Enter Total Bags" }}
+              defaultValue=""
+              render={({ field }) => <TextField {...field} fullWidth label="KISAN BAGS" variant="outlined" type='number' />}
+            />
+            <p className='err-msg'>{errors.totalBags?.message}</p>
+          </div>
           <div className='vyapari'>
             <Controller
               name="vyapari"
@@ -307,7 +317,7 @@ function AuctionTransaction() {
                     <li {...props}>
                       <div style={{ display: "flex", alignItems: "center" }}>
                         <span>
-                        <strong>ID:</strong> {option.idNo} | <strong>Name:</strong> {option.name}
+                          <strong>ID:</strong> {option.idNo} | <strong>Name:</strong> {option.name}
                         </span>
                         {vasuliDays(option.maxLoanDays, option.lastVasuliDate) && (
                           <div

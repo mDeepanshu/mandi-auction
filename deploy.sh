@@ -3,5 +3,5 @@ npm run build
 scp -i ./mandi-server-curr.pem -r build/ ubuntu@52.66.145.64:/home/ubuntu/mandiAuctionDev
 ssh -i ./mandi-server-curr.pem ubuntu@52.66.145.64 << EOF
   cd /var/www
-  sudo ./deploy_mandi_app_auction_dev.sh
+  sudo ./deploy_mandi_auction_dev.sh
 EOF

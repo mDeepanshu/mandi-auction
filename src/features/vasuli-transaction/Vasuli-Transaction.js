@@ -24,9 +24,9 @@ function VasuliTransaction() {
   const amountRef = useRef(null); // Create a ref
   const remarkRef = useRef(null); // Create a ref
 
-  const oneDaysPrior = new Date();
+  let oneDaysPrior = new Date();
   oneDaysPrior.setDate(oneDaysPrior.getDate() - 1);
-  const priorDate = oneDaysPrior.toLocaleDateString('en-CA').split('T')[0];
+  let priorDate = oneDaysPrior.toLocaleDateString('en-CA').split('T')[0];
   
   const todaysDate = new Date();
   const currentHour = todaysDate.getHours();
