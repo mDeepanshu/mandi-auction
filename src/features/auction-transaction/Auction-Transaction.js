@@ -11,7 +11,8 @@ import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Alert from '@mui/material/Alert';
-import { useOutletContext } from 'react-router-dom';
+import { json, useOutletContext } from 'react-router-dom';
+import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
 
 function AuctionTransaction() {
 
@@ -21,6 +22,7 @@ function AuctionTransaction() {
   const [vyapariList, setVyapariList] = useState([]);
   const [buyItemsArr, setTableData] = useState([]);
   const [open, setOpen] = useState(false);
+  const [isOnGoingAuctionOpen, setIsOnGoingAuctionOpen] = useState(false);
   const [qtyTotal, setQtyTotal] = useState(0);
   const [openSuccessTransactionDialog, setSuccessTransactionDialog] = useState(false);
   const { loading } = useOutletContext();
@@ -29,6 +31,7 @@ function AuctionTransaction() {
   const matches = useMediaQuery('(min-width:600px)');
   const matchesTwo = useMediaQuery('(max-width:599px)');
   const [qty, setQty] = useState([]);
+  const [auctionId, setAuctionId] = useState([]);
 
   const onSubmit = async () => {
 
@@ -51,6 +54,10 @@ function AuctionTransaction() {
         setSuccessTransactionDialog(true);
         reset();
         setTableData([]);
+        let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
+        let newLocal = oldLocal;
+        delete newLocal[auctionId];
+        localStorage.setItem("onGoingAuction",JSON.stringify(newLocal));
       } catch (error) {
         console.log(error);
       }
@@ -82,22 +89,35 @@ function AuctionTransaction() {
     }
     if (result) {
       const values = getValues();
+      const newAuctionRow = {
+        vyapariName: values.vyapari.name,
+        vyapariId: values.vyapari.partyId,
+        quantity: Number(qtyTotal),
+        rate: Number(values.rate),
+        bags: Number(values.bags),
+      };
+
       let newTableData = [
         ...buyItemsArr,
-        {
-          vyapariName: values.vyapari.name,
-          vyapariId: values.vyapari.partyId,
-          quantity: Number(qtyTotal),
-          rate: Number(values.rate),
-          bags: Number(values.bags),
-        }
+        newAuctionRow
       ];
+
       setTableData(newTableData);
       setQty([]);
       setQtyTotal(0);
       setValue('rate', null);
       setValue('bags', '');
       setValue('vyapari', null);
+
+      const currAuctionSate = {
+        formValues: getValues(),
+        arrayData:newTableData,
+        id:auctionId
+      }
+      let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
+      oldLocal[auctionId]=currAuctionSate;
+      localStorage.setItem("onGoingAuction",JSON.stringify(oldLocal));
+
       vyapariRef.current.focus();
     } else {
       console.log('Validation failed');
@@ -136,6 +156,18 @@ function AuctionTransaction() {
       console.error("Fetch items error:", error);
     }
   };
+
+  useEffect(() => {
+    const anyPreviousAuctions = JSON.parse(localStorage.getItem("onGoingAuction"));
+    if (anyPreviousAuctions && Object.keys(anyPreviousAuctions)?.length>0) setIsOnGoingAuctionOpen(true);
+    else {
+      const newAuction={}
+      localStorage.setItem("onGoingAuction",JSON.stringify(newAuction));
+
+      const newAuctionId = Date.now().toString(16);
+      setAuctionId(newAuctionId);
+    }
+  }, []);
 
   useEffect(() => {
     fetchList("VYAPARI");
@@ -208,6 +240,17 @@ function AuctionTransaction() {
     </React.Fragment>
   );
 
+  const handleCloseDialog = (data) => {
+    setIsOnGoingAuctionOpen(false);
+    if (data) {
+      reset(data.formValues);
+      setTableData(data.arrayData);
+      setAuctionId(data.id);
+    }else{
+      const newAuctionId = Date.now().toString(16);
+      setAuctionId(newAuctionId);
+    }
+  };
 
   return (
     <>
@@ -226,7 +269,6 @@ function AuctionTransaction() {
                   {...field}
                   value={field.value || null}
                   options={kisanList}
-                  // getOptionLabel={(option) => (option.id + " | " + option.name + " | " )}
                   getOptionLabel={(option) => `${option.id} | ${option.name}`}
                   renderOption={(props, option) => (
                     <li {...props}>
@@ -494,6 +536,7 @@ function AuctionTransaction() {
           </Alert>
         </Snackbar>
       </div>
+      <OnGoingAuctions open={isOnGoingAuctionOpen} onClose={handleCloseDialog} />
     </>
   );
 }

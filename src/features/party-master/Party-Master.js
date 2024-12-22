@@ -25,8 +25,6 @@ const PartyMaster = () => {
   const [tableData, setTableData] = useState([]);
   const [tableDataFiltered, setTableDataFiltered] = useState([]);
 
-  const [partyColumns, setPartyColumns] = useState(["INDEX", "CONTACT", "ID NO", "PARTY NAME", "PARTY ID", "MAX LOAN DAYS", "Days Exceded", "PARTY TYPE"]);
-  const [keyArray, setKeyArray] = useState(["index", "contact", "idNo", "name", "partyId", "maxLoanDays", "daysExceded", "partyType"]);
   const currentPartyType = watch("partyType", "KISAN");
 
   const partyType = watch("partyType", "KISAN");
@@ -65,11 +63,6 @@ const PartyMaster = () => {
       elem.daysExceded = diffInDays;
     })
   }, [tableData]);
-
-  const partyTypeChange = (value) => {
-    
-    // setCurrentPartyType
-  }
 
   const onSubmit = async (data) => {
     const values = getValues();

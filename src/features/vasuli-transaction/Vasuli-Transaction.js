@@ -101,9 +101,13 @@ function VasuliTransaction() {
   }, [owedAmount]);
 
   const onSubmit = async (data) => {
-    console.log("onSubmit",);
+    const vasuliTran = {
+      ...getValues(),
+      vyapariId:getValues().vyapariId.partyId,
+    }
+    console.log("onSubmit",vasuliTran);
     try {
-      await addVasuliTransaction(getValues());
+      await addVasuliTransaction(vasuliTran);
       reset({
         vyapariId:null,
         amount: '',

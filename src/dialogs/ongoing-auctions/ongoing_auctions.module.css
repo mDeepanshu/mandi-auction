@@ -1,0 +1,31 @@
+.btn_group {
+  display: flex;
+  gap: 5px;
+  padding-bottom: 5px;
+}
+
+/* .auctions{
+    display: flex;
+    gap: 5px;
+    padding-top: 10px;
+} */
+
+.horizontal_list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 10px;
+}
+
+.radio_section {
+  width: 10%;
+}
+
+.kisan_name {
+  width: 50%;
+}
+
+.item_name {
+  width: 40%;
+}
