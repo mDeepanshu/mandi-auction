@@ -74,12 +74,9 @@ function VasuliTransaction() {
             setOwedAmount("");
           }
         } catch (error) {
-          console.error("Error fetching owed amount:", error);
           setOwedAmount(""); // Handle error by resetting owed amount
         }
       };
-    
-      console.log(watchedVyapariId);
       fetchOwedAmount();
     }
   }, [watchedVyapariId]);
@@ -123,18 +120,7 @@ function VasuliTransaction() {
     }
   };
 
-  const onPartySelect = () => async (value) => {
-    console.log("PPPPPPP");
-    
-    // field.onChange(value?.partyId ?? ""); // Update the form value
-    // if (value?.partyId) {
-    //   const partyDetails = await getOwedAmount(value?.partyId);
-    //   setOwedAmount(partyDetails?.data?.responseBody?.owedAmount);
-
-    // } else setOwedAmount("");
-  }
-
-  const handleEnterPress = (event) => {
+const handleEnterPress = (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       if (remarkRef.current) {

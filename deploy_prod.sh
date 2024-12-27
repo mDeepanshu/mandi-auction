@@ -1,4 +1,5 @@
 sed -i "s|^REACT_APP_API_URL=.*|REACT_APP_API_URL='http://52.66.145.64:8080/mandi/'|" .env
+sed -i "s|^REACT_APP_PASS=.*|REACT_APP_PASS='9876'|" .env
 npm run build
 scp -i ./mandi-server-curr.pem -r build/ ubuntu@52.66.145.64:/home/ubuntu/mandiAuction
 ssh -i ./mandi-server-curr.pem ubuntu@52.66.145.64 << EOF
@@ -6,3 +7,4 @@ ssh -i ./mandi-server-curr.pem ubuntu@52.66.145.64 << EOF
   sudo ./deploy_mandi_auction.sh
 EOF
 sed -i "s|^REACT_APP_API_URL=.*|REACT_APP_API_URL='http://52.66.145.64:8080/mandi-dev/'|" .env
+sed -i "s|^REACT_APP_PASS=.*|REACT_APP_PASS='6789'|" .env

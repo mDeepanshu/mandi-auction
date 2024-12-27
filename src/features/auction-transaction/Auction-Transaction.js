@@ -32,6 +32,8 @@ function AuctionTransaction() {
   const matchesTwo = useMediaQuery('(max-width:599px)');
   const [qty, setQty] = useState([]);
   const [auctionId, setAuctionId] = useState([]);
+  const kisanRef = useRef(null);
+  const itemRef = useRef(null);
 
   const onSubmit = async () => {
 
@@ -57,7 +59,8 @@ function AuctionTransaction() {
         let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
         let newLocal = oldLocal;
         delete newLocal[auctionId];
-        localStorage.setItem("onGoingAuction",JSON.stringify(newLocal));
+        localStorage.setItem("onGoingAuction", JSON.stringify(newLocal));
+        document.title = `Mandi Auction`;
       } catch (error) {
         console.log(error);
       }
@@ -108,15 +111,16 @@ function AuctionTransaction() {
       setValue('rate', null);
       setValue('bags', '');
       setValue('vyapari', null);
+      setValue('quantity', null);
 
       const currAuctionSate = {
         formValues: getValues(),
-        arrayData:newTableData,
-        id:auctionId
+        arrayData: newTableData,
+        id: auctionId
       }
       let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
-      oldLocal[auctionId]=currAuctionSate;
-      localStorage.setItem("onGoingAuction",JSON.stringify(oldLocal));
+      oldLocal[auctionId] = currAuctionSate;
+      localStorage.setItem("onGoingAuction", JSON.stringify(oldLocal));
 
       vyapariRef.current.focus();
     } else {
@@ -125,6 +129,13 @@ function AuctionTransaction() {
   }
 
   const editFromTable = (index) => {
+    const defaultOption = vyapariList.find(option =>  option.name == buyItemsArr[index]?.vyapariName);
+    reset({
+      ...getValues(),
+      ...buyItemsArr[index],
+      vyapari: defaultOption
+    });
+    setQtyTotal(buyItemsArr[index]?.quantity);
     const newRows = [...buyItemsArr];
     newRows.splice(index, 1);
     setTableData(newRows);
@@ -134,6 +145,15 @@ function AuctionTransaction() {
     const newRows = [...buyItemsArr];
     newRows.splice(index, 1);
     setTableData(newRows);
+
+    const currAuctionSate = {
+      formValues: getValues(),
+      arrayData: newRows,
+      id: auctionId
+    }
+    let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
+    oldLocal[auctionId] = currAuctionSate;
+    localStorage.setItem("onGoingAuction", JSON.stringify(oldLocal));
   }
 
   const fetchList = async (listName) => {
@@ -159,14 +179,16 @@ function AuctionTransaction() {
 
   useEffect(() => {
     const anyPreviousAuctions = JSON.parse(localStorage.getItem("onGoingAuction"));
-    if (anyPreviousAuctions && Object.keys(anyPreviousAuctions)?.length>0) setIsOnGoingAuctionOpen(true);
+    if (anyPreviousAuctions && Object.keys(anyPreviousAuctions)?.length > 0) setIsOnGoingAuctionOpen(true);
     else {
-      const newAuction={}
-      localStorage.setItem("onGoingAuction",JSON.stringify(newAuction));
+      const newAuction = {}
+      localStorage.setItem("onGoingAuction", JSON.stringify(newAuction));
 
       const newAuctionId = Date.now().toString(16);
       setAuctionId(newAuctionId);
+      kisanRef.current.focus();
     }
+
   }, []);
 
   useEffect(() => {
@@ -191,7 +213,6 @@ function AuctionTransaction() {
   };
 
   const newQty = (event) => {
-
     event.preventDefault();
     const value = getValues('quantity');
     if (!value) {
@@ -202,11 +223,6 @@ function AuctionTransaction() {
     const currentVal = getValues('bags');
     setValue('bags', Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
     setValue('quantity', '', { shouldValidate: false, shouldDirty: true });
-
-    // qtyRef.current.focus();
-    // setFocus('rate');
-
-
   };
 
   const removeQty = (event, index) => {
@@ -246,11 +262,26 @@ function AuctionTransaction() {
       reset(data.formValues);
       setTableData(data.arrayData);
       setAuctionId(data.id);
-    }else{
+      document.title = data?.formValues?.kisaan?.name; 
+    } else {
       const newAuctionId = Date.now().toString(16);
       setAuctionId(newAuctionId);
     }
+    if (kisanRef.current) {
+      setTimeout(() => {
+        kisanRef.current.focus();
+      }, 0);
+    }
   };
+
+  const fieldValueChange = (event, fieldName) => {
+    if (fieldName === "kisaan") itemRef.current.focus();
+    if (getValues()?.kisaan?.name) {
+      document.title = getValues().kisaan.name;
+    }else{
+      document.title = `Mandi Auction`;
+    }
+  }
 
   return (
     <>
@@ -285,6 +316,7 @@ function AuctionTransaction() {
                       label="KISAAN"
                       InputProps={{
                         ...params.InputProps,
+                        inputRef: kisanRef, // Attach the ref here
                         startAdornment: (
                           <InputAdornment position="start">
                             <SearchIcon />
@@ -293,7 +325,10 @@ function AuctionTransaction() {
                       }}
                     />
                   )}
-                  onChange={(event, value) => field.onChange(value)}
+                  onChange={(event, value) => {
+                    field.onChange(value); // Updates the React Hook Form state
+                    fieldValueChange(event, "kisaan"); // Calls the custom function
+                  }}
                   disablePortal
                   id="combo-box-demo"
                 />
@@ -318,6 +353,7 @@ function AuctionTransaction() {
                       label="ITEM"
                       InputProps={{
                         ...params.InputProps,
+                        inputRef: itemRef, // Attach the ref here
                         startAdornment: (
                           <InputAdornment position="start">
                             <SearchIcon />
@@ -326,7 +362,10 @@ function AuctionTransaction() {
                       }}
                     />
                   )}
-                  onChange={(event, value) => field.onChange(value)}
+                  onChange={(event, value) => {
+                    field.onChange(value); // Updates the React Hook Form state
+                    setFocus('totalBag');
+                  }}
                   disablePortal
                   id="combo-box-demo"
                 />
@@ -334,15 +373,15 @@ function AuctionTransaction() {
             />
             <p className='err-msg'>{errors.itemName?.message}</p>
           </div>
-          <div className='totalBags'>
-            <Controller
-              name="totalBag"
-              control={control}
-              rules={{ required: "Enter Total Bags" }}
-              defaultValue=""
-              render={({ field }) => <TextField {...field} fullWidth label="KISAN BAGS" variant="outlined" type='number' />}
+          <div className="totalBags">
+            <TextField
+              {...register("totalBag", { required: "Enter Total Bags" })}
+              fullWidth
+              label="Total Bags"
+              type="number"
+              variant="outlined"
             />
-            <p className='err-msg'>{errors.totalBags?.message}</p>
+            <p className="err-msg">{errors.totalBag?.message}</p>
           </div>
           <div className='vyapari'>
             <Controller
@@ -391,7 +430,10 @@ function AuctionTransaction() {
                       }}
                     />
                   )}
-                  onChange={(event, value) => field.onChange(value)}
+                  onChange={(event, value) => {
+                    field.onChange(value); // Updates the React Hook Form state
+                    setFocus('quantity');
+                  }}
                   disablePortal
                   id="combo-box-demo"
                 />
@@ -402,20 +444,12 @@ function AuctionTransaction() {
           <div className='quantity'>
             <div className='qty-input'>
               <div>
-                <Controller
-                  name="quantity"
-                  control={control}
-                  rules={{ required: "Enter Quantity" }}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label="QUANTITY"
-                      type="number"
-                      variant="outlined"
-                    />
-                  )}
+                <TextField
+                  {...register("quantity", { required: "Enter Quantity" })}
+                  fullWidth
+                  label="QUANTITY"
+                  type="number"
+                  variant="outlined"
                 />
                 <p className='err-msg'>{errors.quantity?.message}</p>
               </div>

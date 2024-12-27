@@ -8,47 +8,54 @@ export const syncAll = async () => {
         if (data !== "error") {
             res();
         } else {
-            rej("errorp1");
+            rej("Item Sync Failed");
         }
     }));
     let p2 = new Promise((res, rej) => syncParties("VYAPARI").then((data) => {
         if (data !== "error") {
             res();
         } else {
-            rej("errorp2");
+            rej("Vyapari Sync Failed");
         }
     }));
     let p3 = new Promise((res, rej) => syncParties("KISAN").then((data) => {
         if (data !== "error") {
             res();
         } else {
-            rej("errorp3");
+            rej("Kisan Sync Failed");
         }
     }));
     let p4 = new Promise((res, rej) => syncTransactions("auction", dataToSync.auction).then((data) => {
         if (data) {
             res();
         } else {
-            rej("errorp4");
+            rej("Auction Sync Failed");
         }
     }));
     let p5 = new Promise((res, rej) => syncTransactions("party/vasuliTrasaction", dataToSync.vasuli).then((data) => {
         if (data !== "error") {
             res();
         } else {
-            rej("errorp5");
+            rej("Vasuli Trasaction Sync Failed");
         }
     }));
 
-    // let promise = new Promise((resolve,rej) => {
-    //     setTimeout(() => {
-    //         resolve('Resolved after 5 seconds');
-    //     }, 2000);
-    //   });
+    p4.then((data) => {
+        let prevLocalObj = JSON.parse(localStorage.getItem('localObj'));
+        prevLocalObj.auction = [];
+        localStorage.setItem('localObj', JSON.stringify(prevLocalObj));
+    }).catch((err) => {
+        console.log(err);
+    });
 
+    p5.then((data) => {
+        let prevLocalObj = JSON.parse(localStorage.getItem('localObj'));
+        prevLocalObj.vasuli = [];
+        localStorage.setItem('localObj', JSON.stringify(prevLocalObj));
+    }).catch((err) => {
+        console.log(err);
+    });
 
-
-    // return Promise.all([promise])
     return Promise.all([p1, p2, p3, p4, p5])
         .then(() => {
             const localObj = {
@@ -56,10 +63,11 @@ export const syncAll = async () => {
                 vasuli: []
             }
             localStorage.setItem("localObj", JSON.stringify(localObj));
-            return true;
+            return `done`;
         })
         .catch((err) => {
-            return false;
+            console.log(err);
+            return err;
         });
 
 };

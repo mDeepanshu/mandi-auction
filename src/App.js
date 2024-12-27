@@ -22,18 +22,18 @@ function App() {
 
 
   const [loginStatus, setLoginStatus] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState({isLoading:true, message:"Loading..."});
 
   const changeLoginState = (value) => {
-    if (value === "9876") {
+    if (value === process.env.REACT_APP_PASS) {
       setTimeout(() => {
         setLoginStatus(false);
       }, 100);
     }
   }
 
-  const changeLoading = (newState) => {
-    setLoading(newState);
+  const changeLoading = (newState,apiRes) => {
+    setLoading({isLoading:newState, message:apiRes});
   }
 
   useEffect(() => {
@@ -51,11 +51,11 @@ function App() {
       {
         loginStatus ? (<Login changeLoginState={changeLoginState} />) : (
           <>
-            {loading ? (
+            {loading.isLoading ? (
               <div className="loader" />
             ) : (
               <>
-                <NavBar changeLoadingState={changeLoading}></NavBar>
+                <NavBar changeLoadingState={changeLoading} loadingStatus={loading}></NavBar>
                 <Box component="main" sx={{ mt: 8 }}>
                   <Outlet context={{ loading }} />
                 </Box>

@@ -1,103 +1,96 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Grid } from "@mui/material";
 import { useForm, Controller } from 'react-hook-form';
 import { TextField, Button } from "@mui/material";
-import { Table, Typography, TableBody, TableCell, TableHead, TableRow, InputAdornment, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import { Typography, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { addPartyGlobal, getPartyGlobal } from "../../gateway/party-master-apis";
-import SearchIcon from '@mui/icons-material/Search';
 // import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
 import { Delete, AddCircleOutline } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Snackbar from '@mui/material/Snackbar';
-import MasterTable from "../../shared/ui/master-table/master-table";
 import styles from "./party-master.module.css";
+import Alert from '@mui/material/Alert';
 
 const PartyMaster = () => {
   // const { handleSubmit, control, getValues } = useForm();
-  const [open, setOpen] = useState(false);
-  const { handleSubmit, control,watch , getValues, formState: { errors } } = useForm({
+  const [partyList, setPartyList] = useState([]);
+  const [sync, setSync] = useState({ status: false, message: "Loading...", syncSeverity: "success" });
+  const [partyListFiltered, setPartyListFiltered] = useState([]);
+  const { handleSubmit, control, watch, getValues, formState: { errors }, reset } = useForm({
     defaultValues: {
       partyType: 'KISAN', // Ensure this matches one of the MenuItem values
     },
   });
-  const [tableData, setTableData] = useState([]);
-  const [tableDataFiltered, setTableDataFiltered] = useState([]);
 
   const currentPartyType = watch("partyType", "KISAN");
-
   const partyType = watch("partyType", "KISAN");
 
   // Conditionally set the validation rules based on partyType
-  const vasuliDayLimitValidation = partyType === "VYAPARI" 
-    ? { required: "Enter Vasuli Day Limit" } 
+  const vasuliDayLimitValidation = partyType === "VYAPARI"
+    ? { required: "Enter Vasuli Day Limit" }
     : {}; // No validation for "KISAN"
 
-  const fetchItems = async () => {
-    try {
-      const partiesList = await getPartyGlobal();
-      setTableData([...partiesList.responseBody]);
-      setTableDataFiltered([...partiesList.responseBody]);
-    } catch (error) {
-      console.error("Fetch items error:", error);
-    }
-  };
-
-  const onPartyInput = (event, field) => {
-    field.onChange(event);  // Update the value in react-hook-form
-    setTableDataFiltered(tableData.filter(elem => elem.name.includes(event.target.value)));
-  }
-
   useEffect(() => {
-    fetchItems();
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    tableData.map((elem) => {
-      const newLastVasuliDate = new Date(elem.lastVasuliDate);
-      const todayDate = new Date();
-      const diffInMs = Math.abs(todayDate - newLastVasuliDate);
-      // Convert milliseconds to days
-      const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24)) - elem.maxLoanDays;
-      elem.daysExceded = diffInDays;
-    })
-  }, [tableData]);
-
-  const onSubmit = async (data) => {
-    const values = getValues();
-    if (tableData.some(elem => elem.name == values.name && elem.partyType == values.partyType)) {
-      setOpen(true);
-      return;
-    }
-    let newTableData = [
-      {
-        partyId: Date.now().toString(16),
-        ...values
-      }
-    ];
+  const fetchData = async () => {
     try {
-      const result = await addPartyGlobal(newTableData);
-      if (result.responseCode == 201) {
-        setTableData([...tableData, newTableData[0]]);
-        setTableDataFiltered([...tableDataFiltered, newTableData[0]]);
+      const result = await getPartyGlobal();
+      if (result.responseCode == 200) {
+        setPartyList(result.responseBody);
+        setPartyListFiltered(result.responseBody);
       }
     } catch (error) {
       console.log(error);
     }
   };
 
-  const deleteFromTable = (index) => {
-    const newRows = [...tableData];
-    newRows.splice(index, 1);
-    setTableData(newRows);
+  const onPartyInput = (e) => {
+
+    const handler = setTimeout(() => {
+      let filteredData = partyList.filter((data) => {
+        return data.name.toLowerCase().includes(e.target.value.toLowerCase());
+      });
+      setPartyListFiltered(filteredData);
+    }, 1000); // Adjust the delay as needed (300ms here)
+
+    return () => {
+      clearTimeout(handler);
+    };
+
   }
+
+  const onSubmit = async (data) => {
+    const values = getValues();
+    let newTableData = [
+      {
+        partyId: Date.now().toString(16),
+        ...values
+      }
+    ];
+    // if (partyList.find(party => (party.name === values.name && party.partyType === values.partyType))) {
+    //   setSync({ status: true, message: "Party Already Exists", syncSeverity: "error" });
+    //   return;
+    // }
+    try {
+      const result = await addPartyGlobal(newTableData);
+      if (result.responseCode == 201) {
+        reset();
+        fetchData();
+        setSync({ status: true, message: "Party Added Successfully", syncSeverity: "success" });
+      }
+    } catch (error) {
+      setSync({ status: true, message: "Some Error Occured", syncSeverity: "error" });
+    }
+  };
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
-    setOpen(false);
+    setSync({ status: false, message: "", syncSeverity: "" });
   };
 
   const action = (
@@ -116,7 +109,7 @@ const PartyMaster = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={2} p={3}>
-        <Grid item xs={0} md={12}>
+        <Grid item xs={12} md={12}>
           <Typography variant="h4" component="h1" align="left">
             PARTY MASTER
           </Typography>
@@ -126,19 +119,21 @@ const PartyMaster = () => {
           <Controller
             name="name"
             control={control}
-            rules={{ required: "Enter Name" }}
+            rules={{ required: "Enter Party Name" }}
             defaultValue=""
-
-            render={({ field }) => <TextField {...field} fullWidth label="PARTY NAME" variant="outlined" InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-              onChange={(e) => onPartyInput(e, field)}
-            />}
-          />
+            render={({ field }) => (
+              <TextField
+                {...field}
+                fullWidth
+                type='text'
+                label="Party Name"
+                variant="outlined"
+                onChange={(e) => {
+                  field.onChange(e); // Update the form state
+                  onPartyInput(e); // Call the debounced function
+                }}
+              />
+            )} />
           <p className='err-msg'>{errors.name?.message}</p>
         </Grid>
         <Grid item xs={6} sm={2}>
@@ -168,7 +163,7 @@ const PartyMaster = () => {
             control={control}
             rules={vasuliDayLimitValidation}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth type='number' label="VASULI DAY LIMIT" variant="outlined" disabled={currentPartyType == "KISAN"}/>}
+            render={({ field }) => <TextField {...field} fullWidth type='number' label="VASULI DAY LIMIT" variant="outlined" disabled={currentPartyType == "KISAN"} />}
           />
           <p className='err-msg'>{errors.maxLoanDays?.message}</p>
         </Grid>
@@ -178,7 +173,7 @@ const PartyMaster = () => {
             control={control}
             rules={{ required: "Enter Contact" }}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="CONTACT" variant="outlined" type='number'/>}
+            render={({ field }) => <TextField {...field} fullWidth label="CONTACT" variant="outlined" type='number' />}
           />
           <p className='err-msg'>{errors.contact?.message}</p>
         </Grid>
@@ -187,15 +182,31 @@ const PartyMaster = () => {
             <AddCircleOutline /> ADD
           </Button>
         </Grid>
+        <Grid item xs={12} md={12}>
+          <Grid item xs={6} sm={3}>
+            <ul>
+              {partyListFiltered.slice(0, 5).map((party, index) => (
+                <li key={index}>{party.name}</li>
+              ))}
+            </ul>
+          </Grid>
+        </Grid>
       </Grid>
       <div>
         <Snackbar
-          open={open}
-          autoHideDuration={4000}
-          message="ALREADY EXISTS"
-          action={action}
+          open={sync.status}
+          autoHideDuration={5000}
           onClose={handleClose}
-        />
+        >
+          <Alert
+            onClose={handleClose}
+            severity={sync.syncSeverity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {sync.message}
+          </Alert>
+        </Snackbar>
       </div>
     </form>
   );

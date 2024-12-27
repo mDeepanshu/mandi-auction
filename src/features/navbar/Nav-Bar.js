@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 // import PropTypes from 'prop-types';
 import { AppBar, Box, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography, Button } from '@mui/material';
@@ -22,7 +22,7 @@ function NavBar(props) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [sync, setSync] = useState({});
     const [open, setOpen] = useState(false);
-
+    const [syncedData, setSyncedData] = useState();
     const handleDrawerToggle = () => {
         setMobileOpen((prevState) => !prevState);
     };
@@ -34,17 +34,25 @@ function NavBar(props) {
         setOpen(false);
     };
 
-    const syncData = async () => {
-        props.changeLoadingState(true);
-        let data = await syncAll();
-        props.changeLoadingState(false);
-        setSync({
-            syncSeverity: data ? 'success' : 'error',
-            syncStatus: data ? 'SYNC SUCCESSFUL' : 'SYNC UNSUCCESSFUL'
-        });
-        setOpen(true);
-    }
+    useEffect(() => {
+        if (syncedData) {
+            setSync({
+                syncSeverity: syncedData===`done` ? 'success' : 'error',
+                syncStatus: syncedData===`done` ? 'SYNC SUCCESSFUL' : syncedData
+            });
+            setOpen(true);
+        }
+    }, [syncedData]);
 
+    useEffect(() => {
+        setSyncedData(props.loadingStatus.message);
+    }, [props.loadingStatus]);
+
+    const syncData = async () => {
+        props.changeLoadingState(true,`Syncing...`);
+        let syncedDataStatus = await syncAll();
+        props.changeLoadingState(false,syncedDataStatus);
+    }
 
     const drawer = (
         <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
