@@ -34,6 +34,7 @@ function AuctionTransaction() {
   const [auctionId, setAuctionId] = useState([]);
   const kisanRef = useRef(null);
   const itemRef = useRef(null);
+  const totalBagInputRef = useRef(null);
 
   const onSubmit = async () => {
 
@@ -55,13 +56,20 @@ function AuctionTransaction() {
         await addAuctionTransaction(auctionData);
         setSuccessTransactionDialog(true);
         reset();
+        setValue('kisaan', null);
+        setValue('itemName', null);
+        setValue('totalBag', null);
         setTableData([]);
         let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
         let newLocal = oldLocal;
         delete newLocal[auctionId];
         localStorage.setItem("onGoingAuction", JSON.stringify(newLocal));
         document.title = `Mandi Auction`;
-        kisanRef.current.focus();
+        if (kisanRef.current) {
+          setTimeout(() => {
+            kisanRef.current.focus();
+          }, 0);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -261,7 +269,9 @@ function AuctionTransaction() {
   const handleCloseDialog = (data) => {
     setIsOnGoingAuctionOpen(false);
     if (data) {
-      reset(data.formValues);
+      setValue('kisaan', data?.formValues?.kisaan);
+      setValue('itemName', data?.formValues?.itemName);
+      setValue('totalBag', data?.formValues?.totalBag);
       setTableData(data.arrayData);
       setAuctionId(data.id);
       document.title = data?.formValues?.kisaan?.name;
@@ -269,9 +279,9 @@ function AuctionTransaction() {
       const newAuctionId = Date.now().toString(16);
       setAuctionId(newAuctionId);
     }
-    if (kisanRef.current) {
+    if (vyapariRef.current) {
       setTimeout(() => {
-        kisanRef.current.focus();
+        vyapariRef.current.focus();
       }, 0);
     }
   };
@@ -286,11 +296,8 @@ function AuctionTransaction() {
   }
 
   const handleEnterKeyPress = (val) => {
-    if (val === 'submit') {
-      addToTable();
-    }else{
-      setFocus('bags');
-    }
+    if (val === 'submit') addToTable();
+    else setFocus('bags');
   }
 
   return (
@@ -310,6 +317,7 @@ function AuctionTransaction() {
                   {...field}
                   value={field.value || null}
                   options={kisanList}
+                  disabled={getValues()?.kisaan?.name && buyItemsArr.length > 0}
                   getOptionLabel={(option) => `${option.id} | ${option.name}`}
                   renderOption={(props, option) => (
                     <li {...props}>
@@ -324,6 +332,7 @@ function AuctionTransaction() {
                     <TextField
                       {...params}
                       label="KISAAN"
+                      disabled={getValues()?.kisaan?.name && buyItemsArr.length > 0}
                       InputProps={{
                         ...params.InputProps,
                         inputRef: kisanRef, // Attach the ref here
@@ -336,8 +345,8 @@ function AuctionTransaction() {
                     />
                   )}
                   onChange={(event, value) => {
-                    field.onChange(value); // Updates the React Hook Form state
-                    fieldValueChange(event, "kisaan"); // Calls the custom function
+                    field.onChange(value);
+                    fieldValueChange(event, "kisaan");
                   }}
                   disablePortal
                   id="combo-box-demo"
@@ -356,11 +365,13 @@ function AuctionTransaction() {
                   {...field}
                   value={field.value || null}
                   options={itemsList}
+                  disabled={getValues()?.itemName && buyItemsArr.length > 0}
                   getOptionLabel={(option) => option.name}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       label="ITEM"
+                      disabled={getValues()?.itemName && buyItemsArr.length > 0}
                       InputProps={{
                         ...params.InputProps,
                         inputRef: itemRef, // Attach the ref here
@@ -374,7 +385,7 @@ function AuctionTransaction() {
                   )}
                   onChange={(event, value) => {
                     field.onChange(value); // Updates the React Hook Form state
-                    setFocus('totalBag');
+                    totalBagInputRef.current.focus();
                   }}
                   disablePortal
                   id="combo-box-demo"
@@ -384,12 +395,23 @@ function AuctionTransaction() {
             <p className='err-msg'>{errors.itemName?.message}</p>
           </div>
           <div className="totalBags">
-            <TextField
-              {...register("totalBag", { required: "Enter Total Bags" })}
-              fullWidth
-              label="Total Bags"
-              type="number"
-              variant="outlined"
+            <Controller
+              name="totalBag"
+              control={control}
+              defaultValue=""
+              rules={{ required: "Enter Total Bags" }}
+              render={({ field, fieldState: { error } }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="Total Bags"
+                  placeholder="Total Bags"
+                  type="number"
+                  variant="outlined"
+                  error={!!error}
+                  inputRef={totalBagInputRef}
+                />
+              )}
             />
             <p className="err-msg">{errors.totalBag?.message}</p>
           </div>
@@ -431,12 +453,7 @@ function AuctionTransaction() {
                       label="VYAPARI"
                       InputProps={{
                         ...params.InputProps,
-                        inputRef: vyapariRef, // Attach the ref here
-                        // startAdornment: (
-                        //   <InputAdornment position="start">
-                        //     <SearchIcon />
-                        //   </InputAdornment>
-                        // ),
+                        inputRef: vyapariRef,
                       }}
                     />
                   )}
@@ -477,12 +494,12 @@ function AuctionTransaction() {
             </div>
           </div>
           <div className='rate'>
-            <input
-              id="rate"
-              className='rate-field'
-              type='number'
-              placeholder='RATE'
+            <TextField
               {...register("rate", { required: "Rate is required" })}
+              fullWidth
+              label="Rate"
+              type="number"
+              variant="outlined"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -494,12 +511,12 @@ function AuctionTransaction() {
           </div>
           <div className='bags-box'>
             <div className='bag'>
-              <input
-                id="bags"
-                type='number'
-                className='bags-field'
-                placeholder='Bags'
+              <TextField
                 {...register("bags", { required: "Bags is required" })}
+                fullWidth
+                label="Bags"
+                type="number"
+                variant="outlined"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
