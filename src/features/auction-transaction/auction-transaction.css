@@ -152,6 +152,18 @@
   border-color: rgba(140, 140, 140, 0.74);
 }
 
+.bags-field {
+  height: 3.3rem;
+  width: 80%;
+  border-radius: 5px;
+  font-size: 15px;
+  padding-left: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  box-shadow: none;
+  /* Remove the box-shadow */
+  border-color: rgba(140, 140, 140, 0.74);
+}
+
 @media (min-width: 650px) {
   .hidden-xs {
     display: block;

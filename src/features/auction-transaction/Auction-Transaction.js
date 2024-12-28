@@ -61,6 +61,7 @@ function AuctionTransaction() {
         delete newLocal[auctionId];
         localStorage.setItem("onGoingAuction", JSON.stringify(newLocal));
         document.title = `Mandi Auction`;
+        kisanRef.current.focus();
       } catch (error) {
         console.log(error);
       }
@@ -84,8 +85,9 @@ function AuctionTransaction() {
   }
 
   const addToTable = async (event) => {
-    event.preventDefault();
-
+    if (event) {
+      event.preventDefault();
+    }
     const result = await trigger(["kisaan", "itemName", "vyapari", "bags"]);
     if (!qtyTotal || qtyTotal <= 0) {
       return;
@@ -129,7 +131,7 @@ function AuctionTransaction() {
   }
 
   const editFromTable = (index) => {
-    const defaultOption = vyapariList.find(option =>  option.name == buyItemsArr[index]?.vyapariName);
+    const defaultOption = vyapariList.find(option => option.name == buyItemsArr[index]?.vyapariName);
     reset({
       ...getValues(),
       ...buyItemsArr[index],
@@ -262,7 +264,7 @@ function AuctionTransaction() {
       reset(data.formValues);
       setTableData(data.arrayData);
       setAuctionId(data.id);
-      document.title = data?.formValues?.kisaan?.name; 
+      document.title = data?.formValues?.kisaan?.name;
     } else {
       const newAuctionId = Date.now().toString(16);
       setAuctionId(newAuctionId);
@@ -278,8 +280,16 @@ function AuctionTransaction() {
     if (fieldName === "kisaan") itemRef.current.focus();
     if (getValues()?.kisaan?.name) {
       document.title = getValues().kisaan.name;
-    }else{
+    } else {
       document.title = `Mandi Auction`;
+    }
+  }
+
+  const handleEnterKeyPress = (val) => {
+    if (val === 'submit') {
+      addToTable();
+    }else{
+      setFocus('bags');
     }
   }
 
@@ -422,11 +432,11 @@ function AuctionTransaction() {
                       InputProps={{
                         ...params.InputProps,
                         inputRef: vyapariRef, // Attach the ref here
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon />
-                          </InputAdornment>
-                        ),
+                        // startAdornment: (
+                        //   <InputAdornment position="start">
+                        //     <SearchIcon />
+                        //   </InputAdornment>
+                        // ),
                       }}
                     />
                   )}
@@ -473,17 +483,29 @@ function AuctionTransaction() {
               type='number'
               placeholder='RATE'
               {...register("rate", { required: "Rate is required" })}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleEnterKeyPress(``);
+                }
+              }}
             />
             {errors.rate && <p className='err-msg'>{errors.rate.message}</p>}
           </div>
           <div className='bags-box'>
             <div className='bag'>
-              <Controller
-                name="bags"
-                control={control}
-                rules={{ required: "Enter Bags" }}
-                defaultValue=""
-                render={({ field }) => <TextField {...field} fullWidth label="BAGS" variant="outlined" type='number' />}
+              <input
+                id="bags"
+                type='number'
+                className='bags-field'
+                placeholder='Bags'
+                {...register("bags", { required: "Bags is required" })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleEnterKeyPress(`submit`);
+                  }
+                }}
               />
               <p className='err-msg'>{errors.bags?.message}</p>
             </div>
