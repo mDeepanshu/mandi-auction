@@ -299,7 +299,24 @@ function AuctionTransaction() {
     if (val === 'submit') addToTable();
     else setFocus('bags');
   }
+  const debounceTimeout = useRef(null);
 
+  const autoSetVyapari = (event) => {
+    clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      setValue('vyapari', vyapariList.find(option => {
+        const val = event.target.value.toLowerCase();
+        if (option.name.toLowerCase() == val || option.idNo == val) {
+          setFocus('quantity');
+        }
+        return option.name.toLowerCase() == val || option.idNo == val;
+      }
+    ));
+  },500);
+  }
+  useEffect(() => {
+    return () => clearTimeout(debounceTimeout.current);
+  }, []);
   return (
     <>
       <form>
@@ -455,6 +472,7 @@ function AuctionTransaction() {
                         ...params.InputProps,
                         inputRef: vyapariRef,
                       }}
+                      onInput={autoSetVyapari}
                     />
                   )}
                   onChange={(event, value) => {
