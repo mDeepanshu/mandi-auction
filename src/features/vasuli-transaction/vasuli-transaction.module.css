@@ -1,0 +1,12 @@
+.printContainer{
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+    gap: 10px;
+    font-weight: 600;
+}
+
+.tableBody{
+    max-height: 360px;
+    overflow-y: auto;
+}

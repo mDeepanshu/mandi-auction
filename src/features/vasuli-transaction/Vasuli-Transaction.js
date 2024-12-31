@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Grid, Typography, TextField, InputAdornment, Button, Autocomplete } from '@mui/material';
+import { Grid, Typography, TextField, InputAdornment, Button, Autocomplete, Switch, FormControlLabel } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { addVasuliTransaction, getOwedAmount } from "../../gateway/vasuli-transaction-apis";
 import { getAllItems } from "../../gateway/curdDB";
@@ -9,16 +9,23 @@ import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Alert from '@mui/material/Alert';
-
-
+import styles from "./vasuli-transaction.module.css";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import PrintIcon from '@mui/icons-material/Print';
 function VasuliTransaction() {
-
-
 
   const [vyapariList, setVyapariList] = useState([]);
   const [owedAmount, setOwedAmount] = useState("");
   const [loginStatus, setLoginStatus] = useState(true);
   const [open, setOpen] = useState(false);
+  const [printTable, setPrintTable] = useState([]);
+  const [printData, setPrintData] = useState({
+    vyapariName: "",
+    mobile: "",
+    date: "",
+    amount: "",
+  });
+  const printRef = useRef();
 
   const vyapariRef = useRef(null); // Create a ref
   const amountRef = useRef(null); // Create a ref
@@ -27,7 +34,7 @@ function VasuliTransaction() {
   let oneDaysPrior = new Date();
   oneDaysPrior.setDate(oneDaysPrior.getDate() - 1);
   let priorDate = oneDaysPrior.toLocaleDateString('en-CA').split('T')[0];
-  
+
   const todaysDate = new Date();
   const currentHour = todaysDate.getHours();
 
@@ -35,9 +42,10 @@ function VasuliTransaction() {
     priorDate = todaysDate.toLocaleDateString('en-CA').split('T')[0];
   }
 
-  const { handleSubmit, control, formState: { errors }, getValues,reset,setValue,watch } = useForm({
+  const { handleSubmit, control, formState: { errors }, getValues, reset, setValue, watch } = useForm({
     defaultValues: {
       date: priorDate,
+      toggle: false,
     },
   });
   const watchedVyapariId = watch("vyapariId");
@@ -97,18 +105,46 @@ function VasuliTransaction() {
     }
   }, [owedAmount]);
 
+  // useEffect(() => {
+  // if (window.electron && window.electron.ipcRenderer) {
+  //   window.electron.ipcRenderer
+  //     .invoke('get-printers')
+  //     .then((printerList) => setPrinters(printerList))
+  //     .catch((error) => console.error('Error fetching printers:', error));
+  // } else {
+  //   console.warn('Electron IPC is not available.');
+  // }
+  // }, []);
+
   const onSubmit = async (data) => {
     const vasuliTran = {
       ...getValues(),
-      vyapariId:getValues().vyapariId.partyId,
+      vyapariId: getValues().vyapariId.partyId,
     }
-    console.log("onSubmit",vasuliTran);
     try {
-      await addVasuliTransaction(vasuliTran);
+      const dataSaved = await addVasuliTransaction(vasuliTran);
+      if (getValues().toggle && dataSaved === 'success') {
+        setPrintData({
+          vyapariName: getValues().vyapariId.name,
+          mobile: getValues().vyapariId.mobile,
+          date: getValues().date,
+          amount: getValues().amount,
+        })
+      } else {
+        const newItem = {
+          name: getValues()?.vyapariId?.name,
+          amount: getValues()?.amount,
+          mobile: getValues()?.mobile,
+          date: getValues()?.date,
+          printStatus: 'NO',
+        };
+        setPrintTable((prevItems) => [...prevItems, newItem]);
+      }
       reset({
-        vyapariId:null,
+        vyapariId: null,
         amount: '',
         remark: '',
+        toggle: getValues().toggle,
       });
       if (vyapariRef.current) {
         setTimeout(() => {
@@ -120,7 +156,14 @@ function VasuliTransaction() {
     }
   };
 
-const handleEnterPress = (event) => {
+  useEffect(() => {
+    if (printData?.vyapariName) {
+      printReceipt();
+    }
+  }, [printData]);
+
+
+  const handleEnterPress = (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       if (remarkRef.current) {
@@ -145,20 +188,65 @@ const handleEnterPress = (event) => {
     setOpen(false);
   };
 
+  const printReceipt = () => {
+    const contentToPrint = printRef.current.innerHTML;
+
+    if (window.electron && window.electron.ipcRenderer) {
+      // Invoke a print action
+      window.electron.ipcRenderer
+        .invoke('print', contentToPrint)
+        .then(() => {
+          const newItem = {
+            name: printData.vyapariName,
+            amount: printData.amount,
+            mobile: printData.mobile,
+            date: printData.date,
+            printStatus: 'YES',
+          };
+          setPrintTable((prevItems) => [...prevItems, newItem]);
+        })
+        .catch((err) => console.error('Print failed:', err));
+    } else {
+      console.warn('Electron IPC is not available.');
+    }
+  }
+
+  const rePrintPrev = (data,index) => {
+    setPrintTable((printTable) => printTable.filter((_, i) => i !== index));
+    setPrintData({
+      vyapariName: data?.name,
+      mobile: data?.mobile,
+      date: data?.date,
+      amount: data?.amount,
+    })
+  }
+
   return (
     <>
       {
         loginStatus ? (<Login changeLoginState={changeLoginState} />) : (
           <>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Grid container spacing={3} p={3}>
-                <Grid item xs={12}>
+              <Grid container spacing={1} p={1}>
+                <Grid item xs={10}>
                   <Typography variant="h4" component="h1" align="left">
                     VASULI TRANSACTION
                   </Typography>
                 </Grid>
+                <Grid item xs={2}>
+                  <Controller
+                    name="toggle"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={<Switch {...field} checked={field.value} />}
+                        label="PRINT ON SUBMIT"
+                      />
+                    )}
+                  />
+                </Grid>
 
-                <Grid item xs={7}>
+                <Grid item xs={9}>
                   <Controller
                     name="vyapariId"
                     control={control}
@@ -184,7 +272,7 @@ const handleEnterPress = (event) => {
                             }}
                           />
                         )}
-                        onChange={(event, newValue) =>field.onChange(newValue)}                        
+                        onChange={(event, newValue) => field.onChange(newValue)}
                         disablePortal
                         id="combo-box-demo"
                       />
@@ -193,7 +281,7 @@ const handleEnterPress = (event) => {
                   <p className='err-msg'>{errors.vyapariId?.message}</p>
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={4}>
                   <Controller
                     name="date"
                     control={control}
@@ -213,7 +301,7 @@ const handleEnterPress = (event) => {
                   />
                   <p className='err-msg'>{errors.date?.message}</p>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={4}>
                   <Controller
                     name="amount"
                     control={control}
@@ -232,7 +320,7 @@ const handleEnterPress = (event) => {
                   />
                   <p className='err-msg'>{errors.amount?.message}</p>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={4}>
                   <Controller
                     name="remark"
                     control={control}
@@ -264,6 +352,39 @@ const handleEnterPress = (event) => {
                     </Button>
                   </Grid>
                 </Grid>
+                <Grid item xs={12}>
+                  <TableContainer component={Paper}>
+                    <div className={styles.tableBody}>
+                      <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell align="left">INDEX</TableCell>
+                            <TableCell align="right">NAME</TableCell>
+                            <TableCell align="right">AMOUNT</TableCell>
+                            <TableCell align="right">PRINT STATUS</TableCell>
+                            <TableCell align="right">PRINT</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {printTable?.map((row, index) => (
+                            <TableRow
+                              key={row.name}
+                              sx={{ lineHeight: '20px' }}
+                            >
+                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} component="th" scope="row">
+                                {index + 1}
+                              </TableCell>
+                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right">{row.name}</TableCell>
+                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right">{row.amount}</TableCell>
+                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right">{row.printStatus}</TableCell>
+                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right"><Button onClick={()=>rePrintPrev(row,index)} ><PrintIcon /></Button></TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TableContainer>
+                </Grid>
               </Grid>
             </form>
             <div>
@@ -281,6 +402,14 @@ const handleEnterPress = (event) => {
                   SUCCESSFULLY ADDED. SYNC TO SAVE.
                 </Alert>
               </Snackbar>
+            </div>
+            <div style={{ display: 'none' }}>
+              <div ref={printRef} className={styles.printContainer}>
+                <div>Vyapari Name: {printData?.vyapariName}</div>
+                <div>Mobile: {printData?.mobile}</div>
+                <div>Date: {printData?.date}</div>
+                <div>Amount: {printData?.amount}</div>
+              </div>
             </div>
           </>
         )}
