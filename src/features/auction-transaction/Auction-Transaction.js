@@ -359,6 +359,12 @@ function AuctionTransaction() {
                           </InputAdornment>
                         ),
                       }}
+                      inputProps={{
+                        ...params.inputProps,
+                        style: {
+                          textTransform: "uppercase", // Ensure uppercase transformation here
+                        },
+                      }}
                     />
                   )}
                   onChange={(event, value) => {
@@ -391,12 +397,18 @@ function AuctionTransaction() {
                       disabled={getValues()?.itemName && buyItemsArr.length > 0}
                       InputProps={{
                         ...params.InputProps,
-                        inputRef: itemRef, // Attach the ref here
+                        inputRef: itemRef,
                         startAdornment: (
                           <InputAdornment position="start">
                             <SearchIcon />
                           </InputAdornment>
                         ),
+                      }}
+                      inputProps={{
+                        ...params.inputProps,
+                        style: {
+                          textTransform: "uppercase", // Ensure uppercase transformation here
+                        },
                       }}
                     />
                   )}
@@ -471,6 +483,12 @@ function AuctionTransaction() {
                       InputProps={{
                         ...params.InputProps,
                         inputRef: vyapariRef,
+                      }}
+                      inputProps={{
+                        ...params.inputProps,
+                        style: {
+                          textTransform: "uppercase", // Ensure uppercase transformation here
+                        },
                       }}
                       onInput={autoSetVyapari}
                     />

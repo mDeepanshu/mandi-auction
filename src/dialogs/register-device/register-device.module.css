@@ -1,0 +1,26 @@
+.InputContainer {
+  display: flex;
+  margin-bottom: 20px;
+  align-items: center;
+  gap: 5px;
+  margin: 20px 0;
+}
+
+.btns{
+    margin: 0 10px;
+    /* padding: 0 10px; */
+}
+
+.footerBtns{
+    margin-left: 10px  !important;
+    /* padding-left: 10px  !important; */
+}
+
+.dialogContent{
+    height: 9rem;
+    font-size: 1.3rem;
+}
+
+.select_dropdown{
+    zoom: 1.25;
+}

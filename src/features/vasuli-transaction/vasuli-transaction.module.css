@@ -1,12 +1,28 @@
 .printContainer{
-    padding: 0 20px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Two equal columns */
-    gap: 10px;
-    font-weight: 600;
+    margin-top: 0;
+    padding: 0 15px;
+    font-weight: 700;
+    font-size: 0.7rem;
 }
 
 .tableBody{
     max-height: 360px;
     overflow-y: auto;
+}
+
+.printData{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+    gap: 10px;
+}
+
+.printHeadings{
+    display: flex;
+    justify-content: space-between;
+}
+
+.line{
+    background-color: black;
+    color: black;
+    height: 1px;
 }

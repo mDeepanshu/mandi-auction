@@ -7,6 +7,7 @@ import { syncAll } from "../../gateway/gateway";
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import RegisterDevice from "../../dialogs/register-device/register-device";
 
 const navItems = [
     // { name: '', label: 'Home' },
@@ -24,6 +25,8 @@ function NavBar(props) {
     const [sync, setSync] = useState({});
     const [open, setOpen] = useState(false);
     const [syncedData, setSyncedData] = useState();
+
+    const [unregistered, setUnregistered] = useState(false);
     const handleDrawerToggle = () => {
         setMobileOpen((prevState) => !prevState);
     };
@@ -51,9 +54,13 @@ function NavBar(props) {
     }, [props.loadingStatus]);
 
     const syncData = async () => {
-        props.changeLoadingState(true, `Syncing...`);
-        let syncedDataStatus = await syncAll();
-        props.changeLoadingState(false, syncedDataStatus);
+        if (localStorage.getItem("deviceId") === "" || localStorage.getItem("deviceId") === null) {
+            setUnregistered(true);
+        }else{
+            props.changeLoadingState(true, `Syncing...`);
+            let syncedDataStatus = await syncAll();
+            props.changeLoadingState(false, syncedDataStatus);
+        }
     }
 
     const drawer = (
@@ -78,6 +85,10 @@ function NavBar(props) {
     );
 
     const container = window !== undefined ? () => window().document.body : undefined;
+
+  const handleCloseDialog = () => {
+    setUnregistered(false);
+  }
 
     return (
         <>
@@ -145,6 +156,9 @@ function NavBar(props) {
                         {sync.syncStatus}
                     </Alert>
                 </Snackbar>
+            </div>
+            <div>
+                <RegisterDevice open={unregistered} onClose={handleCloseDialog}/>
             </div>
         </>
     );

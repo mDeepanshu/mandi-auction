@@ -6,6 +6,7 @@ import { Box } from '@mui/material';
 import { setDB } from "./gateway/curdDB";
 import { useState, useEffect } from 'react';
 import Login from "./features/login/login";
+import RegisterDevice from "./dialogs/register-device/register-device";
 
 const initializeDB = async () => {
   try {
@@ -22,7 +23,8 @@ function App() {
 
 
   const [loginStatus, setLoginStatus] = useState(true);
-  const [loading, setLoading] = useState({isLoading:true, message:"Loading..."});
+  const [loading, setLoading] = useState({ isLoading: true, message: "Loading..." });
+    const [unregistered, setUnregistered] = useState(false);
 
   const changeLoginState = (value) => {
     if (value === process.env.REACT_APP_PASS) {
@@ -32,8 +34,8 @@ function App() {
     }
   }
 
-  const changeLoading = (newState,apiRes) => {
-    setLoading({isLoading:newState, message:apiRes});
+  const changeLoading = (newState, apiRes) => {
+    setLoading({ isLoading: newState, message: apiRes });
   }
 
   useEffect(() => {
@@ -42,8 +44,24 @@ function App() {
       setLoading(false);
     };
 
+    // if (localStorage.getItem("deviceId")&&localStorage.getItem("deviceId")!=="") {
+    // } else {
+    //   localStorage.setItem("deviceId","");
+    // }
     init();
   }, []);
+
+  useEffect(() => {
+    if (!loginStatus) {
+      if (localStorage.getItem("deviceId") === "" || localStorage.getItem("deviceId") === null) {
+        setUnregistered(true);
+      }
+    }
+  }, [loginStatus]);
+
+  const handleCloseDialog = () => {
+    setUnregistered(false);
+  }
 
 
   return (
@@ -63,6 +81,9 @@ function App() {
             )}
           </>
         )}
+      <div>
+        <RegisterDevice open={unregistered} onClose={handleCloseDialog} />
+      </div>
     </>
   );
 }

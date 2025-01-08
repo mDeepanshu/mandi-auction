@@ -26,7 +26,7 @@ export const syncAll = async () => {
         }
     }));
     let p4 = new Promise((res, rej) => syncTransactions("auction", dataToSync.auction).then((data) => {
-        if (data) {
+        if (data !== "error") {
             res();
         } else {
             rej("Auction Sync Failed");

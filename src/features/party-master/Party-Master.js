@@ -128,6 +128,11 @@ const PartyMaster = () => {
                 type='text'
                 label="Party Name"
                 variant="outlined"
+                inputProps={{
+                  style: {
+                    textTransform: "uppercase", // Ensure the input content is transformed
+                  },
+                }}
                 onChange={(e) => {
                   field.onChange(e); // Update the form state
                   onPartyInput(e); // Call the debounced function
@@ -150,7 +155,6 @@ const PartyMaster = () => {
                   label="PARTY TYPE"
                 >
                   <MenuItem value="KISAN">KISAAN</MenuItem>
-                  <MenuItem value="VYAPARI">VYAPARI</MenuItem>
                 </Select>
               </FormControl>
             )}
@@ -173,7 +177,19 @@ const PartyMaster = () => {
             control={control}
             rules={{ required: "Enter Contact" }}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="CONTACT" variant="outlined" type='number' />}
+            render={({ field }) =>
+              <TextField
+                {...field}
+                fullWidth
+                label="CONTACT"
+                variant="outlined"
+                type="text"
+                inputProps={{
+                  maxLength: 10, // Limits the length of input to 10 characters
+                  inputMode: "numeric", // Ensures the input is a number
+                }}
+              />
+            }
           />
           <p className='err-msg'>{errors.contact?.message}</p>
         </Grid>

@@ -109,7 +109,19 @@ const ItemMaster = () => {
             control={control}
             rules={{ required: "Enter Item Name" }}
             defaultValue=""
-            render={({ field }) => <TextField {...field} fullWidth label="ITEM NAME" variant="outlined" onChange={(e) => onItemInput(e, field)} />}
+            render={({ field }) =>
+              <TextField
+                {...field}
+                fullWidth
+                label="ITEM NAME"
+                variant="outlined"
+                onChange={(e) => onItemInput(e, field)}
+                inputProps={{
+                  style: {
+                    textTransform: "uppercase", // Ensure uppercase transformation here
+                  },
+                }}
+              />}
 
           />
           <p className='err-msg'>{errors.itemName?.message}</p>

@@ -129,6 +129,7 @@ function VasuliTransaction() {
           mobile: getValues().vyapariId.mobile,
           date: getValues().date,
           amount: getValues().amount,
+          remark: getValues().remark,
         })
       } else {
         const newItem = {
@@ -194,13 +195,14 @@ function VasuliTransaction() {
     if (window.electron && window.electron.ipcRenderer) {
       // Invoke a print action
       window.electron.ipcRenderer
-        .invoke('print', contentToPrint)
+        .invoke('print-content', contentToPrint)
         .then(() => {
           const newItem = {
             name: printData.vyapariName,
             amount: printData.amount,
             mobile: printData.mobile,
             date: printData.date,
+            remark: printData.remark,
             printStatus: 'YES',
           };
           setPrintTable((prevItems) => [...prevItems, newItem]);
@@ -211,13 +213,14 @@ function VasuliTransaction() {
     }
   }
 
-  const rePrintPrev = (data,index) => {
+  const rePrintPrev = (data, index) => {
     setPrintTable((printTable) => printTable.filter((_, i) => i !== index));
     setPrintData({
       vyapariName: data?.name,
       mobile: data?.mobile,
       date: data?.date,
       amount: data?.amount,
+      remark: data?.remark,
     })
   }
 
@@ -377,7 +380,7 @@ function VasuliTransaction() {
                               <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right">{row.name}</TableCell>
                               <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right">{row.amount}</TableCell>
                               <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right">{row.printStatus}</TableCell>
-                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right"><Button onClick={()=>rePrintPrev(row,index)} ><PrintIcon /></Button></TableCell>
+                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right"><Button onClick={() => rePrintPrev(row, index)} ><PrintIcon /></Button></TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -405,10 +408,17 @@ function VasuliTransaction() {
             </div>
             <div style={{ display: 'none' }}>
               <div ref={printRef} className={styles.printContainer}>
-                <div>Vyapari Name: {printData?.vyapariName}</div>
-                <div>Mobile: {printData?.mobile}</div>
-                <div>Date: {printData?.date}</div>
-                <div>Amount: {printData?.amount}</div>
+                <div className={styles.printHeadings}>
+                  <div>****H.I.S ---- Mobile: 9826306406****</div>
+                </div>
+                <hr className={styles.line}/>
+                <div className={styles.printData}>
+                  <div>Vyapari Name: {printData?.vyapariName}</div>
+                  <div>Date: {printData?.date}</div>
+                  <div>Amount: {printData?.amount}</div>
+                  <div>Remark: {printData?.remark}</div>
+                </div>
+                <b><hr className={styles.line}/></b>
               </div>
             </div>
           </>
