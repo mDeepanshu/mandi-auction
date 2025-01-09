@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, TextField, Button, useMediaQuery } from '@mui/material';
+import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, Button, useMediaQuery } from '@mui/material';
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
+import TextField from '@mui/material/TextField';
 import SearchIcon from '@mui/icons-material/Search';
 import Autocomplete from '@mui/material/Autocomplete';
 import { getAllItems } from "../../gateway/curdDB";
@@ -11,7 +12,7 @@ import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Alert from '@mui/material/Alert';
-import { json, useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
 
 function AuctionTransaction() {
@@ -311,8 +312,8 @@ function AuctionTransaction() {
         }
         return option.name.toLowerCase() == val || option.idNo == val;
       }
-    ));
-  },500);
+      ));
+    }, 500);
   }
   useEffect(() => {
     return () => clearTimeout(debounceTimeout.current);
@@ -436,6 +437,9 @@ function AuctionTransaction() {
                   label="Total Bags"
                   placeholder="Total Bags"
                   type="number"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
                   variant="outlined"
                   error={!!error}
                   inputRef={totalBagInputRef}
@@ -551,8 +555,12 @@ function AuctionTransaction() {
                 {...register("bags", { required: "Bags is required" })}
                 fullWidth
                 label="Bags"
+                placeholder='Bags'
                 type="number"
                 variant="outlined"
+                InputLabelProps={{
+                  shrink: true,
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();

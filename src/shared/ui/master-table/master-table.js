@@ -6,6 +6,7 @@ import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, T
 import styles from "./masterTable.module.css";
 import Pagination from '@mui/material/Pagination';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import PrintIcon from '@mui/icons-material/Print';
 
 function MasterTable(props) {
 
@@ -19,6 +20,8 @@ function MasterTable(props) {
     const [allTableData, setAllTableData] = useState([]);
     const [keyArray, setKeyArray] = useState([]);
     const [fieldDefinitions, setFieldDefinitions] = useState([]);
+    const excludeArr = ["edit", "delete", "index", "navigation", "auctionDate"];
+    const [paginationLength, setPaginationLength] = useState(10);
 
     const { control, handleSubmit, register, reset, formState: { errors }, setValue, getValues } = useForm();
 
@@ -50,9 +53,9 @@ function MasterTable(props) {
 
     useEffect(() => {
         setColumns(props.columns);
-        setTableData(props.tableData.slice(0, 10));
+        setTableData(props.tableData?.slice(0, paginationLength));
         setAllTableData(props.tableData);
-        setTotalPages(Math.floor(props.tableData.length / 10));
+        setTotalPages(Math.ceil(props.tableData?.length / paginationLength));
         setKeyArray(props.keyArray);
 
         let fields = [];
@@ -72,7 +75,16 @@ function MasterTable(props) {
 
     const handleChange = (event, value) => {
         setPage(value);
-        setTableData(allTableData.slice(value * 10, value * 10 + 10));
+        setTableData(allTableData.slice((value-1) * paginationLength, (value-1) * paginationLength + paginationLength));
+    };
+
+
+    const handleSelectChange = (event) => {
+        const selectedValue = parseInt(event.target.value, 10);
+        setPaginationLength(selectedValue);
+        setTotalPages(Math.ceil(props.tableData?.length / selectedValue));
+        setPage(1);
+        setTableData(props.tableData?.slice(0, selectedValue));
     };
 
     const updateRecord = (event, value) => {
@@ -81,47 +93,51 @@ function MasterTable(props) {
     return (
         <div>
             <TableContainer component={Paper} className={styles.table}>
-                <Table aria-label="simple table">
-                    <TableHead>
-                        <TableRow>
-                            {columns.map((row, index) => (
-                                <TableCell align="left" key={index}>{row}</TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {tableData.map((rowData, index) => (
-                            <TableRow key={index}>
-                                {keyArray.map((key, i) =>
-                                    <TableCell key={i} align="left">
-                                        {(() => {
-                                            switch (key) {
-                                                case "edit":
-                                                    return <Button onClick={() => editFromTable(index)}><Edit /></Button>;
-                                                case "delete":
-                                                    return <Button onClick={() => deleteFromTable(index)}><Delete /></Button>;
-                                                case "index":
-                                                    return (page - 1) * 10 + index + 1;
-                                                case "navigation":
-                                                    return <><Button><ArrowBackIos /></Button><Button><ArrowForwardIos /></Button></>;
-                                                case "daysExceded":
-                                                    return (
-                                                        <div className={`${styles.myClass} ${rowData[key] > 0 ? styles.daysExceded : styles.daysNotExceded}`}>
-                                                            {rowData[key]}
-                                                        </div>
-                                                    );
-                                                default:
-                                                    return rowData[key];
-                                            }
-                                        })()}
-                                    </TableCell>
-                                )}
+                <div className={styles.tableBody}>
+                    <Table aria-label="simple table">
+                        <TableHead>
+                            <TableRow>
+                                {columns.map((row, index) => (
+                                    <TableCell align="left" key={index}>{row}</TableCell>
+                                ))}
                             </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {tableData.map((rowData, index) => (
+                                <TableRow key={index}>
+                                    {keyArray.map((key, i) =>
+                                        <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} key={i} align="left">
+                                            {(() => {
+                                                switch (key) {
+                                                    case "edit":
+                                                        return <Button onClick={() => editFromTable(index)}><Edit /></Button>;
+                                                    // case "editTwo":
+                                                    //     return <Button onClick={() => props.editFromTable(rowData, index)}><Edit /></Button>;
+                                                    case "delete":
+                                                        return <Button onClick={() => deleteFromTable(index)}><Delete /></Button>;
+                                                    case "print":
+                                                        return <Button onClick={() => props.rePrintPrev(rowData, index)} ><PrintIcon /></Button>
+                                                    case "index":
+                                                        return (page-1) * paginationLength + index + 1;
+                                                    default:
+                                                        return rowData[key];
+                                                }
+                                            })()}
+                                        </TableCell>
+                                    )}
+                                </TableRow>
 
-                        ))}
-                    </TableBody>
-                </Table>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
                 <div className={styles.paninator}>
+                    <select value={paginationLength} onChange={handleSelectChange} id="paginationLengthSelect" className={styles.selectLength}>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
                     <Pagination count={totalPages} page={page} onChange={handleChange} />
                 </div>
             </TableContainer>

@@ -6,12 +6,12 @@ import { addVasuliTransaction, getOwedAmount } from "../../gateway/vasuli-transa
 import { getAllItems } from "../../gateway/curdDB";
 import Login from "../login/login";
 import Snackbar from '@mui/material/Snackbar';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
 import Alert from '@mui/material/Alert';
 import styles from "./vasuli-transaction.module.css";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
+import MasterTable from "../../shared/ui/master-table/master-table";
+
 function VasuliTransaction() {
 
   const [vyapariList, setVyapariList] = useState([]);
@@ -19,6 +19,10 @@ function VasuliTransaction() {
   const [loginStatus, setLoginStatus] = useState(true);
   const [open, setOpen] = useState(false);
   const [printTable, setPrintTable] = useState([]);
+
+  const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "PRINT"]);
+  const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "print"]);
+
   const [printData, setPrintData] = useState({
     vyapariName: "",
     mobile: "",
@@ -28,8 +32,8 @@ function VasuliTransaction() {
   const printRef = useRef();
 
   const vyapariRef = useRef(null); // Create a ref
-  const amountRef = useRef(null); // Create a ref
-  const remarkRef = useRef(null); // Create a ref
+  const amountRef = useRef(null);  // Create a ref
+  const remarkRef = useRef(null);  // Create a ref
 
   let oneDaysPrior = new Date();
   oneDaysPrior.setDate(oneDaysPrior.getDate() - 1);
@@ -42,7 +46,7 @@ function VasuliTransaction() {
     priorDate = todaysDate.toLocaleDateString('en-CA').split('T')[0];
   }
 
-  const { handleSubmit, control, formState: { errors }, getValues, reset, setValue, watch } = useForm({
+  const { handleSubmit, control, formState: { errors }, getValues, reset, setValue, watch, trigger } = useForm({
     defaultValues: {
       date: priorDate,
       toggle: false,
@@ -105,17 +109,6 @@ function VasuliTransaction() {
     }
   }, [owedAmount]);
 
-  // useEffect(() => {
-  // if (window.electron && window.electron.ipcRenderer) {
-  //   window.electron.ipcRenderer
-  //     .invoke('get-printers')
-  //     .then((printerList) => setPrinters(printerList))
-  //     .catch((error) => console.error('Error fetching printers:', error));
-  // } else {
-  //   console.warn('Electron IPC is not available.');
-  // }
-  // }, []);
-
   const onSubmit = async (data) => {
     const vasuliTran = {
       ...getValues(),
@@ -139,7 +132,7 @@ function VasuliTransaction() {
           date: getValues()?.date,
           printStatus: 'NO',
         };
-        setPrintTable((prevItems) => [...prevItems, newItem]);
+        setPrintTable((prevItems) => [newItem, ...prevItems]);
       }
       reset({
         vyapariId: null,
@@ -164,10 +157,11 @@ function VasuliTransaction() {
   }, [printData]);
 
 
-  const handleEnterPress = (event) => {
+  const handleEnterPress = async (event) => {
     if (event.key === 'Enter') {
-      event.preventDefault();
-      if (remarkRef.current) {
+      event.preventDefault('Enter');
+      const amountValid = await trigger(`amount`);
+      if (remarkRef.current && amountValid) {
         setTimeout(() => {
           remarkRef.current.focus();
         }, 100);
@@ -224,13 +218,17 @@ function VasuliTransaction() {
     })
   }
 
+  const editFromTable = (rowData, index) => {
+
+  }
+
   return (
     <>
       {
         loginStatus ? (<Login changeLoginState={changeLoginState} />) : (
           <>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Grid container spacing={1} p={1}>
+              <Grid container spacing={1} p={1}  alignItems="center">
                 <Grid item xs={10}>
                   <Typography variant="h4" component="h1" align="left">
                     VASULI TRANSACTION
@@ -248,9 +246,8 @@ function VasuliTransaction() {
                     )}
                   />
                 </Grid>
-
-                <Grid item xs={9}>
-                  <Controller
+                <Grid item xs={4}>
+                <Controller
                     name="vyapariId"
                     control={control}
                     rules={{ required: "Enter Vyapari Name" }}
@@ -283,33 +280,11 @@ function VasuliTransaction() {
                   />
                   <p className='err-msg'>{errors.vyapariId?.message}</p>
                 </Grid>
-
-                <Grid item xs={4}>
-                  <Controller
-                    name="date"
-                    control={control}
-                    rules={{ required: "Enter selectDate" }}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        type="date"
-                        label="Select Date"
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                      />
-                    )}
-                  />
-                  <p className='err-msg'>{errors.date?.message}</p>
-                </Grid>
                 <Grid item xs={4}>
                   <Controller
                     name="amount"
                     control={control}
                     rules={{ required: "Enter Collected Amount" }}
-                    defaultValue=""
                     render={({ field }) => (
                       <TextField
                         {...field}
@@ -342,21 +317,41 @@ function VasuliTransaction() {
                   />
                   <p className='err-msg'>{errors.amount?.remark}</p>
                 </Grid>
-
-                <Grid item xs={12} container spacing={2}>
-                  <Grid item xs={9}>
-                    <Typography variant="body1" fontWeight={700} align='left'>
-                      Remaining Amount {owedAmount}/-
-                    </Typography>
-                  </Grid>
-                  <Grid item alignItems="right">
-                    <Button variant="contained" color="primary" type="submit">
+                <Grid item xs={3}>
+                  <Typography variant="body1" fontWeight={700} align='left'>
+                    REMAINING AMOUNT {owedAmount}/-
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Controller
+                    name="date"
+                    control={control}
+                    rules={{ required: "Enter selectDate" }}
+                    defaultValue=""
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        type="date"
+                        label="Select Date"
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                      />
+                    )}
+                  />
+                  <p className='err-msg'>{errors.date?.message}</p>
+                </Grid>
+                <Grid item xs={3} sm={1} container alignItems="center">
+                  <Grid item>
+                    <Button variant="contained" color="primary" type="submit" onClick={onSubmit} style={{marginBottom:`20px`}}>
                       Submit
                     </Button>
                   </Grid>
                 </Grid>
                 <Grid item xs={12}>
-                  <TableContainer component={Paper}>
+                  <MasterTable columns={columns} tableData={printTable} keyArray={keyArray} rePrintPrev={rePrintPrev} editFromTable={editFromTable} />
+                  {/* <TableContainer component={Paper}>
                     <div className={styles.tableBody}>
                       <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
@@ -386,7 +381,7 @@ function VasuliTransaction() {
                         </TableBody>
                       </Table>
                     </div>
-                  </TableContainer>
+                  </TableContainer> */}
                 </Grid>
               </Grid>
             </form>
@@ -411,14 +406,14 @@ function VasuliTransaction() {
                 <div className={styles.printHeadings}>
                   <div>****H.I.S ---- Mobile: 9826306406****</div>
                 </div>
-                <hr className={styles.line}/>
+                <hr className={styles.line} />
                 <div className={styles.printData}>
                   <div>Vyapari Name: {printData?.vyapariName}</div>
                   <div>Date: {printData?.date}</div>
                   <div>Amount: {printData?.amount}</div>
                   <div>Remark: {printData?.remark}</div>
                 </div>
-                <b><hr className={styles.line}/></b>
+                <b><hr className={styles.line} /></b>
               </div>
             </div>
           </>
