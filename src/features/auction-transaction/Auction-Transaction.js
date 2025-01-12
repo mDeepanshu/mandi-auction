@@ -51,7 +51,8 @@ function AuctionTransaction() {
       const auctionData = {
         "kisanId": data.kisaan.partyId,
         "itemId": data.itemName.itemId,
-        buyItems
+        buyItems,
+        auctionDate: new Date()
       }
       try {
         await addAuctionTransaction(auctionData);
@@ -109,6 +110,7 @@ function AuctionTransaction() {
         quantity: Number(qtyTotal),
         rate: Number(values.rate),
         bags: Number(values.bags),
+        auctionDate: new Date()
       };
 
       let newTableData = [
