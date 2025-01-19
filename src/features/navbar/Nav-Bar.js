@@ -11,8 +11,8 @@ import RegisterDevice from "../../dialogs/register-device/register-device";
 
 const navItems = [
     // { name: '', label: 'Home' },
-    { name: 'auction-transaction', label: 'Auction Transaction' },
-    { name: 'vasuli-transaction', label: 'Vasuli Transaction' },
+    { name: 'auction-transaction', label: 'Auction TXN.' },
+    { name: 'vasuli-transaction', label: 'Vasuli TXN.' },
     { name: 'party-master', label: 'Party Master' },
     { name: 'item-master', label: 'Item Master' },
 ];

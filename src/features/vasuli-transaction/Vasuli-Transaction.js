@@ -31,22 +31,22 @@ function VasuliTransaction() {
   });
   const printRef = useRef();
 
-  const vyapariRef = useRef(null); // Create a ref
-  const amountRef = useRef(null);  // Create a ref
-  const remarkRef = useRef(null);  // Create a ref
+  const vyapariRef = useRef(null);
+  const amountRef = useRef(null);
+  const remarkRef = useRef(null);
 
   let oneDaysPrior = new Date();
   oneDaysPrior.setDate(oneDaysPrior.getDate() - 1);
-  let priorDate = oneDaysPrior.toLocaleDateString('en-CA').split('T')[0];
+  let priorDate = oneDaysPrior.toLocaleDateString('en-CA');
 
   const todaysDate = new Date();
   const currentHour = todaysDate.getHours();
 
   if (currentHour >= 18) {
-    priorDate = todaysDate.toLocaleDateString('en-CA').split('T')[0];
+    priorDate = todaysDate.toLocaleDateString('en-CA');
   }
 
-  const { handleSubmit, control, formState: { errors }, getValues, reset, setValue, watch, trigger } = useForm({
+  const { handleSubmit, control, formState: { errors, isValid }, getValues, reset, setValue, watch, trigger } = useForm({
     defaultValues: {
       date: priorDate,
       toggle: false,
@@ -80,7 +80,7 @@ function VasuliTransaction() {
       const fetchOwedAmount = async () => {
         try {
           if (watchedVyapariId?.partyId) {
-            const partyDetails = await getOwedAmount(watchedVyapariId.partyId);
+            const partyDetails = await getOwedAmount(watchedVyapariId?.partyId);
             setOwedAmount(partyDetails?.data?.responseBody?.owedAmount || "");
           } else {
             setOwedAmount("");
@@ -110,9 +110,16 @@ function VasuliTransaction() {
   }, [owedAmount]);
 
   const onSubmit = async (data) => {
+    if (!isValid) return;
+
+    const existingDate = new Date(); // Existing Date object for time
+    const datePart = new Date(getValues().date);
+    datePart.setHours(existingDate.getHours(), existingDate.getMinutes(), existingDate.getSeconds())
+
     const vasuliTran = {
       ...getValues(),
-      vyapariId: getValues().vyapariId.partyId,
+      vyapariId: getValues().vyapariId?.partyId,
+      date: datePart
     }
     try {
       const dataSaved = await addVasuliTransaction(vasuliTran);
@@ -228,7 +235,7 @@ function VasuliTransaction() {
         loginStatus ? (<Login changeLoginState={changeLoginState} />) : (
           <>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Grid container spacing={1} p={1}  alignItems="center">
+              <Grid container spacing={1} p={1} alignItems="center">
                 <Grid item xs={10}>
                   <Typography variant="h4" component="h1" align="left">
                     VASULI TRANSACTION
@@ -247,7 +254,7 @@ function VasuliTransaction() {
                   />
                 </Grid>
                 <Grid item xs={4}>
-                <Controller
+                  <Controller
                     name="vyapariId"
                     control={control}
                     rules={{ required: "Enter Vyapari Name" }}
@@ -257,6 +264,14 @@ function VasuliTransaction() {
                         value={field.value || null}
                         options={vyapariList}
                         getOptionLabel={(option) => `${option.idNo} | ${option.name}`}
+                        filterOptions={(options, state) =>
+                          options
+                            .filter((option) =>
+                              option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)
+                            )
+                            .slice(0, 5)
+                        }
+                        isOptionEqualToValue={(option, value) => option.idNo === value.idNo}
                         renderInput={(params) => (
                           <TextField
                             {...params}
@@ -302,7 +317,6 @@ function VasuliTransaction() {
                   <Controller
                     name="remark"
                     control={control}
-                    rules={{ required: "Enter Remark" }}
                     defaultValue=""
                     render={({ field }) => (
                       <TextField
@@ -315,7 +329,7 @@ function VasuliTransaction() {
                       />
                     )}
                   />
-                  <p className='err-msg'>{errors.amount?.remark}</p>
+                  <p></p>
                 </Grid>
                 <Grid item xs={3}>
                   <Typography variant="body1" fontWeight={700} align='left'>
@@ -344,44 +358,13 @@ function VasuliTransaction() {
                 </Grid>
                 <Grid item xs={3} sm={1} container alignItems="center">
                   <Grid item>
-                    <Button variant="contained" color="primary" type="submit" onClick={onSubmit} style={{marginBottom:`20px`}}>
+                    <Button variant="contained" color="primary" type="submit" onClick={onSubmit} style={{ marginBottom: `20px` }}>
                       Submit
                     </Button>
                   </Grid>
                 </Grid>
                 <Grid item xs={12}>
                   <MasterTable columns={columns} tableData={printTable} keyArray={keyArray} rePrintPrev={rePrintPrev} editFromTable={editFromTable} />
-                  {/* <TableContainer component={Paper}>
-                    <div className={styles.tableBody}>
-                      <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell align="left">INDEX</TableCell>
-                            <TableCell align="right">NAME</TableCell>
-                            <TableCell align="right">AMOUNT</TableCell>
-                            <TableCell align="right">PRINT STATUS</TableCell>
-                            <TableCell align="right">PRINT</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {printTable?.map((row, index) => (
-                            <TableRow
-                              key={row.name}
-                              sx={{ lineHeight: '20px' }}
-                            >
-                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} component="th" scope="row">
-                                {index + 1}
-                              </TableCell>
-                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right">{row.name}</TableCell>
-                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right">{row.amount}</TableCell>
-                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right">{row.printStatus}</TableCell>
-                              <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="right"><Button onClick={() => rePrintPrev(row, index)} ><PrintIcon /></Button></TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </TableContainer> */}
                 </Grid>
               </Grid>
             </form>

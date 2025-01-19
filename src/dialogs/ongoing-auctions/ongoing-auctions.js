@@ -23,8 +23,6 @@ function OnGoingAuctions({ open, onClose }) {
             const onGoingAuctionData = JSON.parse(localStorage.getItem("onGoingAuction"));
             onClose(onGoingAuctionData[selectedRadio]);
         } else {
-            console.log("onGoingAuctiononGoingAuction");
-            
             const onGoingAuctionData = JSON.parse(localStorage.getItem("onGoingAuction"));
             Object.keys(onGoingAuctionData).forEach((key) => {
                 if (Object.keys(onGoingAuctionData[key]).length === 0) {

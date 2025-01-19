@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, Button, useMediaQuery } from '@mui/material';
+import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, Button, useMediaQuery, Switch, FormControlLabel } from '@mui/material';
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
 import TextField from '@mui/material/TextField';
 import SearchIcon from '@mui/icons-material/Search';
@@ -14,10 +14,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import Alert from '@mui/material/Alert';
 import { useOutletContext } from 'react-router-dom';
 import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
+import { StyledTableCell } from "../../shared/ui/elements/Table-Cell";
 
 function AuctionTransaction() {
 
-  const { control, getValues, formState: { errors }, register, trigger, reset, setValue, setFocus } = useForm();
+  const { control, getValues, formState: { errors }, register, trigger, reset, setValue, setFocus, watch } = useForm();
   const [itemsList, setItemsList] = useState([]);
   const [kisanList, setKisanList] = useState([]);
   const [vyapariList, setVyapariList] = useState([]);
@@ -36,6 +37,8 @@ function AuctionTransaction() {
   const kisanRef = useRef(null);
   const itemRef = useRef(null);
   const totalBagInputRef = useRef(null);
+  // const auctionType = watch("auctionType");
+  const auctionType = false;
 
   const onSubmit = async () => {
 
@@ -52,7 +55,7 @@ function AuctionTransaction() {
         "kisanId": data.kisaan.partyId,
         "itemId": data.itemName.itemId,
         buyItems,
-        auctionDate: new Date()
+        auctionDate: new Date(new Date(new Date().getTime() + 19800000))
       }
       try {
         await addAuctionTransaction(auctionData);
@@ -99,7 +102,7 @@ function AuctionTransaction() {
       event.preventDefault();
     }
     const result = await trigger(["kisaan", "itemName", "vyapari", "bags"]);
-    if (!qtyTotal || qtyTotal <= 0) {
+    if (!auctionType && (!qtyTotal || qtyTotal <= 0)) {
       return;
     }
     if (result) {
@@ -107,24 +110,34 @@ function AuctionTransaction() {
       const newAuctionRow = {
         vyapariName: values.vyapari.name,
         vyapariId: values.vyapari.partyId,
-        quantity: Number(qtyTotal),
         rate: Number(values.rate),
-        bags: Number(values.bags),
         auctionDate: new Date()
       };
 
+      if (auctionType) {
+        newAuctionRow.quantity = Number(values.nag);
+        newAuctionRow.chungi = Number(values.chungi);
+      } else {
+        newAuctionRow.quantity = Number(qtyTotal);
+        newAuctionRow.bags = Number(values.bags);
+      }
+
       let newTableData = [
-        ...buyItemsArr,
-        newAuctionRow
+        newAuctionRow,
+        ...buyItemsArr
       ];
 
       setTableData(newTableData);
       setQty([]);
       setQtyTotal(0);
       setValue('rate', null);
-      setValue('bags', '');
       setValue('vyapari', null);
-      setValue('quantity', null);
+      if (auctionType) {
+        setValue('nag', null);
+      } else {
+        setValue('bags', '');
+        setValue('quantity', null);
+      }
 
       const currAuctionSate = {
         formValues: getValues(),
@@ -272,9 +285,10 @@ function AuctionTransaction() {
   const handleCloseDialog = (data) => {
     setIsOnGoingAuctionOpen(false);
     if (data) {
-      setValue('kisaan', data?.formValues?.kisaan);
-      setValue('itemName', data?.formValues?.itemName);
-      setValue('totalBag', data?.formValues?.totalBag);
+      // setValue('kisaan', data?.formValues?.kisaan);
+      // setValue('itemName', data?.formValues?.itemName);
+      // setValue('totalBag', data?.formValues?.totalBag);
+      reset(data?.formValues);
       setTableData(data.arrayData);
       setAuctionId(data.id);
       document.title = data?.formValues?.kisaan?.name;
@@ -299,7 +313,7 @@ function AuctionTransaction() {
   }
 
   const handleEnterKeyPress = (val) => {
-    if (val === 'submit') addToTable();
+    if (val === 'submit' || auctionType) addToTable();
     else setFocus('bags');
   }
   const debounceTimeout = useRef(null);
@@ -315,18 +329,47 @@ function AuctionTransaction() {
         return option.name.toLowerCase() == val || option.idNo == val;
       }
       ));
-    }, 500);
+    }, 100);
   }
+
   useEffect(() => {
     return () => clearTimeout(debounceTimeout.current);
   }, []);
+
+  const changeAuctionType = () => {
+    // setAuctionType((prevState) => !prevState);
+  }
+
   return (
     <>
       <form>
         <div className='container'>
-          <div className='full-grid hidden-xs'>
+          <div className='full-grid-heading hidden-xs'>
             <h1>AUCTION TRANSACTION</h1>
           </div>
+          {/* <div className='switch'>
+            <FormControlLabel
+              control={
+                <Controller
+                  name="auctionType"
+                  control={control}
+                  defaultValue={false}
+                  render={({ field }) => (
+                    <Switch
+                      {...field}
+                      checked={field.value}
+                      onChange={(event) => {
+                        field.onChange(event.target.checked);
+                        changeAuctionType(event.target.checked);
+                      }}
+                      disabled={buyItemsArr.length > 0}
+                    />
+                  )}
+                />
+              }
+              label="TYPE"
+            />
+          </div> */}
           <div className='kisan'>
             <Controller
               name="kisaan"
@@ -339,6 +382,14 @@ function AuctionTransaction() {
                   options={kisanList}
                   disabled={getValues()?.kisaan?.name && buyItemsArr.length > 0}
                   getOptionLabel={(option) => `${option.id} | ${option.name}`}
+                  filterOptions={(options, state) =>
+                    options
+                      .filter((option) =>
+                        option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.id.includes(state.inputValue)
+                      )
+                      .slice(0, 5)
+                  }
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
                   renderOption={(props, option) => (
                     <li {...props}>
                       <div style={{ display: "flex", alignItems: "center" }}>
@@ -393,6 +444,7 @@ function AuctionTransaction() {
                   options={itemsList}
                   disabled={getValues()?.itemName && buyItemsArr.length > 0}
                   getOptionLabel={(option) => option.name}
+                  isOptionEqualToValue={(option, value) => option.itemId === value.itemId}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -461,11 +513,19 @@ function AuctionTransaction() {
                   value={field.value || null}
                   options={vyapariList}
                   getOptionLabel={(option) => `${option.idNo} | ${option.name}`}
+                  filterOptions={(options, state) =>
+                    options
+                      .filter((option) =>
+                        option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)
+                      )
+                      .slice(0, 5)
+                  }
+                  isOptionEqualToValue={(option, value) => option.idNo === value.idNo}
                   renderOption={(props, option) => (
                     <li {...props}>
                       <div style={{ display: "flex", alignItems: "center" }}>
                         <span>
-                          <strong>ID:</strong> {option.idNo} | <strong>Name:</strong> {option.name}
+                          {option.idNo} <strong>|</strong> {option.name}
                         </span>
                         {vasuliDays(option.maxLoanDays, option.lastVasuliDate) && (
                           <div
@@ -473,7 +533,7 @@ function AuctionTransaction() {
                               width: "10px",
                               height: "10px",
                               backgroundColor: "red",
-                              marginLeft: "8px",
+                              marginLeft: "4px",
                               borderRadius: "50%", // Makes it a circle
                               display: "inline-block", // Ensures it stays inline
                             }}
@@ -513,18 +573,33 @@ function AuctionTransaction() {
           <div className='quantity'>
             <div className='qty-input'>
               <div>
-                <TextField
-                  {...register("quantity", { required: "Enter Quantity" })}
-                  fullWidth
-                  label="QUANTITY"
-                  type="number"
-                  variant="outlined"
-                />
-                <p className='err-msg'>{errors.quantity?.message}</p>
+                {auctionType ? (
+                  <>
+                    <TextField
+                      {...register("nag", { required: "ENTER NAG" })}
+                      fullWidth
+                      label="NAG"
+                      type="number"
+                      variant="outlined"
+                    />
+                    <p className="err-msg">{errors.nag?.message}</p>
+                  </>
+                ) : (
+                  <>
+                    <TextField
+                      {...register("quantity", { required: "Enter Quantity" })}
+                      fullWidth
+                      label="QUANTITY"
+                      type="number"
+                      variant="outlined"
+                    />
+                    <p className="err-msg">{errors.quantity?.message}</p>
+                  </>
+                )}
               </div>
-              <button className='add-qty-btn' onClick={newQty}>ADD</button>
+              <button className='add-qty-btn' onClick={newQty}>A</button>
             </div>
-            <div className='quantity-list'>
+            {!auctionType && <div className='quantity-list'>
               <ul className="horizontal-list">
                 {qty.map((item, index) => (
                   <li
@@ -533,13 +608,13 @@ function AuctionTransaction() {
                 ))}
               </ul>
               <div className='qty-total'>{qtyTotal}</div>
-            </div>
+            </div>}
           </div>
           <div className='rate'>
             <TextField
               {...register("rate", { required: "Rate is required" })}
               fullWidth
-              label="Rate"
+              label="RATE"
               type="number"
               variant="outlined"
               onKeyDown={(e) => {
@@ -553,24 +628,51 @@ function AuctionTransaction() {
           </div>
           <div className='bags-box'>
             <div className='bag'>
-              <TextField
-                {...register("bags", { required: "Bags is required" })}
-                fullWidth
-                label="Bags"
-                placeholder='Bags'
-                type="number"
-                variant="outlined"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleEnterKeyPress(`submit`);
-                  }
-                }}
-              />
-              <p className='err-msg'>{errors.bags?.message}</p>
+              {
+                !auctionType ? (
+                  <>
+                    <TextField
+                      {...register("bags", { required: "Bags is required" })}
+                      fullWidth
+                      label="Bags"
+                      placeholder='Bags'
+                      type="number"
+                      variant="outlined"
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleEnterKeyPress(`submit`);
+                        }
+                      }}
+                    />
+                    <p className='err-msg'>{errors.bags?.message}</p>
+                  </>
+                ) : (
+                  <>
+                    <TextField
+                      {...register("chungi", { required: "CHUNGI is required" })}
+                      fullWidth
+                      label="CHUNGI"
+                      placeholder='CHUNGI'
+                      type="number"
+                      variant="outlined"
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleEnterKeyPress(`submit`);
+                        }
+                      }}
+                    />
+                    <p className='err-msg'>{errors.chungi?.message}</p>
+                  </>)
+              }
+
             </div>
             <div className='btn-1 count-btn'>
               <button onClick={(event) => addBag(event, true)} className='add-btn secondary-btn one'>
@@ -585,38 +687,69 @@ function AuctionTransaction() {
             <button onClick={(event) => addToTable(event)} className='add-btn'>Add Entry  <AddCircleOutline fontSize='small' /></button>
           </div>
           <div className='full-grid'>
-            <TableContainer component={Paper}>
-              <Table>
+            <TableContainer component={Paper} sx={{ height: "50vh" }}>
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow style={{ display: matches ? 'table-row' : 'none' }}>
-                    <TableCell align="left">VYAPARI NAME</TableCell>
-                    <TableCell align="left">QUANTITY</TableCell>
-                    <TableCell align="left">RATE</TableCell>
-                    <TableCell align="left">BAGS</TableCell>
-                    <TableCell align="left">TOTAL</TableCell>
-                    <TableCell align='centre'>EDIT</TableCell>
-                    <TableCell align='centre'>DELETE</TableCell>
+                    <TableCell align="left"><b>VYAPARI NAME</b></TableCell>
+                    {auctionType ? (
+                      <>
+                        <TableCell align="left"><b>NAG</b></TableCell>
+                        <TableCell align="left"><b>RATE</b></TableCell>
+                        <TableCell align="left"><b>CHUNGI</b></TableCell>
+                      </>
+                    ) : (
+                      <>
+                        <TableCell align="left"><b>QUANTITY</b></TableCell>
+                        <TableCell align="left"><b>RATE</b></TableCell>
+                        <TableCell align="left"><b>BAGS</b></TableCell>
+                      </>
+                    )}
+                    <TableCell><b>TOTAL</b></TableCell>
+                    <TableCell align="centre"><b>EDIT</b></TableCell>
+                    <TableCell align="centre"><b>DELETE</b></TableCell>
                   </TableRow>
                   <TableRow style={{ display: matchesTwo ? 'table-row' : 'none' }}>
                     <TableCell align="left">VYAPARI</TableCell>
-                    <TableCell align="left">Q</TableCell>
-                    <TableCell align="left">R</TableCell>
-                    <TableCell align="left">B</TableCell>
+                    {auctionType ? (
+                      <>
+                        <TableCell align="left">N</TableCell>
+                        <TableCell align="left">R</TableCell>
+                        <TableCell align="left">C</TableCell>
+                      </>
+                    ) : (
+                      <>
+                        <TableCell align="left">Q</TableCell>
+                        <TableCell align="left">R</TableCell>
+                        <TableCell align="left">B</TableCell>
+                      </>
+                    )}
                     <TableCell align="left">T</TableCell>
-                    <TableCell align='centre'>E</TableCell>
-                    <TableCell align='centre'>D</TableCell>
+                    <TableCell align="centre">E</TableCell>
+                    <TableCell align="centre">D</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {buyItemsArr.map((row, index) => (
                     <TableRow key={index}>
-                      <TableCell align="left">{row.vyapariName}</TableCell>
-                      <TableCell align="left">{row.quantity}</TableCell>
-                      <TableCell align="left">{row.rate}</TableCell>
-                      <TableCell align="left">{row.bags}</TableCell>
-                      <TableCell align="left">{row.rate * row.quantity}</TableCell>
-                      <TableCell align='centre'><Button onClick={() => editFromTable(index)}><Edit /></Button></TableCell>
-                      <TableCell align='centre'><Button onClick={() => deleteFromTable(index)}><Delete /></Button></TableCell>
+                      <StyledTableCell sx={{ width: "45%" }} align="left">{row.vyapariName}</StyledTableCell>
+                      <StyledTableCell align="left">{row.quantity}</StyledTableCell>
+                      {auctionType ? (
+                        <>
+                          <StyledTableCell align="left">{row.rate}</StyledTableCell>
+                          <StyledTableCell align="left">{row.chungi}</StyledTableCell>
+                          <StyledTableCell align="left">{row.rate * row.quantity + row.chungi}</StyledTableCell>
+
+                        </>
+                      ) : (
+                        <>
+                          <StyledTableCell align="left">{row.rate}</StyledTableCell>
+                          <StyledTableCell align="left">{row.bags}</StyledTableCell>
+                          <StyledTableCell align="left">{row.rate * row.quantity}</StyledTableCell>
+                        </>
+                      )}
+                      <StyledTableCell align='centre'><Button onClick={() => editFromTable(index)}><Edit /></Button></StyledTableCell>
+                      <StyledTableCell align='centre'><Button onClick={() => deleteFromTable(index)}><Delete /></Button></StyledTableCell>
                     </TableRow>
                   ))}
                 </TableBody>

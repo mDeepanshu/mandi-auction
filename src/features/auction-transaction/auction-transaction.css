@@ -15,6 +15,17 @@
   grid-column-end: 17;
 }
 
+.full-grid-heading{
+  grid-column-start: 1;
+  grid-column-end: 13;
+}
+
+.switch{
+  grid-column-start: 13;
+  grid-column-end: 17;
+  align-content: center;
+}
+
 .kisan {
   grid-column-start: 1;
   grid-column-end: 9;
@@ -175,11 +186,11 @@
 
   .vyapari {
     grid-column-start: 1;
-    grid-column-end: 5;
+    grid-column-end: 7;
   }
 
   .quantity {
-    grid-column-start: 5;
+    grid-column-start: 7;
     grid-column-end: 10;
   }
 

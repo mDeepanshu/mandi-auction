@@ -18,7 +18,6 @@ axiosHttp.interceptors.response.use(
         // Response error handling logic
         // Example: Handle unauthorized errors (401)
 
-        console.log("Interceptor error");
         if (error?.response?.status == `E001` || error?.response?.status == `E002`){
           Promise.reject(error?.response?.message);
         }
@@ -38,8 +37,6 @@ axiosHttp.interceptors.request.use(
         if (deviceId) {
           config.headers.deviceId = deviceId;
         }
-        console.log(deviceId);
-        
         return config;
       },
       (error) => {
