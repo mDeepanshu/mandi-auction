@@ -37,8 +37,8 @@ function AuctionTransaction() {
   const kisanRef = useRef(null);
   const itemRef = useRef(null);
   const totalBagInputRef = useRef(null);
-  // const auctionType = watch("auctionType");
-  const auctionType = false;
+  const auctionType = watch("auctionType");
+  // const auctionType = false;
 
   const onSubmit = async () => {
 
@@ -347,7 +347,7 @@ function AuctionTransaction() {
           <div className='full-grid-heading hidden-xs'>
             <h1>AUCTION TRANSACTION</h1>
           </div>
-          {/* <div className='switch'>
+          <div className='switch'>
             <FormControlLabel
               control={
                 <Controller
@@ -369,7 +369,7 @@ function AuctionTransaction() {
               }
               label="TYPE"
             />
-          </div> */}
+          </div>
           <div className='kisan'>
             <Controller
               name="kisaan"
@@ -385,7 +385,7 @@ function AuctionTransaction() {
                   filterOptions={(options, state) =>
                     options
                       .filter((option) =>
-                        option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.id.includes(state.inputValue)
+                        option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)
                       )
                       .slice(0, 5)
                   }
@@ -687,7 +687,7 @@ function AuctionTransaction() {
             <button onClick={(event) => addToTable(event)} className='add-btn'>Add Entry  <AddCircleOutline fontSize='small' /></button>
           </div>
           <div className='full-grid'>
-            <TableContainer component={Paper} sx={{ height: "50vh" }}>
+            <TableContainer component={Paper} className='table_container'>
               <Table stickyHeader>
                 <TableHead>
                   <TableRow style={{ display: matches ? 'table-row' : 'none' }}>

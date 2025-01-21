@@ -15,12 +15,12 @@
   grid-column-end: 17;
 }
 
-.full-grid-heading{
+.full-grid-heading {
   grid-column-start: 1;
   grid-column-end: 13;
 }
 
-.switch{
+.switch {
   grid-column-start: 13;
   grid-column-end: 17;
   align-content: center;
@@ -36,7 +36,7 @@
   grid-column-end: 14;
 }
 
-.totalBags{
+.totalBags {
   grid-column-start: 14;
   grid-column-end: 17;
 }
@@ -142,11 +142,12 @@
   padding-bottom: 3px;
 }
 
-.qty-input > :first-child {
-  flex: 0 0 80%; /* Do not grow, do not shrink, set width to 80% */
+.qty-input> :first-child {
+  flex: 0 0 80%;
+  /* Do not grow, do not shrink, set width to 80% */
 }
 
-.add-qty-btn{
+.add-qty-btn {
   width: 20%;
   height: 3.5rem;
 }
@@ -175,7 +176,18 @@
   border-color: rgba(140, 140, 140, 0.74);
 }
 
+.table_container {
+  height: calc(100vh - 490px);
+  min-height: 130px;
+}
+
 @media (min-width: 650px) {
+
+  .table_container {
+    height: calc(100vh - 445px);
+    min-height: 130px;
+  }
+
   .hidden-xs {
     display: block;
   }
