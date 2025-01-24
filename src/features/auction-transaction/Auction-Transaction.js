@@ -18,7 +18,11 @@ import { StyledTableCell } from "../../shared/ui/elements/Table-Cell";
 
 function AuctionTransaction() {
 
-  const { control, getValues, formState: { errors }, register, trigger, reset, setValue, setFocus, watch } = useForm();
+  const { control, getValues, formState: { errors }, register, trigger, reset, setValue, setFocus, watch } = useForm({
+    defaultValues: {
+      date: new Date().toISOString().split("T")[0], // Format as 'YYYY-MM-DD'
+    },
+  });
   const [itemsList, setItemsList] = useState([]);
   const [kisanList, setKisanList] = useState([]);
   const [vyapariList, setVyapariList] = useState([]);
@@ -55,7 +59,7 @@ function AuctionTransaction() {
         "kisanId": data.kisaan.partyId,
         "itemId": data.itemName.itemId,
         buyItems,
-        auctionDate: new Date(new Date(new Date().getTime() + 19800000))
+        auctionDate: new Date()
       }
       try {
         await addAuctionTransaction(auctionData);
@@ -101,7 +105,7 @@ function AuctionTransaction() {
     if (event) {
       event.preventDefault();
     }
-    const result = await trigger(["kisaan", "itemName", "vyapari", "bags"]);
+    const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi"]);
     if (!auctionType && (!qtyTotal || qtyTotal <= 0)) {
       return;
     }
@@ -130,7 +134,6 @@ function AuctionTransaction() {
       setTableData(newTableData);
       setQty([]);
       setQtyTotal(0);
-      setValue('rate', null);
       setValue('vyapari', null);
       if (auctionType) {
         setValue('nag', null);
@@ -242,7 +245,8 @@ function AuctionTransaction() {
     event.preventDefault();
     const value = getValues('quantity');
     if (!value) {
-      setFocus('rate');
+      addToTable();
+      setFocus('vyapari');
       return;
     }
     setQty([...qty, value]);
@@ -285,9 +289,6 @@ function AuctionTransaction() {
   const handleCloseDialog = (data) => {
     setIsOnGoingAuctionOpen(false);
     if (data) {
-      // setValue('kisaan', data?.formValues?.kisaan);
-      // setValue('itemName', data?.formValues?.itemName);
-      // setValue('totalBag', data?.formValues?.totalBag);
       reset(data?.formValues);
       setTableData(data.arrayData);
       setAuctionId(data.id);
@@ -344,8 +345,29 @@ function AuctionTransaction() {
     <>
       <form>
         <div className='container'>
-          <div className='full-grid-heading hidden-xs'>
+          {/* <div className='full-grid-heading hidden-xs'>
             <h1>AUCTION TRANSACTION</h1>
+          </div> */}
+          <div className="auction_date">
+            <Controller
+              name="date"
+              control={control}
+              rules={{ required: "Enter selectDate" }}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  type="date"
+                  size="small"
+                  label="Select Date"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+              )}
+            />
+            <p className='err-msg'>{errors.date?.message}</p>
           </div>
           <div className='switch'>
             <FormControlLabel
@@ -369,6 +391,11 @@ function AuctionTransaction() {
               }
               label="TYPE"
             />
+          </div>
+          <div className='submit-area'>
+            <Button type="button" variant="contained" color="primary" onClick={onSubmit}>
+              Submit
+            </Button>
           </div>
           <div className='kisan'>
             <Controller
@@ -403,15 +430,16 @@ function AuctionTransaction() {
                     <TextField
                       {...params}
                       label="KISAAN"
+                      size="small"
                       disabled={getValues()?.kisaan?.name && buyItemsArr.length > 0}
                       InputProps={{
                         ...params.InputProps,
                         inputRef: kisanRef, // Attach the ref here
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon />
-                          </InputAdornment>
-                        ),
+                        // startAdornment: (
+                        //   <InputAdornment position="start">
+                        //     <SearchIcon />
+                        //   </InputAdornment>
+                        // ),
                       }}
                       inputProps={{
                         ...params.inputProps,
@@ -450,14 +478,15 @@ function AuctionTransaction() {
                       {...params}
                       label="ITEM"
                       disabled={getValues()?.itemName && buyItemsArr.length > 0}
+                      size="small"
                       InputProps={{
                         ...params.InputProps,
                         inputRef: itemRef,
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon />
-                          </InputAdornment>
-                        ),
+                        // startAdornment: (
+                        //   <InputAdornment position="start">
+                        //     <SearchIcon />
+                        //   </InputAdornment>
+                        // ),
                       }}
                       inputProps={{
                         ...params.inputProps,
@@ -489,6 +518,7 @@ function AuctionTransaction() {
                   {...field}
                   fullWidth
                   label="Total Bags"
+                  size="small"
                   placeholder="Total Bags"
                   type="number"
                   InputLabelProps={{
@@ -546,6 +576,7 @@ function AuctionTransaction() {
                     <TextField
                       {...params}
                       label="VYAPARI"
+                      size="small"
                       InputProps={{
                         ...params.InputProps,
                         inputRef: vyapariRef,
@@ -578,6 +609,7 @@ function AuctionTransaction() {
                     <TextField
                       {...register("nag", { required: "ENTER NAG" })}
                       fullWidth
+                      size="small"
                       label="NAG"
                       type="number"
                       variant="outlined"
@@ -589,6 +621,7 @@ function AuctionTransaction() {
                     <TextField
                       {...register("quantity", { required: "Enter Quantity" })}
                       fullWidth
+                      size="small"
                       label="QUANTITY"
                       type="number"
                       variant="outlined"
@@ -614,13 +647,17 @@ function AuctionTransaction() {
             <TextField
               {...register("rate", { required: "Rate is required" })}
               fullWidth
+              size="small"
               label="RATE"
               type="number"
               variant="outlined"
+              inputProps={{
+                tabIndex: -1,
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  handleEnterKeyPress(``);
+                  handleEnterKeyPress(`submit`);
                 }
               }}
             />
@@ -634,12 +671,16 @@ function AuctionTransaction() {
                     <TextField
                       {...register("bags", { required: "Bags is required" })}
                       fullWidth
+                      size="small"
                       label="Bags"
                       placeholder='Bags'
                       type="number"
                       variant="outlined"
                       InputLabelProps={{
                         shrink: true,
+                      }}
+                      inputProps={{
+                        tabIndex: -1,
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -653,14 +694,18 @@ function AuctionTransaction() {
                 ) : (
                   <>
                     <TextField
-                      {...register("chungi", { required: "CHUNGI is required" })}
+                      {...register("chungi", { required: "Chungi is required" })}
                       fullWidth
                       label="CHUNGI"
+                      size="small"
                       placeholder='CHUNGI'
                       type="number"
                       variant="outlined"
                       InputLabelProps={{
                         shrink: true,
+                      }}
+                      inputProps={{
+                        tabIndex: -1,
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -738,7 +783,7 @@ function AuctionTransaction() {
                         <>
                           <StyledTableCell align="left">{row.rate}</StyledTableCell>
                           <StyledTableCell align="left">{row.chungi}</StyledTableCell>
-                          <StyledTableCell align="left">{row.rate * row.quantity + row.chungi}</StyledTableCell>
+                          <StyledTableCell align="left">{(row.rate + row.chungi) * row.quantity}</StyledTableCell>
 
                         </>
                       ) : (
@@ -755,11 +800,6 @@ function AuctionTransaction() {
                 </TableBody>
               </Table>
             </TableContainer>
-          </div>
-          <div className='full-grid submit-area'>
-            <Button type="button" variant="contained" color="primary" onClick={onSubmit}>
-              Submit
-            </Button>
           </div>
         </div>
       </form>

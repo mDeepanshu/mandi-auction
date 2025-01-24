@@ -7,7 +7,7 @@
   grid-template-columns: repeat(16, 1fr);
   grid-template-rows: 5;
   gap: 10px;
-  padding: 20px 10px 0 10px;
+  padding: 4rem 10px 0 10px;
 }
 
 .full-grid {
@@ -15,15 +15,29 @@
   grid-column-end: 17;
 }
 
-.full-grid-heading {
+/* .full-grid-heading {
   grid-column-start: 1;
-  grid-column-end: 13;
+  grid-column-end: 9;
+} */
+
+.auction_date {
+  grid-column-start: 1;
+  grid-column-end: 9;
+  /* align-content: center; */
 }
 
 .switch {
+  grid-column-start: 11;
+  grid-column-end: 13;
+  /* align-content:start; */
+  vertical-align: top;
+}
+
+.submit-area {
   grid-column-start: 13;
   grid-column-end: 17;
-  align-content: center;
+  /* align-content:start; */
+  vertical-align: top;
 }
 
 .kisan {
@@ -56,7 +70,7 @@
 
 .quantity-list {
   display: flex;
-  width: 96%;
+  width: 100%;
   justify-content: space-between;
 }
 
@@ -119,9 +133,9 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  width: 15%;
+  width: 20%;
   color: #3D5D18;
-  padding: 4px 5px;
+  /* padding: 4px 5px; */
   background: #b8e76f;
   border: 1px solid #74b21e;
   height: 30px;
@@ -149,7 +163,7 @@
 
 .add-qty-btn {
   width: 20%;
-  height: 3.5rem;
+  height: 2.5rem;
 }
 
 .rate-field {
@@ -177,15 +191,27 @@
 }
 
 .table_container {
-  height: calc(100vh - 490px);
+  height: calc(100vh - 440px);
   min-height: 130px;
 }
 
 @media (min-width: 650px) {
 
   .table_container {
-    height: calc(100vh - 445px);
+    height: calc(100vh - 330px);
     min-height: 130px;
+  }
+
+  .switch {
+    grid-column-start: 13;
+    grid-column-end: 14;
+    vertical-align: top;
+  }
+
+  .submit-area {
+    grid-column-start: 14;
+    grid-column-end: 16;
+    vertical-align: top;
   }
 
   .hidden-xs {
@@ -193,7 +219,8 @@
   }
 
   .container {
-    padding: 0 10px;
+    padding: 4rem 10px;
+    padding-bottom: 0;
   }
 
   .vyapari {
@@ -262,7 +289,7 @@
 
 .add-btn {
   display: flex;
-  height: 3.438rem;
+  height: 2.438rem;
   width: 100%;
   background-color: #1976D2;
   color: #fff;
@@ -277,7 +304,7 @@
 
 .secondary-btn {
   background-color: rgba(131, 133, 136, 0.692);
-  height: 1.73rem;
+  height: 1.2rem;
   border-radius: 0;
 }
 
@@ -337,10 +364,7 @@
   text-transform: uppercase;
 }
 
-.submit-area {
-  display: flex;
-  justify-content: flex-end;
-}
+
 
 /* Show the row when the width is less than 600px */
 @media (max-width: 599px) {

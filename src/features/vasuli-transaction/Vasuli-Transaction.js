@@ -232,10 +232,10 @@ function VasuliTransaction() {
   return (
     <>
       {
-        loginStatus ? (<Login changeLoginState={changeLoginState} />) : (
+        loginStatus ? (<div className={styles.authenticate}><Login changeLoginState={changeLoginState}/></div>) : (
           <>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Grid container spacing={1} p={1} alignItems="center">
+              <Grid container spacing={1} p={1} alignItems="center" className={styles.container}>
                 <Grid item xs={10}>
                   <Typography variant="h4" component="h1" align="left">
                     VASULI TRANSACTION

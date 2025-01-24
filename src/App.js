@@ -74,7 +74,7 @@ function App() {
             ) : (
               <>
                 <NavBar changeLoadingState={changeLoading} loadingStatus={loading}></NavBar>
-                <Box component="main" sx={{ mt: 8 }}>
+                <Box component="main">
                   <Outlet context={{ loading }} />
                 </Box>
               </>
