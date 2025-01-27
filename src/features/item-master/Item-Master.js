@@ -60,7 +60,7 @@ const ItemMaster = () => {
     let newTableData = [
       {
         itemId: Date.now().toString(16),
-        name: values.itemName,
+        name: values.itemName.toUpperCase(),
       }
     ];
     try {

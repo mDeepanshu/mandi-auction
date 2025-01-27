@@ -59,7 +59,7 @@ function AuctionTransaction() {
         "kisanId": data.kisaan.partyId,
         "itemId": data.itemName.itemId,
         buyItems,
-        auctionDate: new Date()
+        auctionDate: `${data.date}T${new Date().toISOString().split("T")[1]}`
       }
       try {
         await addAuctionTransaction(auctionData);
@@ -105,7 +105,7 @@ function AuctionTransaction() {
     if (event) {
       event.preventDefault();
     }
-    const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi"]);
+    const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate"]);
     if (!auctionType && (!qtyTotal || qtyTotal <= 0)) {
       return;
     }
@@ -115,7 +115,7 @@ function AuctionTransaction() {
         vyapariName: values.vyapari.name,
         vyapariId: values.vyapari.partyId,
         rate: Number(values.rate),
-        auctionDate: new Date()
+        auctionDate: `${values.date}T${new Date().toISOString().split("T")[1]}`
       };
 
       if (auctionType) {
@@ -244,7 +244,12 @@ function AuctionTransaction() {
   const newQty = (event) => {
     event.preventDefault();
     const value = getValues('quantity');
+    const rateValue = getValues('rate');
     if (!value) {
+      if (!rateValue) {
+        setFocus('rate');
+        return;
+      }
       addToTable();
       setFocus('vyapari');
       return;
@@ -477,7 +482,6 @@ function AuctionTransaction() {
                     <TextField
                       {...params}
                       label="ITEM"
-                      disabled={getValues()?.itemName && buyItemsArr.length > 0}
                       size="small"
                       InputProps={{
                         ...params.InputProps,

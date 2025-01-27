@@ -7,7 +7,7 @@
   grid-template-columns: repeat(16, 1fr);
   grid-template-rows: 5;
   gap: 10px;
-  padding: 4rem 10px 0 10px;
+  /* padding: 0 10px 0 10px; */
 }
 
 .full-grid {
@@ -27,7 +27,7 @@
 }
 
 .switch {
-  grid-column-start: 11;
+  grid-column-start: 10;
   grid-column-end: 13;
   /* align-content:start; */
   vertical-align: top;
@@ -219,7 +219,7 @@
   }
 
   .container {
-    padding: 4rem 10px;
+    padding: 0 10px;
     padding-bottom: 0;
   }
 

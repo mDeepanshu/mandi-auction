@@ -92,7 +92,7 @@ function NavBar(props) {
 
     return (
         <>
-            <Box sx={{ display: 'flex' }}>
+            <Box sx={{ display: 'flex', paddingBottom:'4rem',zIndex: 2 }} >
                 <AppBar component="nav">
                     <Toolbar variant="dense">
                         <IconButton
