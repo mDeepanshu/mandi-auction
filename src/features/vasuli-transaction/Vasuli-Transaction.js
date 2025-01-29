@@ -25,7 +25,7 @@ function VasuliTransaction() {
 
   const [printData, setPrintData] = useState({
     vyapariName: "",
-    mobile: "",
+    idNo: "",
     date: "",
     amount: "",
   });
@@ -126,7 +126,7 @@ function VasuliTransaction() {
       if (getValues().toggle && dataSaved === 'success') {
         setPrintData({
           vyapariName: getValues().vyapariId.name,
-          mobile: getValues().vyapariId.mobile,
+          idNo: getValues().vyapariId.idNo,
           date: getValues().date,
           amount: getValues().amount,
           remark: getValues().remark,
@@ -134,8 +134,8 @@ function VasuliTransaction() {
       } else {
         const newItem = {
           name: getValues()?.vyapariId?.name,
+          idNo: getValues()?.vyapariId?.idNo,
           amount: getValues()?.amount,
-          mobile: getValues()?.mobile,
           date: getValues()?.date,
           printStatus: 'NO',
         };
@@ -143,6 +143,7 @@ function VasuliTransaction() {
       }
       reset({
         vyapariId: null,
+        idNo:null,
         amount: '',
         remark: '',
         toggle: getValues().toggle,
@@ -200,8 +201,8 @@ function VasuliTransaction() {
         .then(() => {
           const newItem = {
             name: printData.vyapariName,
+            idNo: printData.idNo,
             amount: printData.amount,
-            mobile: printData.mobile,
             date: printData.date,
             remark: printData.remark,
             printStatus: 'YES',
@@ -218,7 +219,7 @@ function VasuliTransaction() {
     setPrintTable((printTable) => printTable.filter((_, i) => i !== index));
     setPrintData({
       vyapariName: data?.name,
-      mobile: data?.mobile,
+      idNo: data?.idNo,
       date: data?.date,
       amount: data?.amount,
       remark: data?.remark,
@@ -391,10 +392,10 @@ function VasuliTransaction() {
                 </div>
                 <hr className={styles.line} />
                 <div className={styles.printData}>
-                  <div>Vyapari Name: {printData?.vyapariName}</div>
-                  <div>Date: {printData?.date}</div>
-                  <div>Amount: {printData?.amount}</div>
-                  <div>Remark: {printData?.remark}</div>
+                  <div>NAME: {printData?.vyapariName} | {printData?.idNo} </div>
+                  <div>DATE: {printData?.date}</div>
+                  <div>AMOUNT: {printData?.amount}</div>
+                  <div>REMARK: {printData?.remark}</div>
                 </div>
                 <b><hr className={styles.line} /></b>
               </div>

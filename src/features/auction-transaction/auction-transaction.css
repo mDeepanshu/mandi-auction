@@ -7,6 +7,7 @@
   grid-template-columns: repeat(16, 1fr);
   grid-template-rows: 5;
   gap: 10px;
+  padding: 0 10px;
   /* padding: 0 10px 0 10px; */
 }
 

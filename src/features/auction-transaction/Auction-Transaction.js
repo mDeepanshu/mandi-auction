@@ -106,7 +106,8 @@ function AuctionTransaction() {
       event.preventDefault();
     }
     const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate"]);
-    if (!auctionType && (!qtyTotal || qtyTotal <= 0)) {
+    
+    if (!auctionType && qty.length==0) {
       return;
     }
     if (result) {
@@ -115,6 +116,7 @@ function AuctionTransaction() {
         vyapariName: values.vyapari.name,
         vyapariId: values.vyapari.partyId,
         rate: Number(values.rate),
+        bagsWeight: qty.join(','),
         auctionDate: `${values.date}T${new Date().toISOString().split("T")[1]}`
       };
 
@@ -181,8 +183,14 @@ function AuctionTransaction() {
       id: auctionId
     }
     let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
-    oldLocal[auctionId] = currAuctionSate;
-    localStorage.setItem("onGoingAuction", JSON.stringify(oldLocal));
+    if (newRows.length==0) {
+      let newLocal = oldLocal;
+      delete newLocal[auctionId];
+      localStorage.setItem("onGoingAuction", JSON.stringify(newLocal));
+    }else{
+      oldLocal[auctionId] = currAuctionSate;
+      localStorage.setItem("onGoingAuction", JSON.stringify(oldLocal));
+    }
   }
 
   const fetchList = async (listName) => {
@@ -196,7 +204,10 @@ function AuctionTransaction() {
           setKisanList(list);
           break;
         case "items":
-          setItemsList(list);
+          const uniqueArray = list.filter((item, index, self) => 
+            index === self.findIndex(obj => obj.name === item.name)
+          );
+          setItemsList(uniqueArray);
           break;
         default:
           break;
@@ -552,7 +563,7 @@ function AuctionTransaction() {
                       .filter((option) =>
                         option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)
                       )
-                      .slice(0, 5)
+                      .slice(0, 10)
                   }
                   isOptionEqualToValue={(option, value) => option.idNo === value.idNo}
                   renderOption={(props, option) => (
