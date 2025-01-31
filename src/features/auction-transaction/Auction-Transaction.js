@@ -107,7 +107,7 @@ function AuctionTransaction() {
     }
     const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate"]);
     
-    if (!auctionType && qty.length==0) {
+    if (!auctionType && qty.length==0 && qtyTotal==0) {
       return;
     }
     if (result) {
@@ -116,7 +116,7 @@ function AuctionTransaction() {
         vyapariName: values.vyapari.name,
         vyapariId: values.vyapari.partyId,
         rate: Number(values.rate),
-        bagsWeight: qty.join(','),
+        bagWiseQuantity: qty,
         auctionDate: `${values.date}T${new Date().toISOString().split("T")[1]}`
       };
 
@@ -164,8 +164,10 @@ function AuctionTransaction() {
     reset({
       ...getValues(),
       ...buyItemsArr[index],
+      quantity:null,
       vyapari: defaultOption
     });
+    setQty(buyItemsArr[index]?.bagWiseQuantity);
     setQtyTotal(buyItemsArr[index]?.quantity);
     const newRows = [...buyItemsArr];
     newRows.splice(index, 1);
