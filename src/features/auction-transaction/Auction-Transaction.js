@@ -106,10 +106,7 @@ function AuctionTransaction() {
       event.preventDefault();
     }
     const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate"]);
-    
-    if (!auctionType && qty.length==0 && qtyTotal==0) {
-      return;
-    }
+    if (!auctionType && (qty.length==0||qtyTotal==0)) return;
     if (result) {
       const values = getValues();
       const newAuctionRow = {

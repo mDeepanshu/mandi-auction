@@ -159,9 +159,7 @@ function VasuliTransaction() {
   };
 
   useEffect(() => {
-    if (printData?.vyapariName) {
-      printReceipt();
-    }
+    if (printData?.vyapariName) printReceipt();
   }, [printData]);
 
 
