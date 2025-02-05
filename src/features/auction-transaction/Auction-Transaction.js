@@ -15,7 +15,7 @@ import Alert from '@mui/material/Alert';
 import { useOutletContext } from 'react-router-dom';
 import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
 import { StyledTableCell } from "../../shared/ui/elements/Table-Cell";
-
+import AlertDialog from "../../dialogs/corformation/conformation";
 function AuctionTransaction() {
 
   const { control, getValues, formState: { errors }, register, trigger, reset, setValue, setFocus, watch } = useForm({
@@ -33,7 +33,7 @@ function AuctionTransaction() {
   const [openSuccessTransactionDialog, setSuccessTransactionDialog] = useState(false);
   const { loading } = useOutletContext();
   const vyapariRef = useRef(null); // Create a ref
-
+  let indexToDelete;
   const matches = useMediaQuery('(min-width:600px)');
   const matchesTwo = useMediaQuery('(max-width:599px)');
   const [qty, setQty] = useState([]);
@@ -43,6 +43,8 @@ function AuctionTransaction() {
   const totalBagInputRef = useRef(null);
   const auctionType = watch("auctionType");
   // const auctionType = false;
+  const [openConformationDialog,setOpenConformationDialog] = useState(false);
+  const [deleteRow,setDeleteRow] = useState();
 
   const onSubmit = async () => {
 
@@ -155,6 +157,8 @@ function AuctionTransaction() {
       console.log('Validation failed');
     }
   }
+  
+  
 
   const editFromTable = (index) => {
     const defaultOption = vyapariList.find(option => option.name == buyItemsArr[index]?.vyapariName);
@@ -172,25 +176,32 @@ function AuctionTransaction() {
   }
 
   const deleteFromTable = (index) => {
-    const newRows = [...buyItemsArr];
-    newRows.splice(index, 1);
-    setTableData(newRows);
-
-    const currAuctionSate = {
-      formValues: getValues(),
-      arrayData: newRows,
-      id: auctionId
-    }
-    let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
-    if (newRows.length==0) {
-      let newLocal = oldLocal;
-      delete newLocal[auctionId];
-      localStorage.setItem("onGoingAuction", JSON.stringify(newLocal));
-    }else{
-      oldLocal[auctionId] = currAuctionSate;
-      localStorage.setItem("onGoingAuction", JSON.stringify(oldLocal));
-    }
+    indexToDelete=index;
+    setOpenConformationDialog(true);
   }
+
+  useEffect(()=>{
+    if (deleteRow) {
+      const newRows = [...buyItemsArr];
+      newRows.splice(indexToDelete, 1);
+      setTableData(newRows);
+  
+      const currAuctionSate = {
+        formValues: getValues(),
+        arrayData: newRows,
+        id: auctionId
+      }
+      let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
+      if (newRows.length==0) {
+        let newLocal = oldLocal;
+        delete newLocal[auctionId];
+        localStorage.setItem("onGoingAuction", JSON.stringify(newLocal));
+      }else{
+        oldLocal[auctionId] = currAuctionSate;
+        localStorage.setItem("onGoingAuction", JSON.stringify(oldLocal));
+      }
+    }
+  },[deleteRow])
 
   const fetchList = async (listName) => {
     try {
@@ -236,12 +247,12 @@ function AuctionTransaction() {
     fetchList("items");
   }, [loading]);
 
-  useEffect(() => {
-    const sum = qty.reduce((accumulator, currentValue) => {
-      return accumulator + Number(currentValue);
-    }, 0);
-    setQtyTotal(sum);
-  }, [qty]);
+  // useEffect(() => {
+  //   const sum = qty.reduce((accumulator, currentValue) => {
+  //     return accumulator + Number(currentValue);
+  //   }, 0);
+  //   setQtyTotal(sum);
+  // }, [qty]);
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -265,6 +276,7 @@ function AuctionTransaction() {
       return;
     }
     setQty([...qty, value]);
+    setQtyTotal(prev => Number(prev)+Number(value));
     const currentVal = getValues('bags');
     setValue('bags', Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
     setValue('quantity', '', { shouldValidate: false, shouldDirty: true });
@@ -275,6 +287,7 @@ function AuctionTransaction() {
     const newQty = [...qty];
     newQty.splice(index, 1);
     setQty(newQty);
+    setQtyTotal(prev => Number(prev)-Number(qty[index]));
     const currentVal = getValues('bags');
     setValue('bags', Number(currentVal) - 1, { shouldValidate: true, shouldDirty: true });
 
@@ -287,6 +300,8 @@ function AuctionTransaction() {
     const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
     return diffInDays > maxLoanDays;
   }
+  
+  
 
   const action = (
     <React.Fragment>
@@ -354,6 +369,11 @@ function AuctionTransaction() {
 
   const changeAuctionType = () => {
     // setAuctionType((prevState) => !prevState);
+  }
+
+  const handleConformationClose = (action) => {
+    setOpenConformationDialog(false);
+    setDeleteRow(action);
   }
 
   return (
@@ -843,6 +863,7 @@ function AuctionTransaction() {
         </Snackbar>
       </div>
       <OnGoingAuctions open={isOnGoingAuctionOpen} onClose={handleCloseDialog} />
+      <AlertDialog open={openConformationDialog} handleClose={handleConformationClose} />
     </>
   );
 }

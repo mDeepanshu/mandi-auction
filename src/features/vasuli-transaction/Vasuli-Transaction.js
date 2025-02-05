@@ -207,9 +207,20 @@ function VasuliTransaction() {
           };
           setPrintTable((prevItems) => [...prevItems, newItem]);
         })
-        .catch((err) => console.error('Print failed:', err));
+        .catch((err) => {
+          console.error('Print failed:', err);
+        });
     } else {
       console.warn('Electron IPC is not available.');
+      const newItem = {
+        name: printData.vyapariName,
+        idNo: printData.idNo,
+        amount: printData.amount,
+        date: printData.date,
+        remark: printData.remark,
+        printStatus: 'NO',
+      };          
+      setPrintTable((prevItems) => [...prevItems, newItem]);
     }
   }
 
