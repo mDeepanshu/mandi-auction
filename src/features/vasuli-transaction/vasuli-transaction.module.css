@@ -14,15 +14,19 @@
     overflow-y: auto;
 }
 
-.printData{
+.printData {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* Two equal columns */
-    gap: 10px;
+    gap: 5px;
+}
+
+.printData > *:first-child {
+    grid-column: span 2; /* Make the first element take up both columns */
 }
 
 .printHeadings{
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 .line{
