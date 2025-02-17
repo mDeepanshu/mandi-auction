@@ -844,6 +844,7 @@ function AuctionTransaction() {
           message="ADD ATLEST ONE TRANSACTION"
           action={action}
           onClose={handleClose}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
         />
       </div>
       <div>
@@ -851,6 +852,7 @@ function AuctionTransaction() {
           open={openSuccessTransactionDialog}
           autoHideDuration={1000}
           onClose={handleClose}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
         >
           <Alert
             onClose={handleClose}
