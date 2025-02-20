@@ -145,6 +145,7 @@ function NavBar(props) {
                     open={open}
                     autoHideDuration={5000}
                     onClose={handleClose}
+                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
                 >
                     <Alert
                         onClose={handleClose}
