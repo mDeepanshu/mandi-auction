@@ -34,3 +34,12 @@
     color: black;
     height: 1px;
 }
+
+@media (max-width: 485px) {
+    .heading{
+        display: none;
+    }
+    .toggle{
+        display: none;
+    }
+}

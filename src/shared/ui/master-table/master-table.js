@@ -97,15 +97,15 @@ function MasterTable(props) {
                     <Table aria-label="simple table">
                         <TableHead>
                             <TableRow>
-                                {columns.map((row, index) => (
-                                    <TableCell align="left" key={index}>{row}</TableCell>
+                                {columns?.map((row, index) => (
+                                    <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} align="left" key={index}><b>{row}</b></TableCell>
                                 ))}
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {tableData.map((rowData, index) => (
+                            {tableData?.map((rowData, index) => (
                                 <TableRow key={index}>
-                                    {keyArray.map((key, i) =>
+                                    {keyArray?.map((key, i) =>
                                         <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} key={i} align="left">
                                             {(() => {
                                                 switch (key) {
@@ -147,26 +147,7 @@ function MasterTable(props) {
                     <DialogContent>
                         <DialogContentText></DialogContentText>
                         <div className={styles.editForm}>
-                            {/* {fields.map((field, i) => (
-                                <div className={styles.formControl} key={field.id}>
-                                    <label>{columns[i]}</label>
-                                    <Controller
-                                        // name={`fields.${i}.itemName`}
-                                        name={`fields.${i}.${keyArray[i]}`}
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                label={`Field ${i + 1}`}
-                                                // label={fields[0]}
-                                                variant="outlined"
-                                                fullWidth
-                                            />
-                                        )}
-                                    />
-                                </div>
-                            ))} */}
-                            {fieldDefinitions.map((fieldDef) => (
+                            {fieldDefinitions?.map((fieldDef) => (
                                 <Controller
                                     key={fieldDef.name}
                                     name={fieldDef.name}

@@ -63,7 +63,7 @@ const RegisterDevice = ({ open, onClose }) => {
                 <DialogTitle>
                     <div>
                         <Stepper activeStep={activeStep}>
-                            {steps.map((label, index) => {
+                            {steps?.map((label, index) => {
                                 const stepProps = {};
                                 const labelProps = {};
                                 return (

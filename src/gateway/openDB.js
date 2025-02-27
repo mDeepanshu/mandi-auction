@@ -1,7 +1,7 @@
 // indexedDBSetup.js
 
 const dbName = "mandi";
-const dbVersion = 1;
+const dbVersion = 2;
 let db;
 
 const openDB = () => {
@@ -28,6 +28,9 @@ const openDB = () => {
       }
       if (!db.objectStoreNames.contains("items")) {
         db.createObjectStore("items", { keyPath: "id", autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains("allentries")) {
+        db.createObjectStore("allentries", { keyPath: "trId"});
       }
     };
 
