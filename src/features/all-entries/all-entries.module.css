@@ -1,0 +1,10 @@
+.container{
+    display: flex;
+    justify-content: space-between;
+}
+
+.search_btns{
+    display: flex;
+    gap: 5px;
+    padding: 0 10px;
+}

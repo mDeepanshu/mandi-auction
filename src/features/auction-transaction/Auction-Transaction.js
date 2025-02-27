@@ -5,7 +5,7 @@ import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
 import TextField from '@mui/material/TextField';
 import SearchIcon from '@mui/icons-material/Search';
 import Autocomplete from '@mui/material/Autocomplete';
-import { getAllItems } from "../../gateway/curdDB";
+import { getAllItems,addNewEntry } from "../../gateway/curdDB";
 import styles from "./auction-transaction.css"
 import { Delete, AddCircleOutline, Edit } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
@@ -53,7 +53,7 @@ function AuctionTransaction() {
 
 
     if (isValid && buyItemsArr.length) {
-      const buyItems = buyItemsArr.map(obj => {
+      const buyItems = buyItemsArr?.map(obj => {
         const { vyapariName, ...rest } = obj;
         return rest;
       });
@@ -126,6 +126,7 @@ function AuctionTransaction() {
         newAuctionRow.quantity = Number(qtyTotal);
         newAuctionRow.bags = Number(values.bags);
       }
+      addNewEntry({trId:Number(Date.now().toString()),...newAuctionRow,kisanName:values.kisaan.name,itemName:values.itemName.name});
 
       let newTableData = [
         newAuctionRow,
@@ -246,13 +247,6 @@ function AuctionTransaction() {
     fetchList("KISAN");
     fetchList("items");
   }, [loading]);
-
-  // useEffect(() => {
-  //   const sum = qty.reduce((accumulator, currentValue) => {
-  //     return accumulator + Number(currentValue);
-  //   }, 0);
-  //   setQtyTotal(sum);
-  // }, [qty]);
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -668,7 +662,7 @@ function AuctionTransaction() {
             </div>
             {!auctionType && <div className='quantity-list'>
               <ul className="horizontal-list">
-                {qty.map((item, index) => (
+                {qty?.map((item, index) => (
                   <li
                     key={index}
                   >{item}<button className='qty-btn' onClick={(event) => removeQty(event, index)}>x</button></li>
@@ -685,6 +679,9 @@ function AuctionTransaction() {
               label="RATE"
               type="number"
               variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+              }}
               inputProps={{
                 tabIndex: -1,
               }}
@@ -809,7 +806,7 @@ function AuctionTransaction() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {buyItemsArr.map((row, index) => (
+                  {buyItemsArr?.map((row, index) => (
                     <TableRow key={index}>
                       <StyledTableCell sx={{ width: "45%" }} align="left">{row.vyapariName}</StyledTableCell>
                       <StyledTableCell align="left">{row.quantity}</StyledTableCell>

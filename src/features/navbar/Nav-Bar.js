@@ -15,6 +15,7 @@ const navItems = [
     { name: 'vasuli-transaction', label: 'Vasuli TXN.' },
     { name: 'party-master', label: 'Party Master' },
     { name: 'item-master', label: 'Item Master' },
+    { name: 'all-entries', label: 'ALL Entries' },
 ];
 
 
@@ -70,7 +71,7 @@ function NavBar(props) {
             </Typography>
             <Divider />
             <List>
-                {navItems.map((item, index) => (
+                {navItems?.map((item, index) => (
                     <Link to={item.name} key={index}>
                         <ListItem disablePadding>
                             <ListItemButton sx={{ textAlign: 'center' }}>
@@ -111,7 +112,7 @@ function NavBar(props) {
                         >
                         </Typography>
                         <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                            {navItems.map((item, index) => (
+                            {navItems?.map((item, index) => (
                                 <Link to={item.name} key={index}>
                                     <Button sx={{ color: '#fff' }}>
                                         {item.label}

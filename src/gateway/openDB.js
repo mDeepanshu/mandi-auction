@@ -29,6 +29,9 @@ const openDB = () => {
       if (!db.objectStoreNames.contains("items")) {
         db.createObjectStore("items", { keyPath: "id", autoIncrement: true });
       }
+      if (!db.objectStoreNames.contains("allentries")) {
+        db.createObjectStore("allentries", { keyPath: "trId"});
+      }
     };
 
     request.onsuccess = (event) => {

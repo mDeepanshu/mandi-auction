@@ -68,21 +68,6 @@ function OnGoingAuctions({ open, onClose }) {
                                 <li className={styles.kisan_name}>{elem?.formValues?.kisaan?.name}</li>
                                 <li className={styles.item_name}>{elem?.formValues?.itemName?.name}</li>
                             </ul>
-                            {/* Uncomment if needed */}
-                            {/* {elem?.arrayData?.length > 0 && (
-                                <div>
-                                    <ul>
-                                        {elem?.arrayData?.map((row, rowIndex) => (
-                                            <div key={rowIndex}>
-                                                <li>{row?.vyapariName}</li>
-                                                <li>{row?.rate}</li>
-                                                <li>{row?.quantity}</li>
-                                                <li>{row?.bags}</li>
-                                            </div>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )} */}
                         </div>
                     ))}
                 </div>

@@ -32,6 +32,50 @@ const addItem = (data,collectionName) => {
   };
 };
 
+const addNewEntry = (NewEntryObj) => {
+  const transaction = db.transaction(["allentries"], "readwrite");
+  const store = transaction.objectStore("allentries");
+  const request = store.add(NewEntryObj);
+
+  request.onsuccess = () => {
+    console.log(`item added success`);
+    
+    // resolve(item);
+  };
+
+  request.onerror = (event) => {
+    console.log(`item added error`);
+    // reject(event.target.errorCode);
+  };
+};
+
+const getAuctionEntries = (start,end) => {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["allentries"], "readonly");
+    const store = transaction.objectStore("allentries");
+
+    let keyRange = IDBKeyRange.bound(start,end, false, false);
+
+    let results = [];
+    let cursorRequest = store.openCursor(keyRange);
+
+    cursorRequest.onsuccess = function (event) {
+        let cursor = event.target.result;
+        if (cursor) {
+            results.push(cursor.value); // Add the entry to results
+            cursor.continue(); // Move to the next entry
+        } else {
+            console.log("Entries in range:", results);
+            resolve(results);
+        }
+    };
+
+    cursorRequest.onerror = function (event) {
+        console.error("Error fetching data:", event.target.error);
+    };
+  });
+};
+
 const getItem = (id,collectionName) => {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([collectionName], "readonly");
@@ -96,4 +140,4 @@ const deleteItem = (id,collectionName) => {
   });
 };
 
-export { setDB, addItem, getItem, getAllItems, updateItem, deleteItem };
+export { setDB, addItem, getItem, getAllItems, updateItem, deleteItem, addNewEntry, getAuctionEntries };

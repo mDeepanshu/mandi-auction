@@ -10,13 +10,12 @@ import Alert from "@mui/material/Alert";
 import styles from "./vasuli-transaction.module.css";
 import ReactToPrint from "react-to-print";
 
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
-import PrintIcon from "@mui/icons-material/Print";
 import MasterTable from "../../shared/ui/master-table/master-table";
+import { useMediaQuery } from "@mui/material";
 
 const VasuliTransaction = () => {
   const printRef = useRef();
-
+  
   const vyapariRef = useRef(null);
   const amountRef = useRef(null);
   const remarkRef = useRef(null);
@@ -27,7 +26,8 @@ const VasuliTransaction = () => {
   const [loginStatus, setLoginStatus] = useState(true);
   const [open, setOpen] = useState(false);
   const [printTable, setPrintTable] = useState([]);
-
+  
+  const isSmallScreen = useMediaQuery("(max-width:495px)");
   const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "PRINT"]);
   const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "print"]);
 
@@ -80,6 +80,12 @@ const VasuliTransaction = () => {
 
   useEffect(() => {
     fetchList("VYAPARI");
+    if (isSmallScreen){
+      setColumns(["INDEX", "NAME", "AMOUNT"]);
+      setKeyArray(["index", "name", "amount"]);
+    }
+    const anyPreviousAuctions = JSON.parse(localStorage.getItem("localObj"));
+    if (anyPreviousAuctions.vasuli && Object.keys(anyPreviousAuctions.vasuli)?.length > 0) setPrintTable(anyPreviousAuctions?.vasuli);
   }, []);
 
   useEffect(() => {
@@ -128,6 +134,7 @@ const VasuliTransaction = () => {
     const vasuliTran = {
       ...getValues(),
       vyapariId: getValues().vyapariId?.partyId,
+      name: getValues()?.vyapariId?.name,
       date: datePart,
     };
     try {
@@ -255,12 +262,12 @@ const VasuliTransaction = () => {
         <>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={1} p={1} alignItems="center" className={styles.container}>
-              <Grid item xs={10}>
+              <Grid item xs={10} className={styles.heading}>
                 <Typography variant="h4" component="h1" align="left">
                   VASULI TRANSACTION
                 </Typography>
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={2} className={styles.toggle}>
                 <Controller name="toggle" control={control} render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="PRINT ON SUBMIT" />} />
               </Grid>
               <Grid item xs={4}>
@@ -298,6 +305,7 @@ const VasuliTransaction = () => {
                       onChange={(event, newValue) => field.onChange(newValue)}
                       disablePortal
                       id="combo-box-demo"
+                      size={isSmallScreen ? "small" : "medium"}
                     />
                   )}
                 />
@@ -317,6 +325,7 @@ const VasuliTransaction = () => {
                       onKeyDown={handleEnterPress} // Add onKeyDown here
                       error={!!error} // Highlight field in red if there's an error
                       helperText={error?.message || " "} // Show error message
+                      size={isSmallScreen ? "small" : "medium"}
                     />
                   )}
                 />
@@ -325,15 +334,15 @@ const VasuliTransaction = () => {
                 <Controller
                   name="remark"
                   control={control}
-                  render={({ field }) => <TextField {...field} fullWidth type="text" inputRef={remarkRef} onKeyDown={onEnterPress} helperText=" " label="REMARK" />}
+                  render={({ field }) => <TextField {...field} fullWidth type="text" inputRef={remarkRef} onKeyDown={onEnterPress} helperText=" " label="REMARK" size={isSmallScreen ? "small" : "medium"}/>}
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={4}>
                 <Typography variant="body1" fontWeight={700} align="left">
                   REMAINING AMOUNT {owedAmount}/-
                 </Typography>
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={5}>
                 <Controller
                   name="date"
                   control={control}
@@ -345,6 +354,7 @@ const VasuliTransaction = () => {
                       fullWidth
                       type="date"
                       label="Select Date"
+                      size={isSmallScreen ? "small" : "medium"}
                       InputLabelProps={{
                         shrink: true,
                       }}
