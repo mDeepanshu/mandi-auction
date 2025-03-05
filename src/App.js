@@ -2,11 +2,14 @@ import "./App.css";
 import { Outlet } from "react-router-dom";
 import NavBar from "./features/navbar/Nav-Bar";
 import openDB from "./gateway/openDB";
+import { deleteOldAuctionEntries } from "./gateway/curdDB";
 import { Box } from "@mui/material";
 import { setDB } from "./gateway/curdDB";
 import { useState, useEffect } from "react";
 import Login from "./features/login/login";
 import RegisterDevice from "./dialogs/register-device/register-device";
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 const initializeDB = async () => {
   try {
@@ -22,6 +25,7 @@ function App() {
   const [loginStatus, setLoginStatus] = useState(true);
   const [loading, setLoading] = useState({ isLoading: true, message: "Loading..." });
   const [unregistered, setUnregistered] = useState(false);
+  const [openSuccessTransactionDialog, setSuccessTransactionDialog] = useState(false);
 
   const changeLoginState = (value) => {
     if (value === process.env.REACT_APP_PASS) {
@@ -35,12 +39,21 @@ function App() {
     setLoading({ isLoading: newState, message: apiRes });
   };
 
+  const deletePreviousWeekEntries = async () => {
+    try {
+      const data = await deleteOldAuctionEntries(Number(new Date() - 691200000));
+    } catch (error) {
+      setSuccessTransactionDialog(true);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       await initializeDB();
       setLoading(false);
     };
     init();
+    deletePreviousWeekEntries();
   }, []);
 
   useEffect(() => {
@@ -53,6 +66,13 @@ function App() {
 
   const handleCloseDialog = () => {
     setUnregistered(false);
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSuccessTransactionDialog(false);
   };
 
   return (
@@ -75,6 +95,13 @@ function App() {
       )}
       <div>
         <RegisterDevice open={unregistered} onClose={handleCloseDialog} />
+        <div>
+          <Snackbar open={openSuccessTransactionDialog} autoHideDuration={1000} onClose={handleClose} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+            <Alert onClose={handleClose} severity="error" variant="filled" sx={{ width: "100%" }}>
+              OLD TRANSACTION CLEAR FAILED.
+            </Alert>
+          </Snackbar>
+        </div>
       </div>
     </>
   );
