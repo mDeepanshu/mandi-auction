@@ -1,7 +1,7 @@
 // indexedDBSetup.js
 
 const dbName = "mandi";
-const dbVersion = 2;
+const dbVersion = 3;
 let db;
 
 const openDB = () => {

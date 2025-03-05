@@ -1,17 +1,17 @@
 // indexedDBCRUD.js
 
-let db='mandi';
+let db = "mandi";
 
 const setDB = (database) => {
   db = database;
 };
 
-const addItem = (data,collectionName) => {
+const addItem = (data, collectionName) => {
   const transaction = db.transaction([collectionName], "readwrite");
   const store = transaction.objectStore(collectionName);
   store.clear();
-  
-  data.forEach(item => {
+
+  data.forEach((item) => {
     const request = store.add(item);
 
     request.onsuccess = () => {
@@ -24,11 +24,11 @@ const addItem = (data,collectionName) => {
   });
 
   transaction.oncomplete = () => {
-    console.log('All items added successfully');
+    console.log("All items added successfully");
   };
 
   transaction.onerror = (event) => {
-    console.error('Transaction error:', event.target.errorCode);
+    console.error("Transaction error:", event.target.errorCode);
   };
 };
 
@@ -39,44 +39,70 @@ const addNewEntry = (NewEntryObj) => {
 
   request.onsuccess = () => {
     console.log(`item added success`);
-    
-    // resolve(item);
   };
 
   request.onerror = (event) => {
     console.log(`item added error`);
-    // reject(event.target.errorCode);
   };
 };
 
-const getAuctionEntries = (start,end) => {
+const getAuctionEntries = (start, end) => {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(["allentries"], "readonly");
     const store = transaction.objectStore("allentries");
 
-    let keyRange = IDBKeyRange.bound(start,end, false, false);
+    let keyRange = IDBKeyRange.bound(start, end, false, false);
 
     let results = [];
     let cursorRequest = store.openCursor(keyRange);
 
     cursorRequest.onsuccess = function (event) {
-        let cursor = event.target.result;
-        if (cursor) {
-            results.push(cursor.value); // Add the entry to results
-            cursor.continue(); // Move to the next entry
-        } else {
-            console.log("Entries in range:", results);
-            resolve(results);
-        }
+      let cursor = event.target.result;
+      if (cursor) {
+        results.push(cursor.value); // Add the entry to results
+        cursor.continue(); // Move to the next entry
+      } else {
+        console.log("Entries in range:", results);
+        resolve(results);
+      }
     };
 
     cursorRequest.onerror = function (event) {
-        console.error("Error fetching data:", event.target.error);
+      console.error("Error fetching data:", event.target.error);
     };
   });
 };
 
-const getItem = (id,collectionName) => {
+const deleteOldAuctionEntries = (maxValue) => {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["allentries"], "readwrite");
+    const store = transaction.objectStore("allentries");
+
+    const range = IDBKeyRange.upperBound(maxValue, true);
+
+    const cursorRequest = store.openCursor(range);
+
+    cursorRequest.onsuccess = function(event) {
+        const cursor = event.target.result;
+        if (cursor) {
+            console.log(`Deleting key: ${cursor.key}`);
+            cursor.delete();  // Delete the current entry
+            cursor.continue(); // Move to the next matching entry
+        }
+    };
+
+    cursorRequest.onerror = function(event) {
+        console.error("Error opening cursor:", event.target.error);
+        reject(event.target.error);
+    };
+
+    transaction.oncomplete = function() {
+        resolve(`Deleted`);
+    };
+  });
+};
+
+const getItem = (id, collectionName) => {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([collectionName], "readonly");
     const store = transaction.objectStore(collectionName);
@@ -106,9 +132,9 @@ const getAllItems = (collectionName) => {
       reject(event.target.errorCode);
     };
   });
-}; 
+};
 
-const updateItem = (item,collectionName) => {
+const updateItem = (item, collectionName) => {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([collectionName], "readwrite");
     const store = transaction.objectStore(collectionName);
@@ -124,7 +150,7 @@ const updateItem = (item,collectionName) => {
   });
 };
 
-const deleteItem = (id,collectionName) => {
+const deleteItem = (id, collectionName) => {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([collectionName], "readwrite");
     const store = transaction.objectStore(collectionName);
@@ -140,4 +166,4 @@ const deleteItem = (id,collectionName) => {
   });
 };
 
-export { setDB, addItem, getItem, getAllItems, updateItem, deleteItem, addNewEntry, getAuctionEntries };
+export { setDB, addItem, getItem, getAllItems, updateItem, deleteItem, addNewEntry, getAuctionEntries, deleteOldAuctionEntries };
