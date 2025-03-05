@@ -37,10 +37,6 @@ const addNewEntry = (NewEntryObj) => {
   const store = transaction.objectStore("allentries");
   const request = store.add(NewEntryObj);
 
-  request.onsuccess = () => {
-    console.log(`item added success`);
-  };
-
   request.onerror = (event) => {
     console.log(`item added error`);
   };
@@ -62,7 +58,6 @@ const getAuctionEntries = (start, end) => {
         results.push(cursor.value); // Add the entry to results
         cursor.continue(); // Move to the next entry
       } else {
-        console.log("Entries in range:", results);
         resolve(results);
       }
     };
@@ -85,7 +80,6 @@ const deleteOldAuctionEntries = (maxValue) => {
     cursorRequest.onsuccess = function(event) {
         const cursor = event.target.result;
         if (cursor) {
-            console.log(`Deleting key: ${cursor.key}`);
             cursor.delete();  // Delete the current entry
             cursor.continue(); // Move to the next matching entry
         }

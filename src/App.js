@@ -51,9 +51,9 @@ function App() {
     const init = async () => {
       await initializeDB();
       setLoading(false);
+      deletePreviousWeekEntries();
     };
     init();
-    deletePreviousWeekEntries();
   }, []);
 
   useEffect(() => {
