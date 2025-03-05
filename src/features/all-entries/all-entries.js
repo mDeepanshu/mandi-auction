@@ -32,8 +32,6 @@ function AllEntries() {
   const showSyncedData = watch("syncedData");
 
   const fetchData = async () => {
-    console.log(currentDate);
-
     const data = await getAuctionEntriesList(currentDate, currentDate);
     setTabletList(data?.responseBody);
     setTableDataFiltered(data?.responseBody);
@@ -43,7 +41,6 @@ function AllEntries() {
     const selectedDate = getValues("fromDate");
     const to = Number(new Date(selectedDate));
     const from = Number(new Date(selectedDate)) - 86400000;
-    console.log(to, from);
 
     const localData = await getAuctionEntries(from, to);
     if (localData) {
