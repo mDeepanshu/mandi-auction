@@ -93,7 +93,7 @@ function MasterTable(props) {
     return (
         <div>
             <TableContainer component={Paper} className={styles.table}>
-                <div className={styles.tableBody}>
+                <div className={styles.tableBody} style={{ "--table-height": props.height || "400px" }} >
                     <Table aria-label="simple table">
                         <TableHead>
                             <TableRow>
