@@ -1,10 +1,16 @@
-.container{
-    display: flex;
-    justify-content: space-between;
+.container {
+  display: flex;
+  justify-content: space-between;
 }
 
-.search_btns{
-    display: flex;
-    gap: 5px;
-    padding: 0 10px;
+.search_btns {
+  display: flex;
+  gap: 5px;
+  padding: 0 10px;
+}
+
+.auctionTotal {
+  font-size: larger;
+  display: flex;
+  align-items: center;
 }

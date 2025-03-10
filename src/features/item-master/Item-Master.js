@@ -134,7 +134,7 @@ const ItemMaster = () => {
 
         <Grid item xs={12}>
           <div className='table-container'>
-            <MasterTable columns={itemsColumns} tableData={tableData} keyArray={keyArray} />
+            <MasterTable columns={itemsColumns} tableData={tableData} keyArray={keyArray} height={"60vh"}/>
           </div>
         </Grid>
       </Grid>

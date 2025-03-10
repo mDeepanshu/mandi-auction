@@ -53,7 +53,7 @@
 }
 
 .tableBody{
-    max-height: 400px;
+    height: var(--table-height);
     overflow-y: auto;
 }
 

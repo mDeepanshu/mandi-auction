@@ -7,7 +7,6 @@ import { TextField, Button, InputAdornment, Switch, FormControlLabel, Select, Me
 import SearchIcon from "@mui/icons-material/Search";
 import styles from "./all-entries.module.css";
 
-
 function AllEntries() {
   const [auctionEntriesColumns, setAuctionEntriesColumns] = useState(["INDEX", "KISANNAME", "ITEMNAME", "VYAPARINAME", "RATE", "QUANTITY", "BAGS W.", "CHUNGI", "AMOUNT", "BAG", "DATE"]);
   const [keyArray, setKeyArray] = useState(["index", "kisanName", "itemName", "vyapariName", "rate", "quantity", "bagWiseQuantity", "chungi", "amount", "bag", "auctionDate"]);
@@ -17,6 +16,7 @@ function AllEntries() {
   const currentDate = new Date(new Date().getTime() + 19800000).toISOString().split("T")[0]; // Get current date in 'YYYY-MM-DD' format
 
   const [dateOptions, setDateOptions] = useState([]);
+  const [total, setTotal] = useState([]);
 
   const {
     control,
@@ -35,6 +35,11 @@ function AllEntries() {
     const data = await getAuctionEntriesList(currentDate, currentDate);
     setTabletList(data?.responseBody);
     setTableDataFiltered(data?.responseBody);
+    let total = 0;
+    data.responseBody.forEach((element) => {
+      total += element.amount;
+    });
+    setTotal(total);
   };
 
   const setLocalData = async (date) => {
@@ -149,12 +154,15 @@ function AllEntries() {
               onChange={find}
             />
           </div>
+          {showSyncedData && <div className={styles.auctionTotal}>
+            <b>TOTAL:{Number(total).toFixed(0)}</b>
+          </div>}
         </div>
         <div>
           <Controller name="syncedData" control={control} render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="SYNCED DATA" />} />
         </div>
       </div>
-      <MasterTable columns={auctionEntriesColumns} tableData={tableDataFiltered} keyArray={keyArray} />
+      <MasterTable columns={auctionEntriesColumns} tableData={tableDataFiltered} keyArray={keyArray} height={"78vh"} />
     </>
   );
 }
