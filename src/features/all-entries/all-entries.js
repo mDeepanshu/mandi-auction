@@ -36,7 +36,7 @@ function AllEntries() {
     setTabletList(data?.responseBody);
     setTableDataFiltered(data?.responseBody);
     let total = 0;
-    data.responseBody.forEach((element) => {
+    data?.responseBody.forEach((element) => {
       total += element.amount;
     });
     setTotal(total);

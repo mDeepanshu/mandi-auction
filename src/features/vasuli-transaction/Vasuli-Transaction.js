@@ -259,9 +259,9 @@ const VasuliTransaction = () => {
           <Login changeLoginState={changeLoginState} />
         </div>
       ) : (
-        <>
+        <div className={styles.wrapper}>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Grid container spacing={1} p={1} alignItems="center" className={styles.container}>
+            <Grid container spacing={1} p={1} alignItems="center">
               <Grid item xs={10} className={styles.heading}>
                 <Typography variant="h4" component="h1" align="left">
                   VASULI TRANSACTION
@@ -354,7 +354,7 @@ const VasuliTransaction = () => {
                       fullWidth
                       type="date"
                       label="Select Date"
-                      size={isSmallScreen ? "small" : "medium"}
+                      size="small"
                       InputLabelProps={{
                         shrink: true,
                       }}
@@ -404,7 +404,7 @@ const VasuliTransaction = () => {
               </b>
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   );

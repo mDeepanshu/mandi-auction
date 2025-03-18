@@ -1,3 +1,7 @@
+.wrapper{
+  padding-top: 4rem;
+}
+
 .hidden-xs {
   display: none;
 }
