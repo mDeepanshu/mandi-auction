@@ -1,7 +1,7 @@
 .container {
   background-color: #ebf0ff;
   height: 100vh;
-  overflow-y: hidden;
+  /* overflow-y: hidden; */
   padding-top: 4rem;
 }
 
@@ -36,7 +36,7 @@
 .selected_list_item {
   display: flex;
   gap: 10px;
-  padding: 5px 10px;
+  padding: 5px 8px;
   margin-bottom: 10px;
   background-color: #eee;
   border-radius: 15px;
@@ -48,28 +48,29 @@
   list-style-type: none;
   margin: 0;
   padding: 1.2rem 1rem;
-  width: 84%;
-  max-height: 60vh;
-  overflow-y: hidden;
+  width: 85%;
+  /* max-height: 60vh; */
+  min-height: 56vh;
+  /* overflow-y: hidden; */
   background-color: white;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 li {
   min-height: 21px;
-  padding-bottom: 20px;
+  padding-bottom: 5px;
   /* white-space: nowrap; */
-  overflow: hidden;
+  /* overflow: hidden; */
   /* text-overflow: ellipsis; */
 }
 
-.list_header > * {
-  font-weight: 700;
+.list_header{
+  font-weight: 750;
 }
 
 .small_column {
-  width: 15%;
+  width: 20%;
 }
 
 .vyapari_column {
@@ -87,16 +88,16 @@ li {
 }
 
 .amount_input {
-  width: 50%;
-  padding: 12px;
+  width: 70%;
+  padding: 10px 12px;
   border: none;
   border-radius: 4px;
   background-color: beige;
 }
 
 .remark_input {
-  width: 50%;
-  padding: 12px;
+  width: 80%;
+  padding: 10px 12px;
   border: none;
   border-radius: 4px;
   background-color: beige;
