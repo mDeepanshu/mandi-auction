@@ -2,10 +2,10 @@
   background-color: #ebf0ff;
   height: 100vh;
   /* overflow-y: hidden; */
-  padding-top: 4rem;
 }
 
 .row_one {
+  padding-top: 4rem;
   display: flex;
   gap: 5px;
   justify-content: center;

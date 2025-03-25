@@ -8,7 +8,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import styles from "./all-entries.module.css";
 
 function AllEntries() {
-  const [auctionEntriesColumns, setAuctionEntriesColumns] = useState(["INDEX", "KISANNAME", "ITEMNAME", "VYAPARINAME", "RATE", "QUANTITY", "BAGS W.", "CHUNGI", "AMOUNT", "BAG", "DATE"]);
+  const [auctionEntriesColumns, setAuctionEntriesColumns] = useState(["IDX", "KISANNAME", "ITEMNAME", "VYAPARINAME", "RATE", "QTY", "BAGS W.", "CNG", "AMOUNT", "BAG", "DATE"]);
   const [keyArray, setKeyArray] = useState(["index", "kisanName", "itemName", "vyapariName", "rate", "quantity", "bagWiseQuantity", "chungi", "amount", "bag", "auctionDate"]);
   const [tabletList, setTabletList] = useState([]);
   const [tableDataFiltered, setTableDataFiltered] = useState([]);

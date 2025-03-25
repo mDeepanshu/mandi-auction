@@ -110,7 +110,7 @@ function MasterTable(props) {
               {tableData?.map((rowData, index) => (
                 <TableRow key={index}>
                   {keyArray?.map((key, i) => (
-                    <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} key={i} align="left">
+                    <TableCell sx={{ padding: "4px 8px", lineHeight: "1.5rem" }} key={i} align="left" className={styles[keyArray[i]]}>
                       {(() => {
                         switch (key) {
                           case "edit":
@@ -119,8 +119,6 @@ function MasterTable(props) {
                                 <Edit />
                               </Button>
                             );
-                          // case "editTwo":
-                          //     return <Button onClick={() => props.editFromTable(rowData, index)}><Edit /></Button>;
                           case "delete":
                             return (
                               <Button onClick={() => deleteFromTable(index)}>
