@@ -8,6 +8,7 @@ import ItemMaster from "./features/item-master/Item-Master";
 import PartyMaster from "./features/party-master/Party-Master";
 import VasuliTransaction from "./features/vasuli-transaction/Vasuli-Transaction";
 import AllEntries from "./features/all-entries/all-entries";
+import PendingVasuli from "./features/pending-vasuli/pending-vasuli";
 
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
 			{
 				path: 'all-entries',
 				element: <AllEntries />
+			},
+			{
+				path: 'pending-vasuli',
+				element: <PendingVasuli />
 			},
 		],
 		// errorElement: <Error />

@@ -1,23 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { Grid } from "@mui/material";
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller } from "react-hook-form";
 import { TextField, Button } from "@mui/material";
-import { Table, Typography, TableBody, TableCell, TableHead, TableRow, InputAdornment } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import { Table, Typography, TableBody, TableCell, TableHead, TableRow, InputAdornment } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import { addItemGlobal, getItem } from "../../gateway/item-master-apis";
 // import SearchIcon from '@mui/icons-material/Search';
 // import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
-import "./item-master.module.css"
-import { Delete, AddCircleOutline } from '@mui/icons-material';
-import Snackbar from '@mui/material/Snackbar';
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
+import "./item-master.module.css";
+import { Delete, AddCircleOutline } from "@mui/icons-material";
+import Snackbar from "@mui/material/Snackbar";
 import MasterTable from "../../shared/ui/master-table/master-table";
-
+import styles from "./item-master.module.css";
 
 const ItemMaster = () => {
   const [open, setOpen] = useState(false);
-  const { handleSubmit, control, getValues, formState: { errors } } = useForm();
+  const {
+    handleSubmit,
+    control,
+    getValues,
+    formState: { errors },
+  } = useForm();
 
   const [tableData, setTableData] = useState([]);
   const [tableDataFiltered, setTableDataFiltered] = useState([]);
@@ -40,19 +45,19 @@ const ItemMaster = () => {
   }, []);
 
   const onItemInput = (event, field) => {
-    field.onChange(event);  // Update the value in react-hook-form
-    setTableDataFiltered(tableData.filter(elem => elem.name.includes(event.target.value)));
-  }
+    field.onChange(event); // Update the value in react-hook-form
+    setTableDataFiltered(tableData.filter((elem) => elem.name.includes(event.target.value)));
+  };
 
   const deleteFromTable = (index) => {
     const newRows = [...tableData];
     newRows.splice(index, 1);
     setTableData(newRows);
-  }
+  };
 
   const onSubmit = async () => {
     const values = getValues();
-    if (tableData.some(elem => elem.name == values.itemName)) {
+    if (tableData.some((elem) => elem.name == values.itemName)) {
       setOpen(true);
       return;
     }
@@ -61,7 +66,7 @@ const ItemMaster = () => {
       {
         itemId: Date.now().toString(16),
         name: values.itemName.toUpperCase(),
-      }
+      },
     ];
     try {
       const result = await addItemGlobal(newTableData);
@@ -75,7 +80,7 @@ const ItemMaster = () => {
   };
 
   const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setOpen(false);
@@ -83,71 +88,62 @@ const ItemMaster = () => {
 
   const action = (
     <React.Fragment>
-      <IconButton
-        size="small"
-        aria-label="close"
-        color="inherit"
-        onClick={handleClose}
-      >
+      <IconButton size="small" aria-label="close" color="inherit" onClick={handleClose}>
         <CloseIcon fontSize="small" />
       </IconButton>
     </React.Fragment>
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Grid container spacing={2} p={3}>
-        <Grid item xs={12}>
-          <Typography variant="h4" component="h1" align="left">
-            ITEM MASTER
-          </Typography>
-        </Grid>
+    <div className={styles.wrapper}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Grid container spacing={2} p={3}>
+          <Grid item xs={12}>
+            <Typography variant="h4" component="h1" align="left">
+              ITEM MASTER
+            </Typography>
+          </Grid>
 
-        <Grid item xs={8}>
-          <Controller
-            name="itemName"
-            control={control}
-            rules={{ required: "Enter Item Name" }}
-            defaultValue=""
-            render={({ field }) =>
-              <TextField
-                {...field}
-                fullWidth
-                label="ITEM NAME"
-                variant="outlined"
-                onChange={(e) => onItemInput(e, field)}
-                inputProps={{
-                  style: {
-                    textTransform: "uppercase", // Ensure uppercase transformation here
-                  },
-                }}
-              />}
+          <Grid item xs={8}>
+            <Controller
+              name="itemName"
+              control={control}
+              rules={{ required: "Enter Item Name" }}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="ITEM NAME"
+                  variant="outlined"
+                  onChange={(e) => onItemInput(e, field)}
+                  inputProps={{
+                    style: {
+                      textTransform: "uppercase", // Ensure uppercase transformation here
+                    },
+                  }}
+                />
+              )}
+            />
+            <p className="err-msg">{errors.itemName?.message}</p>
+          </Grid>
+          <Grid item xs={2}>
+            <Button variant="contained" color="primary" fullWidth type="submit" sx={{ height: "3.438rem" }}>
+              <AddCircleOutline /> ADD
+            </Button>
+          </Grid>
 
-          />
-          <p className='err-msg'>{errors.itemName?.message}</p>
+          <Grid item xs={12}>
+            <div className="table-container">
+              <MasterTable columns={itemsColumns} tableData={tableData} keyArray={keyArray} height={"60vh"} />
+            </div>
+          </Grid>
         </Grid>
-        <Grid item xs={2}>
-          <Button variant="contained" color="primary" fullWidth type="submit" sx={{ height: '3.438rem' }}>
-            <AddCircleOutline /> ADD
-          </Button>
-        </Grid>
-
-        <Grid item xs={12}>
-          <div className='table-container'>
-            <MasterTable columns={itemsColumns} tableData={tableData} keyArray={keyArray} height={"60vh"}/>
-          </div>
-        </Grid>
-      </Grid>
-      <div>
-        <Snackbar
-          open={open}
-          autoHideDuration={4000}
-          message="ITEM ALREADY EXISTS"
-          action={action}
-          onClose={handleClose}
-        />
-      </div>
-    </form>
+        <div>
+          <Snackbar open={open} autoHideDuration={4000} message="ITEM ALREADY EXISTS" action={action} onClose={handleClose} />
+        </div>
+      </form>
+    </div>
   );
 };
 

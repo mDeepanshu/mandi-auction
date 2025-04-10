@@ -1,4 +1,9 @@
-.table-container{
-    max-height: 65vh;
-    overflow: auto;
+.wrapper{
+    padding-top: 2rem;
+    width: 100%;
+}
+
+.table-container {
+  max-height: 65vh;
+  overflow: auto;
 }

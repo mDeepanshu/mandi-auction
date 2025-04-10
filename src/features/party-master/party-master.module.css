@@ -1,3 +1,7 @@
+.wrapper{
+    /* padding-top: 4rem; */
+}
+
 .sharedTable{
     height: 40vh;
     overflow-y: scroll;

@@ -66,3 +66,7 @@
     border-radius: 7px;
     background-color: green;
 }
+
+.auctionDate {
+    white-space: nowrap;
+}

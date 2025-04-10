@@ -1,0 +1,128 @@
+.container {
+  background-color: #ebf0ff;
+  height: 100vh;
+  /* overflow-y: hidden; */
+}
+
+.row_one {
+  padding-top: 4rem;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.row_two {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.row_three {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.list_item {
+  display: flex;
+  gap: 10px;
+  opacity: 0.6;
+}
+
+.list_item > * {
+  word-wrap: normal;
+}
+
+.selected_list_item {
+  display: flex;
+  gap: 10px;
+  padding: 5px 8px;
+  margin-bottom: 10px;
+  background-color: #eee;
+  border-radius: 15px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 1.2rem 1rem;
+  width: 85%;
+  /* max-height: 60vh; */
+  min-height: 56vh;
+  /* overflow-y: hidden; */
+  background-color: white;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+li {
+  min-height: 21px;
+  padding-bottom: 5px;
+  /* white-space: nowrap; */
+  /* overflow: hidden; */
+  /* text-overflow: ellipsis; */
+}
+
+.list_header{
+  font-weight: 750;
+}
+
+.small_column {
+  width: 20%;
+}
+
+.vyapari_column {
+  width: 50%;
+}
+
+.remark_column {
+  width: 20%;
+}
+
+.arrow_btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.amount_input {
+  width: 70%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: beige;
+}
+
+.remark_input {
+  width: 80%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: beige;
+}
+
+input:focus {
+  outline: none;
+  border: none;
+}
+
+button:disabled {
+  background-color: gray;
+  border-radius: 35px;
+  color: white;
+  cursor: not-allowed;
+}
+
+/* For Webkit browsers (Chrome, Safari, Edge) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* For Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}

@@ -1,5 +1,6 @@
-.container{
-    /* padding-top: 4rem; */
+
+.wrapper{
+    padding-top: 2.5rem;
 }
 
 .printContainer{
@@ -7,11 +8,6 @@
     padding: 0 15px;
     font-weight: 700;
     font-size: 0.7rem;
-}
-
-.tableBody{
-    max-height: 360px;
-    overflow-y: auto;
 }
 
 .printData {
