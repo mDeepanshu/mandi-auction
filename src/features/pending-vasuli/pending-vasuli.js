@@ -189,18 +189,20 @@ function PendingVasuli() {
         <>
           <div className={styles.container}>
             <div className={styles.row_one}>
-              <div>
-                <label>TODAYS</label>
-                <Switch onChange={() => changeSection()} />
-                <label>OLDER</label>
+              <div className={styles.row_one_left}>
+                <div>
+                  <label>TODAYS</label>
+                  <Switch onChange={() => changeSection()} />
+                  <label>OLDER</label>
+                </div>
+                <div>
+                  <Button variant="contained" color="success" type="button" onClick={() => fetch_pending_vasuli()}>
+                    GET
+                  </Button>
+                </div>
               </div>
-              <div>
-                <Button variant="contained" color="success" type="button" onClick={() => fetch_pending_vasuli()}>
-                  GET
-                </Button>
-                {/* <Button variant="contained" color="success" type="button" onClick={() => save()}>
-            SAVE
-          </Button> */}
+              <div className={styles.row_one_right}>
+                TOTAL AMOUNT: {pendingVasuliList?.reduce((acc, item) => acc + (item?.amount ? Number(item?.amount) : 0), 0)} 
               </div>
             </div>
             <div className={styles.row_two}>
