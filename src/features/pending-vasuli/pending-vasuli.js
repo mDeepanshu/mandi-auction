@@ -25,17 +25,7 @@ function PendingVasuli() {
   const [performEdit, setPerformEdit] = useState();
   const [loginStatus, setLoginStatus] = useState(true);
 
-  const {
-    control,
-    getValues,
-    formState: { errors },
-    register,
-    trigger,
-    reset,
-    setValue,
-    setFocus,
-    watch,
-  } = useForm({
+  const { formState: { errors } } = useForm({
     defaultValues: {
       date: new Date().toISOString().split("T")[0], // Format as 'YYYY-MM-DD'
     },
@@ -113,10 +103,18 @@ function PendingVasuli() {
     if (PendingVasuli?.responseBody) {
       const wrapped_arr = [...emptyVasuliArr, ...PendingVasuli?.responseBody, ...emptyVasuliArr];
       if (PendingVasuli?.responseBody?.length) setPendingVasuliList(wrapped_arr);
-      setList(wrapped_arr.slice(0, 15));
+      let startIndex = 0;
+      for (let i = 0; i < PendingVasuli?.responseBody.length; i++) {
+        if (PendingVasuli?.responseBody?.[i]?.amount) startIndex++;          
+        else break;        
+      }
+      setStart(startIndex);
+      setList(wrapped_arr.slice(startIndex, 15));
       if (amountRef.current) {
         setTimeout(() => {
           amountRef.current.focus();
+          amountRef.current.value = null;
+          remarkRef.current.value = "";
         }, 0);
       }
     }
@@ -202,13 +200,12 @@ function PendingVasuli() {
                 </div>
               </div>
               <div className={styles.row_one_right}>
-                TOTAL AMOUNT: {pendingVasuliList?.reduce((acc, item) => acc + (item?.amount ? Number(item?.amount) : 0), 0)} 
+                TOTAL AMOUNT: {pendingVasuliList?.reduce((acc, item) => acc + (item?.amount ? Number(item?.amount) : 0), 0)}
               </div>
             </div>
             <div className={styles.row_two}>
               <ul className={styles.ul}>
                 <li className={`${styles.list_item} ${styles.list_header}`} key={0}>
-                  {/* <div className={styles.small_column}>{isMobile ? "IDX" : "INDEX"}</div> */}
                   <div className={styles.vyapari_column}>VYAPARI</div>
                   <div className={styles.small_column}>{isMobile ? "AMT" : "AMOUNT"}</div>
                   <div className={styles.remark_column}>{isMobile ? "RMK" : "REMARK"}</div>
@@ -216,7 +213,6 @@ function PendingVasuli() {
                 {list.slice(0, 7)?.map((item, index) => {
                   return (
                     <li className={styles.list_item}>
-                      {/* <div className={styles.small_column}>{start + index - 3 > 0 && start + index - 3}</div> */}
                       <div className={styles.vyapari_column}>{item?.vyapariName?.toUpperCase()}</div>
                       <div className={styles.small_column}>{item?.amount}</div>
                       <div className={styles.remark_column}>{item?.remark}</div>
@@ -224,7 +220,6 @@ function PendingVasuli() {
                   );
                 })}
                 <li className={styles.selected_list_item}>
-                  {/* <div className={styles.small_column}>{start + 1}</div> */}
                   <div className={styles.vyapari_column}>{list[7]?.vyapariName?.toUpperCase()}</div>
                   <div className={styles.small_column}>
                     <input
@@ -237,7 +232,6 @@ function PendingVasuli() {
                         if (e.key === "Enter") {
                           e.preventDefault();
                           navigation(1);
-                          // temp(e);
                         }
                       }}
                       onInput={(e) => amountChange(e.target.value)}
@@ -250,7 +244,6 @@ function PendingVasuli() {
                 {list.slice(8, 15)?.map((item, index) => {
                   return (
                     <li className={styles.list_item}>
-                      {/* <div className={styles.small_column}>{start + index + 9 < pendingVasuliList.length && start + index + 2}</div> */}
                       <div className={styles.vyapari_column}>{item?.vyapariName?.toUpperCase()}</div>
                       <div className={styles.small_column}>{item?.amount}</div>
                       <div className={styles.remark_column}>{item?.remark}</div>
