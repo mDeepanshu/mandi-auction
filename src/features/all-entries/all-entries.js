@@ -8,8 +8,32 @@ import SearchIcon from "@mui/icons-material/Search";
 import styles from "./all-entries.module.css";
 
 function AllEntries() {
-  const [auctionEntriesColumns, setAuctionEntriesColumns] = useState(["IDX", "KISANNAME", "ITEMNAME", "VYAPARINAME", "RATE", "QTY", "BAGS W.", "CNG", "AMOUNT", "BAG", "DATE"]);
-  const [keyArray, setKeyArray] = useState(["index", "kisanName", "itemName", "vyapariName", "rate", "quantity", "bagWiseQuantity", "chungi", "amount", "bag", "auctionDate"]);
+  const [auctionEntriesColumns, setAuctionEntriesColumns] = useState([
+    "IDX",
+    "KISANNAME",
+    "ITEMNAME",
+    "VYAPARINAME",
+    "RATE",
+    "QTY",
+    "BAGS W.",
+    "CNG",
+    "AMOUNT",
+    "BAG",
+    "DATE",
+  ]);
+  const [keyArray, setKeyArray] = useState([
+    "txnNo",
+    "kisanName",
+    "itemName",
+    "vyapariName",
+    "rate",
+    "quantity",
+    "bagWiseQuantity",
+    "chungi",
+    "amount",
+    "bag",
+    "auctionDate",
+  ]);
   const [tabletList, setTabletList] = useState([]);
   const [tableDataFiltered, setTableDataFiltered] = useState([]);
 
@@ -88,7 +112,8 @@ function AllEntries() {
 
   const findById = (event) => {
     const search = event.target.value;
-    setTableDataFiltered(tabletList.filter((elem) => elem?.vyapariIdNo?.toString().includes(search.toString())));
+    if (search === "") setTableDataFiltered(tabletList);
+    else setTableDataFiltered([tabletList.find((elem) => Number(elem?.txnNo) === Number(search))]);
   };
 
   return (
@@ -154,12 +179,18 @@ function AllEntries() {
               onChange={find}
             />
           </div>
-          {showSyncedData && <div className={styles.auctionTotal}>
-            <b>TOTAL:{Number(total).toFixed(0)}</b>
-          </div>}
+          {showSyncedData && (
+            <div className={styles.auctionTotal}>
+              <b>TOTAL:{Number(total).toFixed(0)}</b>
+            </div>
+          )}
         </div>
         <div>
-          <Controller name="syncedData" control={control} render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="SYNCED DATA" />} />
+          <Controller
+            name="syncedData"
+            control={control}
+            render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="SYNCED DATA" />}
+          />
         </div>
       </div>
       <MasterTable columns={auctionEntriesColumns} tableData={tableDataFiltered} keyArray={keyArray} height={"78vh"} />
