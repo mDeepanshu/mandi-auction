@@ -113,7 +113,10 @@ function AllEntries() {
   const findById = (event) => {
     const search = event.target.value;
     if (search === "") setTableDataFiltered(tabletList);
-    else setTableDataFiltered([tabletList.find((elem) => Number(elem?.txnNo) === Number(search))]);
+    else {
+      const match = tabletList.find((elem) => Number(elem?.txnNo) === Number(search));
+      setTableDataFiltered(match ? [match] : []);
+    }
   };
 
   return (
