@@ -11,33 +11,23 @@ import Login from "../login/login";
 
 function PendingVasuli() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 550);
-  const [start, setStart] = useState(0);
-  const amountRef = useRef(null); // Create a ref
-  const remarkRef = useRef(null); // Create a ref
-
+  const amountRef = useRef(null); 
   const [pendingVasuliList, setPendingVasuliList] = useState([]);
-  const [list, setList] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [currAmount, setCurrAmount] = useState(null);
+  const [remark, setRemark] = useState(null);
   const [vasuliSection, setVasuliSection] = useState(true);
   const [openSuccessTransactionDialog, setSuccessTransactionDialog] = useState(false);
-  const [currentNavigatedValue, setCurrentNavigatedValue] = useState();
-
-  // let perform_edit = false;
-  const [performEdit, setPerformEdit] = useState();
+  const [navigationIndex, setNavigationIndex] = useState(0);
   const [loginStatus, setLoginStatus] = useState(true);
 
-  const { formState: { errors } } = useForm({
+  const {
+    formState: { errors },
+  } = useForm({
     defaultValues: {
-      date: new Date().toISOString().split("T")[0], // Format as 'YYYY-MM-DD'
+      date: new Date().toISOString().split("T")[0], 
     },
   });
-
-  const changeLoginState = (value) => {
-    if (value === "1212") {
-      setTimeout(() => {
-        setLoginStatus(false);
-      }, 100);
-    }
-  };
 
   const emptyVasuliArr = [
     {
@@ -98,23 +88,43 @@ function PendingVasuli() {
     },
   ];
 
+  useEffect(() => {
+    fetch_pending_vasuli();
+  }, []);
+
+  const changeLoginState = (value) => {
+    if (value === "1212") {
+      setTimeout(() => {
+        setLoginStatus(false);
+      }, 100);
+    }
+  };
+
   const fetch_pending_vasuli = async () => {
     const PendingVasuli = await getPendingVasuliList(`${vasuliSection}`);
-    if (PendingVasuli?.responseBody) {
+    if (PendingVasuli?.responseBody?.length) {
       const wrapped_arr = [...emptyVasuliArr, ...PendingVasuli?.responseBody, ...emptyVasuliArr];
-      if (PendingVasuli?.responseBody?.length) setPendingVasuliList(wrapped_arr);
+      setPendingVasuliList(wrapped_arr);
+      
       let startIndex = 0;
+      let amount = 0;
       for (let i = 0; i < PendingVasuli?.responseBody.length; i++) {
-        if (PendingVasuli?.responseBody?.[i]?.amount) startIndex++;          
-        else break;        
+        if (PendingVasuli?.responseBody?.[i]?.amount) {
+          startIndex++;
+          amount += Number(PendingVasuli?.responseBody?.[i]?.amount);
+        } else break;
       }
-      setStart(startIndex);
-      setList(wrapped_arr.slice(startIndex, 15));
+
+      setNavigationIndex(startIndex);
+      setCurrAmount(PendingVasuli?.responseBody?.[startIndex]?.amount);
+      setRemark(PendingVasuli?.responseBody?.[startIndex]?.remark);
+      setTotalAmount(amount);
+      
       if (amountRef.current) {
         setTimeout(() => {
           amountRef.current.focus();
-          amountRef.current.value = null;
-          remarkRef.current.value = "";
+          
+          
         }, 0);
       }
     }
@@ -125,34 +135,30 @@ function PendingVasuli() {
   };
 
   const navigation = (direction) => {
-    if (performEdit && currentNavigatedValue != list[7]?.amount) editEntry();
-    if (direction == 1 && start + 15 <= pendingVasuliList.length) {
-      setList(pendingVasuliList.slice(start + 1, start + 16));
-    } else if (direction != 1 && start - 1 >= 0) {
-      setList(pendingVasuliList.slice(start - 1, start + 14));
+    const changedIndex = navigationIndex + 7 + direction;
+
+    if (
+      (pendingVasuliList[navigationIndex + 7].amount !== currAmount &&
+        !(currAmount === "" && pendingVasuliList[navigationIndex + 7].amount === null)) ||
+      (pendingVasuliList[navigationIndex + 7].remark !== remark &&
+        !(remark === "" && pendingVasuliList[navigationIndex + 7].remark === null))
+    ) {
+      editEntry();
     }
-    setStart((prevCount) => prevCount + direction);
+    setNavigationIndex((prev) => prev + direction);
+    setCurrAmount(pendingVasuliList[changedIndex]?.amount ?? "");
+    setRemark(pendingVasuliList[changedIndex]?.remark ?? "");
+    
     amountRef.current.focus();
-    amountRef.current.value = "";
-    remarkRef.current.value = "";
   };
 
   const amountChange = (amount) => {
-    let updatedList = [...list];
-    updatedList[7].amount = amount;
-    setList(updatedList);
-    setPerformEdit(true);
+    setCurrAmount(amount);
   };
 
-  const remarkChange = (remark) => (pendingVasuliList[start + 7].remark = remark);
-
-  useEffect(() => {
-    fetch_pending_vasuli();
-  }, []);
-
-  useEffect(() => {
-    setCurrentNavigatedValue(list[7]?.amount);
-  }, [start]);
+  const remarkChange = (remark) => {
+    setRemark(remark);
+  };
 
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -162,17 +168,26 @@ function PendingVasuli() {
   };
 
   const editEntry = async () => {
-    setPerformEdit(false);
-    let amount = Number(amountRef.current.value) > 0 ? amountRef.current.value : null;
     const editObject = {
-      amount: amount,
-      vyapariId: pendingVasuliList[start + 7].vyapariId,
-      remark: pendingVasuliList[start + 7].remark,
-      id: pendingVasuliList[start + 7].id,
+      amount: currAmount,
+      vyapariId: pendingVasuliList[navigationIndex + 7].vyapariId,
+      remark: remark,
+      id: pendingVasuliList[navigationIndex + 7].id,
     };
 
     const editRes = await editVasuli(editObject);
     if (editRes?.responseBody) {
+      setPendingVasuliList((prev) => {
+        const updatedList = [...prev];
+        const index = navigationIndex + 7;
+        updatedList[index] = {
+          ...updatedList[index],
+          amount: currAmount,
+          remark: remark,
+        };
+        return updatedList;
+      });
+      setTotalAmount((prev) => prev - Number(pendingVasuliList[navigationIndex + 7].amount) + currAmount);
       setSuccessTransactionDialog(true);
     }
   };
@@ -187,20 +202,18 @@ function PendingVasuli() {
         <>
           <div className={styles.container}>
             <div className={styles.row_one}>
-              <div className={styles.row_one_left}>
-                <div>
-                  <label>TODAYS</label>
-                  <Switch onChange={() => changeSection()} />
-                  <label>OLDER</label>
-                </div>
-                <div>
-                  <Button variant="contained" color="success" type="button" onClick={() => fetch_pending_vasuli()}>
-                    GET
-                  </Button>
-                </div>
+              <div>
+                <label>TODAYS</label>
+                <Switch onChange={() => changeSection()} />
+                <label>OLDER</label>
+              </div>
+              <div>
+                <Button variant="contained" color="success" type="button" onClick={() => fetch_pending_vasuli()}>
+                  GET
+                </Button>
               </div>
               <div className={styles.row_one_right}>
-                TOTAL AMOUNT: {pendingVasuliList?.reduce((acc, item) => acc + (item?.amount ? Number(item?.amount) : 0), 0)}
+                TOTAL: {totalAmount}
               </div>
             </div>
             <div className={styles.row_two}>
@@ -210,9 +223,9 @@ function PendingVasuli() {
                   <div className={styles.small_column}>{isMobile ? "AMT" : "AMOUNT"}</div>
                   <div className={styles.remark_column}>{isMobile ? "RMK" : "REMARK"}</div>
                 </li>
-                {list.slice(0, 7)?.map((item, index) => {
+                {pendingVasuliList.slice(navigationIndex, navigationIndex + 7)?.map((item, index) => {
                   return (
-                    <li className={styles.list_item}>
+                    <li className={styles.list_item} key={index}>
                       <div className={styles.vyapari_column}>{item?.vyapariName?.toUpperCase()}</div>
                       <div className={styles.small_column}>{item?.amount}</div>
                       <div className={styles.remark_column}>{item?.remark}</div>
@@ -220,14 +233,14 @@ function PendingVasuli() {
                   );
                 })}
                 <li className={styles.selected_list_item}>
-                  <div className={styles.vyapari_column}>{list[7]?.vyapariName?.toUpperCase()}</div>
+                  <div className={styles.vyapari_column}>{pendingVasuliList[navigationIndex + 7]?.vyapariName?.toUpperCase()}</div>
                   <div className={styles.small_column}>
                     <input
                       type="number"
                       placeholder="Amount"
                       className={styles.amount_input}
                       ref={amountRef}
-                      value={list[7]?.amount}
+                      value={currAmount}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
@@ -238,12 +251,18 @@ function PendingVasuli() {
                     />
                   </div>
                   <div className={styles.remark_column}>
-                    <input placeholder="Remark" tabIndex={-1} ref={remarkRef} value={list[7]?.remark} className={styles.remark_input} onInput={(e) => remarkChange(e.target.value)} />
+                    <input
+                      placeholder="Remark"
+                      tabIndex={-1}
+                      value={remark}
+                      className={styles.remark_input}
+                      onInput={(e) => remarkChange(e.target.value)}
+                    />
                   </div>
                 </li>
-                {list.slice(8, 15)?.map((item, index) => {
+                {pendingVasuliList.slice(navigationIndex + 8, navigationIndex + 15)?.map((item, index) => {
                   return (
-                    <li className={styles.list_item}>
+                    <li className={styles.list_item} key={8 + index}>
                       <div className={styles.vyapari_column}>{item?.vyapariName?.toUpperCase()}</div>
                       <div className={styles.small_column}>{item?.amount}</div>
                       <div className={styles.remark_column}>{item?.remark}</div>
@@ -254,19 +273,28 @@ function PendingVasuli() {
             </div>
             <div className={styles.row_three}>
               <div>
-                <button className={styles.arrow_btn} onClick={() => navigation(-1)} disabled={start <= 0}>
+                <button className={styles.arrow_btn} onClick={() => navigation(-1)} disabled={navigationIndex <= 0}>
                   <img src={LeftArrow} alt="My SVG Icon" width="40" height="40" />
                 </button>
               </div>
               <div>
-                <button className={styles.arrow_btn} onClick={() => navigation(1)} disabled={start + 15 >= pendingVasuliList.length}>
+                <button
+                  className={styles.arrow_btn}
+                  onClick={() => navigation(1)}
+                  disabled={navigationIndex + 15 >= pendingVasuliList.length}
+                >
                   <img src={RightArrow} alt="My SVG Icon" width="40" height="40" />
                 </button>
               </div>
             </div>
           </div>
           <div>
-            <Snackbar open={openSuccessTransactionDialog} autoHideDuration={1000} onClose={handleClose} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+            <Snackbar
+              open={openSuccessTransactionDialog}
+              autoHideDuration={1000}
+              onClose={handleClose}
+              anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            >
               <Alert onClose={handleClose} severity="success" variant="filled" sx={{ width: "100%" }}>
                 SAVED.
               </Alert>

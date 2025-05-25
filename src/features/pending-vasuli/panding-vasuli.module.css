@@ -5,10 +5,12 @@
 }
 
 .row_one {
-  padding: 4rem 9rem 0 9rem;
+  padding: 0 1rem;
+  padding-top: 4rem;
   display: flex;
   gap: 5px;
   justify-content: space-between;
+  zoom: 0.9;
 }
 
 .row_two {
@@ -129,10 +131,10 @@ input[type="number"] {
 
 .row_one_left{
   display: flex;
-  gap: 5px;
+  /* gap: 5px; */
 }
 .row_one_right{
   display: flex;
   align-items: center;
-  gap: 5px;
+  /* gap: 5px; */
 }
