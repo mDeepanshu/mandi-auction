@@ -22,7 +22,7 @@ function AllEntries() {
     "DATE",
   ]);
   const [keyArray, setKeyArray] = useState([
-    "txnNo",
+    "entryIdx",
     "kisanName",
     "itemName",
     "vyapariName",
@@ -57,13 +57,14 @@ function AllEntries() {
 
   const fetchData = async () => {
     const data = await getAuctionEntriesList(currentDate, currentDate);
-    setTabletList(data?.responseBody);
-    setTableDataFiltered(data?.responseBody);
     let total = 0;
-    data?.responseBody.forEach((element) => {
+    data?.responseBody.forEach((element, index) => {
+      element.entryIdx = index + 1;
       total += element.amount;
     });
     setTotal(total);
+    setTabletList(data?.responseBody);
+    setTableDataFiltered(data?.responseBody);
   };
 
   const setLocalData = async (date) => {
