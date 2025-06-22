@@ -93,10 +93,8 @@ const VasuliTransaction = () => {
       const fetchOwedAmount = async () => {
         try {
           if (watchedVyapariId?.partyId) {
-            const partyDetails = await getOwedAmount(watchedVyapariId?.partyId);
-            setOwedAmount(partyDetails?.data?.responseBody?.owedAmount || "");
-          } else {
-            setOwedAmount("");
+            const partyDetails = vyapariList.find((item) => item.partyId === watchedVyapariId.partyId);
+            setOwedAmount(partyDetails?.owedAmount || "");
           }
         } catch (error) {
           setOwedAmount(""); // Handle error by resetting owed amount
