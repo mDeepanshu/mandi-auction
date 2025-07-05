@@ -22,7 +22,7 @@ export const syncAll = async () => {
     await Promise.all([
       runSync("Auction", () => syncTransactions("auction", dataToSync.auction)),
       runSync("Vasuli Transaction", () =>
-        syncTransactions("party/vasuliTrasaction", dataToSync.vasuli)
+        syncTransactions("party/vasuliTrasaction?confirmDuplicate=true", dataToSync.vasuli)
       ),
     ]);
 
