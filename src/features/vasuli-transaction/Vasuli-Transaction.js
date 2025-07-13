@@ -157,7 +157,7 @@ const VasuliTransaction = () => {
         amount: getValues()?.amount,
         date: getValues()?.date,
         printStatus: "NO",
-        whatsapp: "pending",
+        whatsapp: getValues().whatsappToggle ? "pending" : "NO",
       };
       setPrintTable((prevItems) => [newItem, ...prevItems]);
     }
@@ -193,7 +193,7 @@ const VasuliTransaction = () => {
         const updatedArray = [...prev];
         updatedArray[index] = {
           ...updatedArray[index],
-          whatsapp: whatsAppResponse || "NO",
+          whatsapp: whatsAppResponse || "FAILED",
         };
         return updatedArray;
       });
@@ -251,7 +251,7 @@ const VasuliTransaction = () => {
       idNo: printData.idNo,
       amount: printData.amount,
       date: printData.date,
-      whatsapp: "pending",
+      whatsapp: getValues().whatsappToggle ? "pending" : "NO",
       remark: printData.remark,
       printStatus: "YES",
     };
