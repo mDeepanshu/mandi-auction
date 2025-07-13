@@ -23,19 +23,19 @@ export const getOwedAmount = async (partyId) => {
 };
 export const whatsAppVasuli = async (vasuli) => {
   try {
-    // const response = await axiosHttp.post(`/vyapari/notify-vasuli`, vasuli);
-    // return response;
+    const response = await axiosHttp.post(`/vyapari/notify-vasuli`, vasuli);
+    return response;
 
-    const fakeResponse = await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({data:{
-          responseCode: "200",
-          responseMessage: "Success",
-          responseBody:
-            '{"messaging_product":"whatsapp","contacts":[{"input":"8349842228","wa_id":"918349842228"}],"messages":[{"id":"wamid.HBgMOTE4MzQ5ODQyMjI4FQIAERgSNkE3NEFFNzUwNkQxQzg1RkFDAA==","message_status":"accepted"}]}',
-        }});
-      }, 1000);
-    });
+    // const fakeResponse = await new Promise((resolve) => {
+    //   setTimeout(() => {
+    //     resolve({data:{
+    //       responseCode: "200",
+    //       responseMessage: "Success",
+    //       responseBody:
+    //         '{"messaging_product":"whatsapp","contacts":[{"input":"8349842228","wa_id":"918349842228"}],"messages":[{"id":"wamid.HBgMOTE4MzQ5ODQyMjI4FQIAERgSNkE3NEFFNzUwNkQxQzg1RkFDAA==","message_status":"accepted"}]}',
+    //     }});
+    //   }, 1000);
+    // });
 
     return fakeResponse;
   } catch (error) {
