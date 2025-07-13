@@ -24,7 +24,16 @@ const VasuliTransaction = () => {
   const [vyapariList, setVyapariList] = useState([]);
   const [owedAmount, setOwedAmount] = useState("");
   const [loginStatus, setLoginStatus] = useState(true);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [whatsappOpen, setWhatsappOpen] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const [printTable, setPrintTable] = useState([]);
 
   const isSmallScreen = useMediaQuery("(max-width:495px)");
@@ -126,59 +135,88 @@ const VasuliTransaction = () => {
       return;
     }
 
+    const formValue = getValues();
+
     const existingDate = new Date(); // Existing Date object for time
-    const datePart = new Date(getValues().date);
+    const datePart = new Date(formValue.date);
     datePart.setHours(existingDate.getHours(), existingDate.getMinutes(), existingDate.getSeconds());
 
     const vasuliTran = {
-      ...getValues(),
-      vyapariId: getValues().vyapariId?.partyId,
-      name: getValues()?.vyapariId?.name,
+      ...formValue,
+      vyapariId: formValue.vyapariId?.partyId,
+      name: formValue?.vyapariId?.name,
       date: datePart,
-      contact: getValues()?.vyapariId?.contact,
-      remark: getValues()?.remark,
+      contact: formValue?.vyapariId?.contact,
+      remark: formValue?.remark,
     };
 
+    const whatsappStatus = !formValue.whatsappToggle
+      ? "NO"
+      : !formValue?.vyapariId?.contact || formValue?.vyapariId?.contact.length !== 10
+      ? "INVALID NUMBER"
+      : "pending";
+
     const dataSaved = await addVasuliTransaction(vasuliTran);
-    if (getValues().toggle && dataSaved === "success") {
+    if (formValue.toggle && dataSaved === "success") {
       setPrintData({
-        vyapariName: getValues().vyapariId?.name,
-        idNo: getValues().vyapariId?.idNo,
-        date: getValues()?.date,
-        amount: getValues()?.amount,
-        remark: getValues()?.remark,
+        vyapariName: formValue.vyapariId?.name,
+        idNo: formValue.vyapariId?.idNo,
+        date: formValue?.date,
+        amount: formValue?.amount,
+        remark: formValue?.remark,
       });
     } else if (dataSaved === "success") {
       const newItem = {
-        name: getValues()?.vyapariId?.name,
-        idNo: getValues()?.vyapariId?.idNo,
-        remark: getValues()?.remark,
-        contact: getValues()?.vyapariId?.contact,
-        amount: getValues()?.amount,
-        date: getValues()?.date,
+        name: formValue?.vyapariId?.name,
+        idNo: formValue?.vyapariId?.idNo,
+        remark: formValue?.remark,
+        contact: formValue?.vyapariId?.contact,
+        amount: formValue?.amount,
+        date: formValue?.date,
         printStatus: "NO",
-        whatsapp: getValues().whatsappToggle ? "pending" : "NO",
+        whatsapp: whatsappStatus,
       };
       setPrintTable((prevItems) => [newItem, ...prevItems]);
     }
-    if (getValues().whatsappToggle) sendWhatsAppReceipt(vasuliTran);
+
+    if (formValue.whatsappToggle) sendWhatsAppReceipt(vasuliTran);
     reset({
       vyapariId: null,
       idNo: null,
       amount: "",
       remark: "",
-      toggle: getValues().toggle,
-      whatsappToggle: getValues().whatsappToggle,
+      toggle: formValue.toggle,
+      whatsappToggle: formValue.whatsappToggle,
     });
     if (vyapariRef.current) {
       setTimeout(() => {
         vyapariRef.current.focus();
       }, 0);
     }
-    setOpen(true);
+    setOpen({
+      open: true,
+      message: "Successfully Added. Sync to Save.",
+      severity: "success",
+    });
   };
 
   const sendWhatsAppReceipt = async (vasuliTran, index = 0) => {
+    if (!vasuliTran.contact.length || vasuliTran.contact.length != 10) {
+      setWhatsappOpen({
+        open: true,
+        message: "WhatsApp number - NOT CORRECT.",
+        severity: "error",
+      });
+      setPrintTable((prev) => {
+        const updatedArray = [...prev];
+        updatedArray[index] = {
+          ...updatedArray[index],
+          whatsapp: "INVALID NUMBER",
+        };
+        return updatedArray;
+      });
+      return;
+    }
     let res = await whatsAppVasuli({
       name: vasuliTran.name,
       contact: vasuliTran.contact,
@@ -186,18 +224,17 @@ const VasuliTransaction = () => {
       date: `${vasuliTran.date}`,
       remark: vasuliTran.remark,
     });
-    if (res?.data?.responseBody) {
-      const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
-      let whatsAppResponse = JSON.parse(unescapedStr)?.messages?.[0]?.message_status;
-      setPrintTable((prev) => {
-        const updatedArray = [...prev];
-        updatedArray[index] = {
-          ...updatedArray[index],
-          whatsapp: whatsAppResponse || "FAILED",
-        };
-        return updatedArray;
-      });
-    }
+
+    const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
+    let whatsAppResponse = JSON.parse(unescapedStr || "{}")?.messages?.[0]?.message_status;
+    setPrintTable((prev) => {
+      const updatedArray = [...prev];
+      updatedArray[index] = {
+        ...updatedArray[index],
+        whatsapp: whatsAppResponse || "FAILED",
+      };
+      return updatedArray;
+    });
   };
 
   useEffect(() => {
@@ -228,7 +265,16 @@ const VasuliTransaction = () => {
     if (reason === "clickaway") {
       return;
     }
-    setOpen(false);
+    setOpen({
+      open: false,
+      message: "",
+      severity: "",
+    });
+    setWhatsappOpen({
+      open: false,
+      message: "",
+      severity: "",
+    });
   };
 
   const printReceipt = async () => {
@@ -245,13 +291,18 @@ const VasuliTransaction = () => {
     } else {
       triggerRef.current.click();
     }
+    const whatsappStatus = !getValues().whatsappToggle
+      ? "NO"
+      : !printData?.contact || printData.contact.length !== 10
+      ? "INVALID NUMBER"
+      : "pending";
     const newItem = {
       name: printData.vyapariName,
       contact: printData.contact,
       idNo: printData.idNo,
       amount: printData.amount,
       date: printData.date,
-      whatsapp: getValues().whatsappToggle ? "pending" : "NO",
+      whatsapp: whatsappStatus,
       remark: printData.remark,
       printStatus: "YES",
     };
@@ -457,9 +508,21 @@ const VasuliTransaction = () => {
             </Grid>
           </form>
           <div>
-            <Snackbar open={open} autoHideDuration={1500} onClose={handleClose}>
-              <Alert onClose={handleClose} severity="success" variant="filled" sx={{ width: "100%" }}>
-                SUCCESSFULLY ADDED. SYNC TO SAVE.
+            <Snackbar open={open.open} autoHideDuration={3000} onClose={handleClose}>
+              <Alert onClose={handleClose} severity={open.severity} variant="filled" sx={{ width: "100%" }}>
+                {open.message}
+              </Alert>
+            </Snackbar>
+          </div>
+          <div>
+            <Snackbar
+              open={whatsappOpen.open}
+              autoHideDuration={5000}
+              onClose={handleClose}
+              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+              <Alert onClose={handleClose} severity={whatsappOpen.severity} variant="filled" sx={{ width: "100%" }}>
+                {whatsappOpen.message}
               </Alert>
             </Snackbar>
           </div>
