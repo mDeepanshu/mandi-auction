@@ -31,8 +31,9 @@ export const whatsAppVasuli = async (vasuli) => {
     //     resolve({data:{
     //       responseCode: "200",
     //       responseMessage: "Success",
-    //       responseBody:
-    //         '{"messaging_product":"whatsapp","contacts":[{"input":"8349842228","wa_id":"918349842228"}],"messages":[{"id":"wamid.HBgMOTE4MzQ5ODQyMjI4FQIAERgSNkE3NEFFNzUwNkQxQzg1RkFDAA==","message_status":"accepted"}]}',
+    //       responseBody:""
+    //       // responseBody:
+    //       //   '{"messaging_product":"whatsapp","contacts":[{"input":"8349842228","wa_id":"918349842228"}],"messages":[{"id":"wamid.HBgMOTE4MzQ5ODQyMjI4FQIAERgSNkE3NEFFNzUwNkQxQzg1RkFDAA==","message_status":"accepted"}]}',
     //     }});
     //   }, 1000);
     // });
