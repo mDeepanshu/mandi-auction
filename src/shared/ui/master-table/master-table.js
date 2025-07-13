@@ -7,6 +7,7 @@ import styles from "./masterTable.module.css";
 import Pagination from "@mui/material/Pagination";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import PrintIcon from "@mui/icons-material/Print";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 
 function MasterTable(props) {
   const [open, setOpen] = useState(false);
@@ -44,7 +45,14 @@ function MasterTable(props) {
     // setEditingIndex(index);
     setOpen(true);
     for (let int = 0; int < props.keyArray.length; int++) {
-      if (!(props.keyArray[int] === "edit" || props.keyArray[int] === "delete" || props.keyArray[int] === "index" || props.keyArray[int] === "navigation")) {
+      if (
+        !(
+          props.keyArray[int] === "edit" ||
+          props.keyArray[int] === "delete" ||
+          props.keyArray[int] === "index" ||
+          props.keyArray[int] === "navigation"
+        )
+      ) {
         setValue(keyArray[int], tableData[index]?.[0]?.[keyArray[int]]);
       }
     }
@@ -65,7 +73,14 @@ function MasterTable(props) {
 
     let fields = [];
     for (let int = 0; int < props.keyArray.length; int++) {
-      if (!(props.keyArray[int] === "edit" || props.keyArray[int] === "delete" || props.keyArray[int] === "index" || props.keyArray[int] === "navigation")) {
+      if (
+        !(
+          props.keyArray[int] === "edit" ||
+          props.keyArray[int] === "delete" ||
+          props.keyArray[int] === "index" ||
+          props.keyArray[int] === "navigation"
+        )
+      ) {
         fields.push({
           name: props.keyArray[int],
           label: columns[int],
@@ -129,6 +144,12 @@ function MasterTable(props) {
                             return (
                               <Button onClick={() => props.rePrintPrev(rowData, index)}>
                                 <PrintIcon />
+                              </Button>
+                            );
+                          case "resend":
+                            return (
+                              <Button onClick={() => props.resend(rowData, index)}>
+                                <WhatsAppIcon />
                               </Button>
                             );
                           case "index":

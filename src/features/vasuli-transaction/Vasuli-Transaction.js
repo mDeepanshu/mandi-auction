@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Grid, Typography, TextField, InputAdornment, Button, Autocomplete, Switch, FormControlLabel } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { addVasuliTransaction, getOwedAmount } from "../../gateway/vasuli-transaction-apis";
+import { addVasuliTransaction, getOwedAmount, whatsAppVasuli } from "../../gateway/vasuli-transaction-apis";
 import { getAllItems } from "../../gateway/curdDB";
 import Login from "../login/login";
 import Snackbar from "@mui/material/Snackbar";
@@ -15,7 +15,7 @@ import { useMediaQuery } from "@mui/material";
 
 const VasuliTransaction = () => {
   const printRef = useRef();
-  
+
   const vyapariRef = useRef(null);
   const amountRef = useRef(null);
   const remarkRef = useRef(null);
@@ -26,10 +26,10 @@ const VasuliTransaction = () => {
   const [loginStatus, setLoginStatus] = useState(true);
   const [open, setOpen] = useState(false);
   const [printTable, setPrintTable] = useState([]);
-  
+
   const isSmallScreen = useMediaQuery("(max-width:495px)");
-  const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "PRINT"]);
-  const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "print"]);
+  const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "PRINT", "WHATSAPP", "RESEND"]);
+  const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "print", "whatsapp", "resend"]);
 
   const [printData, setPrintData] = useState();
 
@@ -57,6 +57,7 @@ const VasuliTransaction = () => {
     defaultValues: {
       date: priorDate,
       toggle: false,
+      whatsappToggle: false,
     },
   });
   const watchedVyapariId = watch("vyapariId");
@@ -80,7 +81,7 @@ const VasuliTransaction = () => {
 
   useEffect(() => {
     fetchList("VYAPARI");
-    if (isSmallScreen){
+    if (isSmallScreen) {
       setColumns(["INDEX", "NAME", "AMOUNT"]);
       setKeyArray(["index", "name", "amount"]);
     }
@@ -134,41 +135,69 @@ const VasuliTransaction = () => {
       vyapariId: getValues().vyapariId?.partyId,
       name: getValues()?.vyapariId?.name,
       date: datePart,
+      contact: getValues()?.vyapariId?.contact,
+      remark: getValues()?.remark,
     };
-    try {
-      const dataSaved = await addVasuliTransaction(vasuliTran);
-      if (getValues().toggle && dataSaved === "success") {
-        setPrintData({
-          vyapariName: getValues().vyapariId.name,
-          idNo: getValues().vyapariId.idNo,
-          date: getValues().date,
-          amount: getValues().amount,
-          remark: getValues().remark,
-        });
-      } else {
-        const newItem = {
-          name: getValues()?.vyapariId?.name,
-          idNo: getValues()?.vyapariId?.idNo,
-          amount: getValues()?.amount,
-          date: getValues()?.date,
-          printStatus: "NO",
-        };
-        setPrintTable((prevItems) => [newItem, ...prevItems]);
-      }
-      reset({
-        vyapariId: null,
-        idNo: null,
-        amount: "",
-        remark: "",
-        toggle: getValues().toggle,
+
+    const dataSaved = await addVasuliTransaction(vasuliTran);
+    if (getValues().toggle && dataSaved === "success") {
+      setPrintData({
+        vyapariName: getValues().vyapariId?.name,
+        idNo: getValues().vyapariId?.idNo,
+        date: getValues()?.date,
+        amount: getValues()?.amount,
+        remark: getValues()?.remark,
       });
-      if (vyapariRef.current) {
-        setTimeout(() => {
-          vyapariRef.current.focus();
-        }, 0);
-      }
-      setOpen(true);
-    } catch (error) {}
+    } else if (dataSaved === "success") {
+      const newItem = {
+        name: getValues()?.vyapariId?.name,
+        idNo: getValues()?.vyapariId?.idNo,
+        remark: getValues()?.remark,
+        contact: getValues()?.vyapariId?.contact,
+        amount: getValues()?.amount,
+        date: getValues()?.date,
+        printStatus: "NO",
+        whatsapp: getValues().whatsappToggle ? "pending" : "NO",
+      };
+      setPrintTable((prevItems) => [newItem, ...prevItems]);
+    }
+    if (getValues().whatsappToggle) sendWhatsAppReceipt(vasuliTran);
+    reset({
+      vyapariId: null,
+      idNo: null,
+      amount: "",
+      remark: "",
+      toggle: getValues().toggle,
+      whatsappToggle: getValues().whatsappToggle,
+    });
+    if (vyapariRef.current) {
+      setTimeout(() => {
+        vyapariRef.current.focus();
+      }, 0);
+    }
+    setOpen(true);
+  };
+
+  const sendWhatsAppReceipt = async (vasuliTran, index = 0) => {
+    let res = await whatsAppVasuli({
+      name: vasuliTran.name,
+      contact: vasuliTran.contact,
+      message: vasuliTran.amount,
+      date: `${vasuliTran.date}`,
+      remark: vasuliTran.remark,
+    });
+    if (res?.data?.responseBody) {
+      const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
+      let whatsAppResponse = JSON.parse(unescapedStr)?.messages?.[0]?.message_status;
+      setPrintTable((prev) => {
+        const updatedArray = [...prev];
+        updatedArray[index] = {
+          ...updatedArray[index],
+          whatsapp: whatsAppResponse || "FAILED",
+        };
+        return updatedArray;
+      });
+    }
   };
 
   useEffect(() => {
@@ -202,7 +231,7 @@ const VasuliTransaction = () => {
     setOpen(false);
   };
 
-  const printReceipt = () => {
+  const printReceipt = async () => {
     const contentToPrint = printRef.current.innerHTML;
 
     if (window.electron && window.electron.ipcRenderer) {
@@ -215,13 +244,14 @@ const VasuliTransaction = () => {
         .catch((err) => console.error("Print failed:", err));
     } else {
       triggerRef.current.click();
-      console.warn("Electron IPC is not available.");
     }
     const newItem = {
       name: printData.vyapariName,
+      contact: printData.contact,
       idNo: printData.idNo,
       amount: printData.amount,
       date: printData.date,
+      whatsapp: getValues().whatsappToggle ? "pending" : "NO",
       remark: printData.remark,
       printStatus: "YES",
     };
@@ -236,6 +266,7 @@ const VasuliTransaction = () => {
       date: data?.date,
       amount: data?.amount,
       remark: data?.remark,
+      contact: data?.contact,
     });
   };
 
@@ -250,6 +281,17 @@ const VasuliTransaction = () => {
     }
   };
 
+  const resend = (rowData, index) => {
+    const vasuliTran = {
+      name: rowData?.name,
+      contact: rowData?.contact,
+      amount: rowData?.amount,
+      date: rowData?.date,
+      remark: rowData?.remark,
+    };
+    sendWhatsAppReceipt(vasuliTran, index);
+  };
+
   return (
     <>
       {loginStatus ? (
@@ -260,13 +302,24 @@ const VasuliTransaction = () => {
         <div className={styles.wrapper}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={1} p={1} alignItems="center">
-              <Grid item xs={10} className={styles.heading}>
+              <Grid item xs={8} className={styles.heading}>
                 <Typography variant="h4" component="h1" align="left">
                   VASULI TRANSACTION
                 </Typography>
               </Grid>
               <Grid item xs={2} className={styles.toggle}>
-                <Controller name="toggle" control={control} render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="PRINT ON SUBMIT" />} />
+                <Controller
+                  name="whatsappToggle"
+                  control={control}
+                  render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="SEND WHATSAPP" />}
+                />
+              </Grid>
+              <Grid item xs={2} className={styles.toggle}>
+                <Controller
+                  name="toggle"
+                  control={control}
+                  render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="PRINT ON SUBMIT" />}
+                />
               </Grid>
               <Grid item xs={4}>
                 <Controller
@@ -280,7 +333,12 @@ const VasuliTransaction = () => {
                       options={vyapariList}
                       getOptionLabel={(option) => `${option.idNo} | ${option.name}`}
                       filterOptions={(options, state) =>
-                        options.filter((option) => option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)).slice(0, 5)
+                        options
+                          .filter(
+                            (option) =>
+                              option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)
+                          )
+                          .slice(0, 5)
                       }
                       isOptionEqualToValue={(option, value) => option.idNo === value.idNo}
                       renderInput={(params) => (
@@ -332,7 +390,18 @@ const VasuliTransaction = () => {
                 <Controller
                   name="remark"
                   control={control}
-                  render={({ field }) => <TextField {...field} fullWidth type="text" inputRef={remarkRef} onKeyDown={onEnterPress} helperText=" " label="REMARK" size={isSmallScreen ? "small" : "medium"}/>}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      type="text"
+                      inputRef={remarkRef}
+                      onKeyDown={onEnterPress}
+                      helperText=" "
+                      label="REMARK"
+                      size={isSmallScreen ? "small" : "medium"}
+                    />
+                  )}
                 />
               </Grid>
               <Grid item xs={4}>
@@ -367,12 +436,23 @@ const VasuliTransaction = () => {
                     Submit
                   </Button>
                   <div>
-                    <ReactToPrint trigger={() => <button style={{ display: "none" }} ref={triggerRef}></button>} content={() => printRef.current} onAfterPrint={handleAfterPrint} />
+                    <ReactToPrint
+                      trigger={() => <button style={{ display: "none" }} ref={triggerRef}></button>}
+                      content={() => printRef.current}
+                      onAfterPrint={handleAfterPrint}
+                    />
                   </div>
                 </Grid>
               </Grid>
               <Grid item xs={12}>
-                <MasterTable columns={columns} tableData={printTable} keyArray={keyArray} rePrintPrev={rePrintPrev} editFromTable={editFromTable} />
+                <MasterTable
+                  columns={columns}
+                  tableData={printTable}
+                  keyArray={keyArray}
+                  resend={resend}
+                  rePrintPrev={rePrintPrev}
+                  editFromTable={editFromTable}
+                />
               </Grid>
             </Grid>
           </form>
