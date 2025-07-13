@@ -152,7 +152,7 @@ const VasuliTransaction = () => {
 
     const whatsappStatus = !formValue.whatsappToggle
       ? "NO"
-      : !printData?.contact || printData.contact.length !== 10
+      : !formValue?.vyapariId?.contact || formValue?.vyapariId?.contact.length !== 10
       ? "INVALID NUMBER"
       : "pending";
 
