@@ -136,6 +136,7 @@ const VasuliTransaction = () => {
       name: getValues()?.vyapariId?.name,
       date: datePart,
       contact: getValues()?.vyapariId?.contact,
+      remark: getValues()?.remark,
     };
 
     const dataSaved = await addVasuliTransaction(vasuliTran);
@@ -151,6 +152,8 @@ const VasuliTransaction = () => {
       const newItem = {
         name: getValues()?.vyapariId?.name,
         idNo: getValues()?.vyapariId?.idNo,
+        remark: getValues()?.remark,
+        contact: getValues()?.vyapariId?.contact,
         amount: getValues()?.amount,
         date: getValues()?.date,
         printStatus: "NO",
@@ -175,23 +178,26 @@ const VasuliTransaction = () => {
     setOpen(true);
   };
 
-  const sendWhatsAppReceipt = async (vasuliTran,index=0) => {
+  const sendWhatsAppReceipt = async (vasuliTran, index = 0) => {
     let res = await whatsAppVasuli({
       name: vasuliTran.name,
       contact: vasuliTran.contact,
       message: vasuliTran.amount,
-      date: vasuliTran.date,
+      date: `${vasuliTran.date}`,
+      remark: vasuliTran.remark,
     });
-    const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
-    let whatsAppResponse = JSON.parse(unescapedStr)?.messages?.[0]?.message_status;
-    setPrintTable((prev) => {
-      const updatedArray = [...prev];
-      updatedArray[index] = {
-        ...updatedArray[index],
-        whatsapp: whatsAppResponse || "NO",
-      };
-      return updatedArray;
-    });
+    if (res?.data?.responseBody) {
+      const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
+      let whatsAppResponse = JSON.parse(unescapedStr)?.messages?.[0]?.message_status;
+      setPrintTable((prev) => {
+        const updatedArray = [...prev];
+        updatedArray[index] = {
+          ...updatedArray[index],
+          whatsapp: whatsAppResponse || "NO",
+        };
+        return updatedArray;
+      });
+    }
   };
 
   useEffect(() => {
@@ -241,6 +247,7 @@ const VasuliTransaction = () => {
     }
     const newItem = {
       name: printData.vyapariName,
+      contact: printData.contact,
       idNo: printData.idNo,
       amount: printData.amount,
       date: printData.date,
@@ -259,6 +266,7 @@ const VasuliTransaction = () => {
       date: data?.date,
       amount: data?.amount,
       remark: data?.remark,
+      contact: data?.contact,
     });
   };
 
@@ -275,10 +283,11 @@ const VasuliTransaction = () => {
 
   const resend = (rowData, index) => {
     const vasuliTran = {
-      name: rowData.name,
-      contact: rowData.contact,
-      amount: rowData.amount,
-      date: rowData.date,
+      name: rowData?.name,
+      contact: rowData?.contact,
+      amount: rowData?.amount,
+      date: rowData?.date,
+      remark: rowData?.remark,
     };
     sendWhatsAppReceipt(vasuliTran, index);
   };
