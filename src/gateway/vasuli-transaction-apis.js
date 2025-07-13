@@ -36,8 +36,8 @@ export const whatsAppVasuli = async (vasuli) => {
     //     }});
     //   }, 1000);
     // });
-
-    return fakeResponse;
+    // return fakeResponse;
+    
   } catch (error) {
     console.error("Error posting data:", error);
     return "error";
