@@ -112,7 +112,7 @@ function AuctionTransaction() {
     if (event) {
       event.preventDefault();
     }
-    const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate"]);
+    const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate","date"]);
     if (!auctionType && (qty.length == 0 || qtyTotal == 0)) return;
     if (result) {
       const values = getValues();

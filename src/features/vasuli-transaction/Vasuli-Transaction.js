@@ -144,6 +144,7 @@ const VasuliTransaction = () => {
     const vasuliTran = {
       ...formValue,
       vyapariId: formValue.vyapariId?.partyId,
+      idNo: formValue.vyapariId?.idNo,
       name: formValue?.vyapariId?.name,
       date: datePart,
       contact: formValue?.vyapariId?.contact,
@@ -217,12 +218,20 @@ const VasuliTransaction = () => {
       });
       return;
     }
+    
+    const day = String(new Date(vasuliTran.date).getDate()).padStart(2, "0");
+    const month = String(new Date(vasuliTran.date).getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+    const year = new Date(vasuliTran.date).getFullYear();
+
+    const formattedDate = `${day}/${month}/${year}`;
+
     let res = await whatsAppVasuli({
       name: vasuliTran.name,
+      idNo: vasuliTran.idNo || "-",
       contact: vasuliTran.contact,
       message: vasuliTran.amount,
-      date: `${vasuliTran.date}`,
-      remark: vasuliTran.remark,
+      date: formattedDate,
+      remark: vasuliTran.remark || "-",
     });
 
     const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
@@ -335,6 +344,7 @@ const VasuliTransaction = () => {
   const resend = (rowData, index) => {
     const vasuliTran = {
       name: rowData?.name,
+      idNo: rowData?.idNo,
       contact: rowData?.contact,
       amount: rowData?.amount,
       date: rowData?.date,
