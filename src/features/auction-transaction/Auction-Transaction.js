@@ -31,29 +31,25 @@ import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
 import { StyledTableCell } from "../../shared/ui/elements/Table-Cell";
 import AlertDialog from "../../dialogs/corformation/conformation";
 function AuctionTransaction() {
-  
+
   function getUTCDateTimeFromDateOnly(dateString) {
-  const now = new Date(); // current local time
+    const now = new Date(); // current local time
+    // Extract hours, minutes, seconds, milliseconds from current time
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+    const milliseconds = now.getMilliseconds();
 
-  // Extract hours, minutes, seconds, milliseconds from current time
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-  const milliseconds = now.getMilliseconds();
+    // Create a local Date with selected date + current time
+    const localDateTime = new Date(`${dateString}T${pad(hours)}:${pad(minutes)}:${pad(seconds)}.${pad(milliseconds, 3)}`);
 
-  // Create a local Date with selected date + current time
-  const localDateTime = new Date(
-    `${dateString}T${pad(hours)}:${pad(minutes)}:${pad(seconds)}.${pad(milliseconds, 3)}`
-  );
+    // Convert to UTC ISO string
+    return new Date(localDateTime).toISOString();
+  }
 
-  // Convert to UTC ISO string
-  return new Date(localDateTime).toISOString();
-}
-
-function pad(num, size = 2) {
-  return num.toString().padStart(size, '0');
-}
-
+  function pad(num, size = 2) {
+    return num.toString().padStart(size, "0");
+  }
 
   const {
     control,
@@ -67,7 +63,7 @@ function pad(num, size = 2) {
     watch,
   } = useForm({
     defaultValues: {
-      date: new Date().toLocaleDateString('en-CA'),
+      date: new Date().toLocaleDateString("en-CA"),
     },
   });
   const [itemsList, setItemsList] = useState([]);
@@ -160,9 +156,11 @@ function pad(num, size = 2) {
         vyapariId: values.vyapari.partyId,
         rate: Number(values.rate),
         bagWiseQuantity: qty,
-        auctionDate: `${values.date}T${new Date().toISOString().split("T")[1].slice(0, -1)}`,
+        auctionDate: getUTCDateTimeFromDateOnly(values.date).slice(0, -1),
+        // auctionDate: new Date(`${values.date}T${new Date().toISOString().split("T")[1].slice(0, -1)}`).toISOString(),
         // auctionDate: `${values.date}T${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
       };
+      console.log("newAuctionRow", newAuctionRow?.auctionData);
 
       if (auctionType) {
         newAuctionRow.quantity = Number(values.nag);
