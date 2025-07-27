@@ -1,6 +1,20 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, InputAdornment, TableRow, Paper, Button, useMediaQuery, Switch, FormControlLabel } from "@mui/material";
+import {
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  InputAdornment,
+  TableRow,
+  Paper,
+  Button,
+  useMediaQuery,
+  Switch,
+  FormControlLabel,
+} from "@mui/material";
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
@@ -17,6 +31,30 @@ import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
 import { StyledTableCell } from "../../shared/ui/elements/Table-Cell";
 import AlertDialog from "../../dialogs/corformation/conformation";
 function AuctionTransaction() {
+  
+  function getUTCDateTimeFromDateOnly(dateString) {
+  const now = new Date(); // current local time
+
+  // Extract hours, minutes, seconds, milliseconds from current time
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  const seconds = now.getSeconds();
+  const milliseconds = now.getMilliseconds();
+
+  // Create a local Date with selected date + current time
+  const localDateTime = new Date(
+    `${dateString}T${pad(hours)}:${pad(minutes)}:${pad(seconds)}.${pad(milliseconds, 3)}`
+  );
+
+  // Convert to UTC ISO string
+  return new Date(localDateTime).toISOString();
+}
+
+function pad(num, size = 2) {
+  return num.toString().padStart(size, '0');
+}
+
+
   const {
     control,
     getValues,
@@ -29,7 +67,7 @@ function AuctionTransaction() {
     watch,
   } = useForm({
     defaultValues: {
-      date: new Date().toISOString().split("T")[0], // Format as 'YYYY-MM-DD'
+      date: new Date().toLocaleDateString('en-CA'),
     },
   });
   const [itemsList, setItemsList] = useState([]);
@@ -68,7 +106,8 @@ function AuctionTransaction() {
         kisanId: data.kisaan.partyId,
         itemId: data.itemName.itemId,
         buyItems,
-        auctionDate: `${data.date}T${new Date().toISOString().split("T")[1]}`,
+        // auctionDate: `${data.date}T${new Date().toISOString().split("T")[1]}`,
+        auctionDate: getUTCDateTimeFromDateOnly(data.date),
       };
       try {
         await addAuctionTransaction(auctionData);
@@ -112,7 +151,7 @@ function AuctionTransaction() {
     if (event) {
       event.preventDefault();
     }
-    const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate","date"]);
+    const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate", "date"]);
     if (!auctionType && (qty.length == 0 || qtyTotal == 0)) return;
     if (result) {
       const values = getValues();
@@ -121,7 +160,8 @@ function AuctionTransaction() {
         vyapariId: values.vyapari.partyId,
         rate: Number(values.rate),
         bagWiseQuantity: qty,
-        auctionDate: `${values.date}T${new Date().toISOString().split("T")[1]}`,
+        auctionDate: `${values.date}T${new Date().toISOString().split("T")[1].slice(0, -1)}`,
+        // auctionDate: `${values.date}T${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
       };
 
       if (auctionType) {
@@ -431,7 +471,12 @@ function AuctionTransaction() {
                     disabled={getValues()?.kisaan?.name && buyItemsArr.length > 0}
                     getOptionLabel={(option) => `${option.id} | ${option.name}`}
                     filterOptions={(options, state) =>
-                      options.filter((option) => option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)).slice(0, 5)
+                      options
+                        .filter(
+                          (option) =>
+                            option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)
+                        )
+                        .slice(0, 5)
                     }
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     renderOption={(props, option) => (
@@ -560,7 +605,12 @@ function AuctionTransaction() {
                     options={vyapariList}
                     getOptionLabel={(option) => `${option.idNo} | ${option.name}`}
                     filterOptions={(options, state) =>
-                      options.filter((option) => option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)).slice(0, 10)
+                      options
+                        .filter(
+                          (option) =>
+                            option.name.toUpperCase().includes(state.inputValue.toUpperCase()) || option.idNo.includes(state.inputValue)
+                        )
+                        .slice(0, 10)
                     }
                     isOptionEqualToValue={(option, value) => option.idNo === value.idNo}
                     renderOption={(props, option) => (
@@ -618,12 +668,26 @@ function AuctionTransaction() {
                 <div>
                   {auctionType ? (
                     <>
-                      <TextField {...register("nag", { required: "ENTER NAG" })} fullWidth size="small" label="NAG" type="number" variant="outlined" />
+                      <TextField
+                        {...register("nag", { required: "ENTER NAG" })}
+                        fullWidth
+                        size="small"
+                        label="NAG"
+                        type="number"
+                        variant="outlined"
+                      />
                       <p className="err-msg">{errors.nag?.message}</p>
                     </>
                   ) : (
                     <>
-                      <TextField {...register("quantity", { required: "Enter Quantity" })} fullWidth size="small" label="QUANTITY" type="number" variant="outlined" />
+                      <TextField
+                        {...register("quantity", { required: "Enter Quantity" })}
+                        fullWidth
+                        size="small"
+                        label="QUANTITY"
+                        type="number"
+                        variant="outlined"
+                      />
                       <p className="err-msg">{errors.quantity?.message}</p>
                     </>
                   )}
@@ -841,10 +905,22 @@ function AuctionTransaction() {
           </div>
         </form>
         <div>
-          <Snackbar open={open} autoHideDuration={1000} message="ADD ATLEST ONE TRANSACTION" action={action} onClose={handleClose} anchorOrigin={{ vertical: "top", horizontal: "right" }} />
+          <Snackbar
+            open={open}
+            autoHideDuration={1000}
+            message="ADD ATLEST ONE TRANSACTION"
+            action={action}
+            onClose={handleClose}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          />
         </div>
         <div>
-          <Snackbar open={openSuccessTransactionDialog} autoHideDuration={1000} onClose={handleClose} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+          <Snackbar
+            open={openSuccessTransactionDialog}
+            autoHideDuration={1000}
+            onClose={handleClose}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          >
             <Alert onClose={handleClose} severity="success" variant="filled" sx={{ width: "100%" }}>
               TRANSACTION SUCCESSFULLY ADDED.
             </Alert>

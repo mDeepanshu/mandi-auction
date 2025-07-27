@@ -37,7 +37,9 @@ function AllEntries() {
   const [tabletList, setTabletList] = useState([]);
   const [tableDataFiltered, setTableDataFiltered] = useState([]);
 
-  const currentDate = new Date(new Date().getTime() + 19800000).toISOString().split("T")[0]; // Get current date in 'YYYY-MM-DD' format
+  const date = new Date();
+  const currentDate =
+    date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
 
   const [dateOptions, setDateOptions] = useState([]);
   const [total, setTotal] = useState([]);
@@ -69,8 +71,8 @@ function AllEntries() {
 
   const setLocalData = async (date) => {
     const selectedDate = getValues("fromDate");
-    const to = Number(new Date(selectedDate));
-    const from = Number(new Date(selectedDate)) - 86400000;
+    const to = Number(new Date(selectedDate + "T23:59:59"));
+    const from = Number(new Date(selectedDate + "T00:00:00"));
 
     const localData = await getAuctionEntries(from, to);
     if (localData) {

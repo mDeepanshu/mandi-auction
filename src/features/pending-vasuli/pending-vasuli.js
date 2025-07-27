@@ -4,14 +4,14 @@ import { useForm, Controller } from "react-hook-form";
 import { TextField, Button, InputAdornment, Switch } from "@mui/material";
 import LeftArrow from "../../assets/arrow-left.svg";
 import RightArrow from "../../assets/arrow-right.svg";
-import { getPendingVasuliList, editVasuli } from "../../gateway/pending-vasuli";
+import { getPendingVasuliList, editVasuli, whatsAppVasuli } from "../../gateway/pending-vasuli";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import Login from "../login/login";
 
 function PendingVasuli() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 550);
-  const amountRef = useRef(null); 
+  const amountRef = useRef(null);
   const [pendingVasuliList, setPendingVasuliList] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [currAmount, setCurrAmount] = useState(null);
@@ -20,12 +20,13 @@ function PendingVasuli() {
   const [openSuccessTransactionDialog, setSuccessTransactionDialog] = useState(false);
   const [navigationIndex, setNavigationIndex] = useState(0);
   const [loginStatus, setLoginStatus] = useState(true);
+  const [sendWhatsApp, setSendWhatsApp] = useState(false);
 
   const {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      date: new Date().toISOString().split("T")[0], 
+      date: new Date().toISOString().split("T")[0],
     },
   });
 
@@ -105,26 +106,24 @@ function PendingVasuli() {
     if (PendingVasuli?.responseBody?.length) {
       const wrapped_arr = [...emptyVasuliArr, ...PendingVasuli?.responseBody, ...emptyVasuliArr];
       setPendingVasuliList(wrapped_arr);
-      
+
       let startIndex = 0;
       let amount = 0;
       for (let i = 0; i < PendingVasuli?.responseBody.length; i++) {
         if (PendingVasuli?.responseBody?.[i]?.amount) {
           startIndex++;
           amount += Number(PendingVasuli?.responseBody?.[i]?.amount);
-        } else break;
+        };
       }
 
       setNavigationIndex(startIndex);
       setCurrAmount(PendingVasuli?.responseBody?.[startIndex]?.amount);
       setRemark(PendingVasuli?.responseBody?.[startIndex]?.remark);
       setTotalAmount(amount);
-      
+
       if (amountRef.current) {
         setTimeout(() => {
           amountRef.current.focus();
-          
-          
         }, 0);
       }
     }
@@ -148,7 +147,7 @@ function PendingVasuli() {
     setNavigationIndex((prev) => prev + direction);
     setCurrAmount(pendingVasuliList[changedIndex]?.amount ?? "");
     setRemark(pendingVasuliList[changedIndex]?.remark ?? "");
-    
+
     amountRef.current.focus();
   };
 
@@ -187,7 +186,23 @@ function PendingVasuli() {
         };
         return updatedList;
       });
-      setTotalAmount((prev) => prev - Number(pendingVasuliList[navigationIndex + 7].amount) + currAmount);
+
+      const day = String(new Date().getDate()).padStart(2, "0");
+      const month = String(new Date().getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+      const year = new Date().getFullYear();
+
+      const formattedDate = `${day}/${month}/${year}`;
+      if (sendWhatsApp) await whatsAppVasuli({
+        name: pendingVasuliList[navigationIndex + 7].vyapariName,
+        idNo: pendingVasuliList[navigationIndex + 7].idNo || "-",
+        contact: pendingVasuliList[navigationIndex + 7].contact,
+        message: currAmount,
+        date: formattedDate,
+        remark: remark || "-",
+        templateName: "payment_receipt3"
+      });
+
+      setTotalAmount((prev) => prev - Number(pendingVasuliList[navigationIndex + 7].amount) + Number(currAmount));
       setSuccessTransactionDialog(true);
     }
   };
@@ -212,9 +227,11 @@ function PendingVasuli() {
                   GET
                 </Button>
               </div>
-              <div className={styles.row_one_right}>
-                TOTAL: {totalAmount}
+              <div>
+                <label>SEND WHATSAPP</label>
+                <Switch onChange={() => setSendWhatsApp(!sendWhatsApp)} />
               </div>
+              <div className={styles.row_one_right}>TOTAL: {totalAmount}</div>
             </div>
             <div className={styles.row_two}>
               <ul className={styles.ul}>

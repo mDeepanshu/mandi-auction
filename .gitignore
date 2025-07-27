@@ -26,3 +26,5 @@ yarn-debug.log*
 yarn-error.log*
 .env
 deploy_prod.sh
+deploy.sh
+mandi-server-curr.pem
