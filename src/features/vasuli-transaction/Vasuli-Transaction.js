@@ -218,24 +218,38 @@ const VasuliTransaction = () => {
       });
       return;
     }
-    
+
     const day = String(new Date(vasuliTran.date).getDate()).padStart(2, "0");
     const month = String(new Date(vasuliTran.date).getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
     const year = new Date(vasuliTran.date).getFullYear();
 
     const formattedDate = `${day}/${month}/${year}`;
 
-    let res = await whatsAppVasuli({
-      name: vasuliTran.name,
-      idNo: vasuliTran.idNo || "-",
-      contact: vasuliTran.contact,
-      message: vasuliTran.amount,
-      date: formattedDate,
-      remark: vasuliTran.remark || "-",
-    });
+    let whatsAppResponse = "pending";
+    try {
+      let res = await whatsAppVasuli({
+        name: vasuliTran.name,
+        idNo: vasuliTran.idNo || "-",
+        contact: vasuliTran.contact,
+        message: vasuliTran.amount,
+        date: formattedDate,
+        remark: vasuliTran.remark || "-",
+        templateName: "payment_receipt3",
+      });
+      console.log("WhatsApp response:", res);
+      
 
-    const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
-    let whatsAppResponse = JSON.parse(unescapedStr || "{}")?.messages?.[0]?.message_status;
+      const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
+      whatsAppResponse = JSON.parse(unescapedStr || "{}")?.messages?.[0]?.message_status;
+    } catch (error) {
+      whatsAppResponse = "FAILED";
+      setWhatsappOpen({
+        open: true,
+        message: "WhatsApp message failed to send.",
+        severity: "error",
+      });
+    }
+
     setPrintTable((prev) => {
       const updatedArray = [...prev];
       updatedArray[index] = {
