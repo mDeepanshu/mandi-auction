@@ -4,21 +4,14 @@
   /* overflow-y: hidden; */
 }
 
-.row_one {
-  padding: 0 1rem;
-  padding-top: 4rem;
+.row_one_two, .row_one_one {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
   justify-content: space-between;
-  zoom: 0.9;
+  padding: 0 1rem;
 }
 
-.row_one > *:nth-child(odd) {
-  width: 60%;
-}
-.row_one > *:nth-child(even) {
-  width: 37%;
+.row_one_one {
+  padding-top: 3.5rem;
 }
 
 .row_two {
@@ -58,8 +51,8 @@
 .ul {
   list-style-type: none;
   margin: 0;
-  padding: 1.2rem 1rem;
-  width: 85%;
+  padding: 1.2rem 0.3rem;
+  width: 90%;
   /* height: 65vh; */
   /* max-height: 60vh; */
   min-height: 53vh;
@@ -86,7 +79,7 @@ li {
 }
 
 .vyapari_column {
-  width: 50%;
+  width: 35%;
 }
 
 .remark_column {
@@ -147,4 +140,19 @@ input[type="number"] {
   display: flex;
   align-items: center;
   /* gap: 5px; */
+}
+
+.whatsAppSend {
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+}
+
+.whatsappAllBtn{
+  display: flex;
+  align-items: center;
+}
+
+.get_btn{
+  width: 82px;
 }
