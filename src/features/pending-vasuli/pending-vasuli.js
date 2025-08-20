@@ -8,6 +8,8 @@ import { getPendingVasuliList, editVasuli, whatsAppVasuli } from "../../gateway/
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import Login from "../login/login";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import AlertDialog from "../../dialogs/corformation/conformation";
 
 function PendingVasuli() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 550);
@@ -21,6 +23,8 @@ function PendingVasuli() {
   const [navigationIndex, setNavigationIndex] = useState(0);
   const [loginStatus, setLoginStatus] = useState(true);
   const [sendWhatsApp, setSendWhatsApp] = useState(false);
+  const [openConformationDialog, setOpenConformationDialog] = useState(false);
+  const [allChecked, setAllChecked] = useState(false);
 
   const {
     formState: { errors },
@@ -29,6 +33,11 @@ function PendingVasuli() {
       date: new Date().toISOString().split("T")[0],
     },
   });
+
+  const handleConformationClose = (action) => {
+    if (action) send_whatsapp_to_all();
+    setOpenConformationDialog(false);
+  };
 
   const emptyVasuliArr = [
     {
@@ -104,7 +113,8 @@ function PendingVasuli() {
   const fetch_pending_vasuli = async () => {
     const PendingVasuli = await getPendingVasuliList(`${vasuliSection}`);
     if (PendingVasuli?.responseBody?.length) {
-      const wrapped_arr = [...emptyVasuliArr, ...PendingVasuli?.responseBody, ...emptyVasuliArr];
+      let wrapped_arr = [...emptyVasuliArr, ...PendingVasuli?.responseBody, ...emptyVasuliArr];
+      wrapped_arr.forEach((obj) => (obj.isChecked = false));
       setPendingVasuliList(wrapped_arr);
 
       let startIndex = 0;
@@ -113,7 +123,7 @@ function PendingVasuli() {
         if (PendingVasuli?.responseBody?.[i]?.amount) {
           startIndex++;
           amount += Number(PendingVasuli?.responseBody?.[i]?.amount);
-        };
+        }
       }
 
       setNavigationIndex(startIndex);
@@ -192,19 +202,69 @@ function PendingVasuli() {
       const year = new Date().getFullYear();
 
       const formattedDate = `${day}/${month}/${year}`;
-      if (sendWhatsApp) await whatsAppVasuli({
-        name: pendingVasuliList[navigationIndex + 7].vyapariName,
-        idNo: pendingVasuliList[navigationIndex + 7].idNo || "-",
-        contact: pendingVasuliList[navigationIndex + 7].contact,
-        message: currAmount,
-        date: formattedDate,
-        remark: remark || "-",
-        templateName: "payment_receipt3"
-      });
+      if (sendWhatsApp)
+        await whatsAppVasuli({
+          name: pendingVasuliList[navigationIndex + 7].vyapariName,
+          vyapariId: pendingVasuliList[navigationIndex + 7].vyapariId,
+          idNo: pendingVasuliList[navigationIndex + 7].idNo || "-",
+          contact: pendingVasuliList[navigationIndex + 7].contact,
+          message: currAmount,
+          date: formattedDate,
+          remark: remark || "-",
+          templateName: "payment_receipt3",
+        });
 
       setTotalAmount((prev) => prev - Number(pendingVasuliList[navigationIndex + 7].amount) + Number(currAmount));
       setSuccessTransactionDialog(true);
     }
+  };
+
+  const send_whatsapp_to_all = async () => {
+    const day = String(new Date().getDate()).padStart(2, "0");
+    const month = String(new Date().getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+    const year = new Date().getFullYear();
+    const formattedDate = `${day}/${month}/${year}`;
+
+    for (let i = 0; i < pendingVasuliList.length; i++) {
+      if (!pendingVasuliList[i]?.isChecked || !pendingVasuliList[i]?.amount) continue;
+
+      const item = pendingVasuliList[i];
+      await whatsAppVasuli({
+        name: item.vyapariName,
+        vyapariId: item.vyapariId,
+        idNo: item.idNo || "-",
+        contact: item.contact,
+        message: item.amount,
+        date: formattedDate,
+        remark: item.remark || "-",
+        templateName: "payment_receipt3",
+      });
+    }
+  };
+
+  const all_whatsapp_confirm = () => {
+    setOpenConformationDialog(true);
+  };
+
+  const commonCheckAll = (checked) => {
+    setAllChecked(checked);
+    setPendingVasuliList((prev) => {
+      if (checked) {
+        return prev.map((item) => ({ ...item, isChecked: item.amount != null && item.amount != "0" && item.amount != "0.00" && item.amount != item.lastNotifiedAmount }));
+      } else {
+        return prev.map((item) => ({ ...item, isChecked: false }));
+      }
+    });
+  };
+
+  const toggleSelectItem = (index, checked) => {
+    console.log(index);
+
+    setPendingVasuliList((prev) => {
+      const updatedList = [...prev];
+      updatedList[index].isChecked = checked;
+      return updatedList;
+    });
   };
 
   return (
@@ -216,26 +276,40 @@ function PendingVasuli() {
       ) : (
         <>
           <div className={styles.container}>
-            <div className={styles.row_one}>
+            <div className={styles.row_one_one}>
               <div>
                 <label>TODAYS</label>
                 <Switch onChange={() => changeSection()} />
                 <label>OLDER</label>
               </div>
               <div>
-                <Button variant="contained" color="success" type="button" onClick={() => fetch_pending_vasuli()}>
+                <Button variant="contained" color="success" type="button" onClick={() => fetch_pending_vasuli()} className={styles.get_btn}>
                   GET
                 </Button>
               </div>
-              <div>
-                <label>SEND WHATSAPP</label>
+            </div>
+            <div className={styles.row_one_two}>
+              <div className={styles.whatsAppSend}>
+                <WhatsAppIcon />
                 <Switch onChange={() => setSendWhatsApp(!sendWhatsApp)} />
               </div>
               <div className={styles.row_one_right}>TOTAL: {totalAmount}</div>
+              <Button
+                variant="contained"
+                color="primary"
+                type="button"
+                onClick={() => all_whatsapp_confirm()}
+                className={styles.whatsappAllBtn}
+              >
+                <WhatsAppIcon /> ALL
+              </Button>
             </div>
             <div className={styles.row_two}>
               <ul className={styles.ul}>
                 <li className={`${styles.list_item} ${styles.list_header}`} key={0}>
+                  <div className={styles.remark_column}>
+                    <input type="checkbox" checked={allChecked} onChange={(e) => commonCheckAll(e.target.checked)} />
+                  </div>
                   <div className={styles.vyapari_column}>VYAPARI</div>
                   <div className={styles.small_column}>{isMobile ? "AMT" : "AMOUNT"}</div>
                   <div className={styles.remark_column}>{isMobile ? "RMK" : "REMARK"}</div>
@@ -243,6 +317,13 @@ function PendingVasuli() {
                 {pendingVasuliList.slice(navigationIndex, navigationIndex + 7)?.map((item, index) => {
                   return (
                     <li className={styles.list_item} key={index}>
+                      {item?.vyapariName && (
+                        <input
+                          type="checkbox"
+                          checked={item?.isChecked}
+                          onChange={(e) => toggleSelectItem(navigationIndex + index, e.target.checked)}
+                        />
+                      )}
                       <div className={styles.vyapari_column}>{item?.vyapariName?.toUpperCase()}</div>
                       <div className={styles.small_column}>{item?.amount}</div>
                       <div className={styles.remark_column}>{item?.remark}</div>
@@ -250,6 +331,13 @@ function PendingVasuli() {
                   );
                 })}
                 <li className={styles.selected_list_item}>
+                  <div>
+                    <input
+                      type="checkbox"
+                      checked={pendingVasuliList[navigationIndex + 7]?.isChecked}
+                      onChange={(e) => toggleSelectItem(navigationIndex + 7, e.target.checked)}
+                    />
+                  </div>
                   <div className={styles.vyapari_column}>{pendingVasuliList[navigationIndex + 7]?.vyapariName?.toUpperCase()}</div>
                   <div className={styles.small_column}>
                     <input
@@ -280,6 +368,13 @@ function PendingVasuli() {
                 {pendingVasuliList.slice(navigationIndex + 8, navigationIndex + 15)?.map((item, index) => {
                   return (
                     <li className={styles.list_item} key={8 + index}>
+                      {item?.vyapariName && (
+                        <input
+                          type="checkbox"
+                          checked={item?.isChecked}
+                          onChange={(e) => toggleSelectItem(navigationIndex + 8 + index, e.target.checked)}
+                        />
+                      )}
                       <div className={styles.vyapari_column}>{item?.vyapariName?.toUpperCase()}</div>
                       <div className={styles.small_column}>{item?.amount}</div>
                       <div className={styles.remark_column}>{item?.remark}</div>
@@ -316,6 +411,12 @@ function PendingVasuli() {
                 SAVED.
               </Alert>
             </Snackbar>
+            <AlertDialog
+              open={openConformationDialog}
+              handleClose={handleConformationClose}
+              title="Send WhatsApp Receipt To All?"
+              btnText="Send"
+            />
           </div>
         </>
       )}
