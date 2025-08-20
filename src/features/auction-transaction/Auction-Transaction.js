@@ -31,7 +31,6 @@ import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
 import { StyledTableCell } from "../../shared/ui/elements/Table-Cell";
 import AlertDialog from "../../dialogs/corformation/conformation";
 function AuctionTransaction() {
-
   function getUTCDateTimeFromDateOnly(dateString) {
     const now = new Date(); // current local time
     // Extract hours, minutes, seconds, milliseconds from current time
@@ -160,7 +159,6 @@ function AuctionTransaction() {
         // auctionDate: new Date(`${values.date}T${new Date().toISOString().split("T")[1].slice(0, -1)}`).toISOString(),
         // auctionDate: `${values.date}T${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
       };
-      console.log("newAuctionRow", newAuctionRow?.auctionData);
 
       if (auctionType) {
         newAuctionRow.quantity = Number(values.nag);
