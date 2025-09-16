@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Grid, Typography, TextField, InputAdornment, Button, Autocomplete, Switch, FormControlLabel } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { addVasuliTransaction, getOwedAmount, whatsAppVasuli } from "../../gateway/vasuli-transaction-apis";
+import { addVasuliTransaction, getOwedAmount, whatsAppVasuli, sendNotification } from "../../gateway/vasuli-transaction-apis";
 import { getAllItems } from "../../gateway/curdDB";
 import Login from "../login/login";
 import Snackbar from "@mui/material/Snackbar";
@@ -37,8 +37,8 @@ const VasuliTransaction = () => {
   const [printTable, setPrintTable] = useState([]);
 
   const isSmallScreen = useMediaQuery("(max-width:495px)");
-  const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "PRINT", "WHATSAPP", "RESEND"]);
-  const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "print", "whatsapp", "resend"]);
+  const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "PRINT", "WHATSAPP", "APP", "RESEND"]);
+  const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "print", "whatsapp", "appNotification", "resend"]);
 
   const [printData, setPrintData] = useState();
 
@@ -367,6 +367,19 @@ const VasuliTransaction = () => {
     sendWhatsAppReceipt(vasuliTran, index);
   };
 
+  const appNotification = (rowData, index) => {
+    const vasuliTran = {
+      vyapariId: rowData?.vyapariId,
+      name: rowData?.name,
+      idNo: rowData?.idNo,
+      contact: rowData?.contact,
+      amount: rowData?.amount,
+      date: rowData?.date,
+      remark: rowData?.remark,
+    };
+    sendNotification(vasuliTran, index);
+  };
+
   return (
     <>
       {loginStatus ? (
@@ -527,6 +540,7 @@ const VasuliTransaction = () => {
                   resend={resend}
                   rePrintPrev={rePrintPrev}
                   editFromTable={editFromTable}
+                  appNotification={appNotification}
                 />
               </Grid>
             </Grid>

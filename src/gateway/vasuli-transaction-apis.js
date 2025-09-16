@@ -45,3 +45,22 @@ export const whatsAppVasuli = async (vasuli) => {
   }
 };
 
+export const sendNotification = async (vasuliData) => {
+  try {
+    const response = await fetch(`https://5txvte0v46.execute-api.ap-southeast-1.amazonaws.com/dev/sendnotification/${vasuliData.vyapariId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: "Hello",
+        message: "This is a test notification",
+      }),
+    });
+
+    const data = await response.json();
+    console.log("Response:", data);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
