@@ -161,6 +161,7 @@ const VasuliTransaction = () => {
     if (formValue.toggle && dataSaved === "success") {
       setPrintData({
         vyapariName: formValue.vyapariId?.name,
+        vyapariId: formValue?.vyapariId?.partyId,
         idNo: formValue.vyapariId?.idNo,
         date: formValue?.date,
         amount: formValue?.amount,
@@ -169,6 +170,7 @@ const VasuliTransaction = () => {
     } else if (dataSaved === "success") {
       const newItem = {
         name: formValue?.vyapariId?.name,
+        vyapariId: formValue?.vyapariId?.partyId,
         idNo: formValue?.vyapariId?.idNo,
         remark: formValue?.remark,
         contact: formValue?.vyapariId?.contact,
@@ -336,6 +338,7 @@ const VasuliTransaction = () => {
     setPrintTable((printTable) => printTable.filter((_, i) => i !== index));
     setPrintData({
       vyapariName: data?.name,
+      vyapariId: data?.vyapariId,
       idNo: data?.idNo,
       date: data?.date,
       amount: data?.amount,

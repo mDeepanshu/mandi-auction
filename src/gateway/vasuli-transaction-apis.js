@@ -53,8 +53,8 @@ export const sendNotification = async (vasuliData) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        title: "Hello",
-        message: "This is a test notification",
+        name: vasuliData.partyName,
+        amount: vasuliData.amount,
       }),
     });
 
