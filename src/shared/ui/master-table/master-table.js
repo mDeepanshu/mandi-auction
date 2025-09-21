@@ -8,6 +8,7 @@ import Pagination from "@mui/material/Pagination";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import PrintIcon from "@mui/icons-material/Print";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 
 function MasterTable(props) {
   const [open, setOpen] = useState(false);
@@ -152,11 +153,17 @@ function MasterTable(props) {
                                 <WhatsAppIcon />
                               </Button>
                             );
+                          case "appNotification":
+                            return (
+                              <Button onClick={() => props.appNotification(rowData, index)}>
+                                <PhoneAndroidIcon />
+                              </Button>
+                            );
                           case "index":
                             return (page - 1) * paginationLength + index + 1;
                           case "date":
                           case "auctionDate":
-                            return new Date(rowData[key]+"Z").toLocaleString();
+                            return new Date(rowData[key] + "Z").toLocaleString();
                           default:
                             return rowData[key];
                         }
