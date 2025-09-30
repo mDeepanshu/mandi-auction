@@ -250,9 +250,9 @@ function PendingVasuli() {
     setAllChecked(checked);
     setPendingVasuliList((prev) => {
       if (checked) {
-        return prev.map((item) => ({ ...item, isChecked: item.amount != null && item.amount != "0" && item.amount != "0.00" && item.amount != item.lastNotifiedAmount }));
+        return prev?.map((item) => ({ ...item, isChecked: item.amount != null && item.amount != "0" && item.amount != "0.00" && item.amount != item.lastNotifiedAmount }));
       } else {
-        return prev.map((item) => ({ ...item, isChecked: false }));
+        return prev?.map((item) => ({ ...item, isChecked: false }));
       }
     });
   };

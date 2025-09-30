@@ -100,7 +100,7 @@ const RegisterDevice = ({ open, onClose }) => {
                                 <select value={oldDeviceId} onChange={(e) => setOldDeviceId(e.target.value)} className={styles.select_dropdown}>
                                     <option key="" value="" disabled> Please select a device </option>
                                     {
-                                        oldDeviceList.map((device, index) => {
+                                        oldDeviceList?.map((device, index) => {
                                             return <option key={index} value={device.id}>{device.name}</option>
                                         })
                                     }
