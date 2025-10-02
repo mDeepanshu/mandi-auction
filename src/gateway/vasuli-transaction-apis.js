@@ -21,24 +21,11 @@ export const getOwedAmount = async (partyId) => {
     return "error";
   }
 };
+
 export const whatsAppVasuli = async (vasuli) => {
   try {
     const response = await axiosHttp.post(`/vyapari/notify-vasuli`, vasuli);
     return response;
-
-    // const fakeResponse = await new Promise((resolve) => {
-    //   setTimeout(() => {
-    //     resolve({data:{
-    //       responseCode: "200",
-    //       responseMessage: "Success",
-    //       responseBody:""
-    //       // responseBody:
-    //       //   '{"messaging_product":"whatsapp","contacts":[{"input":"8349842228","wa_id":"918349842228"}],"messages":[{"id":"wamid.HBgMOTE4MzQ5ODQyMjI4FQIAERgSNkE3NEFFNzUwNkQxQzg1RkFDAA==","message_status":"accepted"}]}',
-    //     }});
-    //   }, 1000);
-    // });
-    // return fakeResponse;
-    
   } catch (error) {
     console.error("Error posting data:", error);
     return "error";
@@ -46,8 +33,12 @@ export const whatsAppVasuli = async (vasuli) => {
 };
 
 export const sendNotification = async (vasuliData) => {
+
+  const datePart = new Date(vasuliData.date);
+  vasuliData.date = datePart.toLocaleDateString('en-GB');
+
   try {
-    const response = await fetch(`https://5txvte0v46.execute-api.ap-southeast-1.amazonaws.com/dev/sendnotification/${vasuliData.vyapariId}`, {
+    const response = await fetch(`https://imll8stdk8.execute-api.ap-southeast-1.amazonaws.com/prod/sendnotification/${vasuliData.vyapariId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -55,12 +46,37 @@ export const sendNotification = async (vasuliData) => {
       body: JSON.stringify({
         name: vasuliData.partyName,
         amount: vasuliData.amount,
+        date: vasuliData.date,
       }),
     });
-
     const data = await response.json();
-    console.log("Response:", data);
+    return data;
   } catch (error) {
     console.error("Error:", error);
+    return "error";
   }
 };
+
+export const vasuliPost = async (data) => {
+  try {
+    const response = await axiosHttp.post("party/vasuliTrasaction?confirmDuplicate=true", [data]);
+    return response.data;
+  } catch (error) {
+    console.error('Error posting data:', error);
+    return 'error';
+  }
+};
+
+
+// const fakeResponse = await new Promise((resolve) => {
+//   setTimeout(() => {
+//     resolve({data:{
+//       responseCode: "200",
+//       responseMessage: "Success",
+//       responseBody:""
+//       // responseBody:
+//       //   '{"messaging_product":"whatsapp","contacts":[{"input":"8349842228","wa_id":"918349842228"}],"messages":[{"id":"wamid.HBgMOTE4MzQ5ODQyMjI4FQIAERgSNkE3NEFFNzUwNkQxQzg1RkFDAA==","message_status":"accepted"}]}',
+//     }});
+//   }, 1000);
+// });
+// return fakeResponse;

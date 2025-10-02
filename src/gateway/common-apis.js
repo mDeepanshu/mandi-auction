@@ -8,7 +8,6 @@ export const syncTransactions = async (api, data) => {
     } catch (error) {
         console.error('Error posting data:', error);
         return 'error';
-        // throw error;
     }
 };
 

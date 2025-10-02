@@ -2,13 +2,17 @@ import React, { useEffect, useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Grid, Typography, TextField, InputAdornment, Button, Autocomplete, Switch, FormControlLabel } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { addVasuliTransaction, getOwedAmount, whatsAppVasuli, sendNotification } from "../../gateway/vasuli-transaction-apis";
+import { addVasuliTransaction, vasuliPost, whatsAppVasuli, sendNotification } from "../../gateway/vasuli-transaction-apis";
 import { getAllItems } from "../../gateway/curdDB";
 import Login from "../login/login";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import styles from "./vasuli-transaction.module.css";
 import ReactToPrint from "react-to-print";
+
+import PrintIcon from "@mui/icons-material/Print";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 
 import MasterTable from "../../shared/ui/master-table/master-table";
 import { useMediaQuery } from "@mui/material";
@@ -37,8 +41,8 @@ const VasuliTransaction = () => {
   const [printTable, setPrintTable] = useState([]);
 
   const isSmallScreen = useMediaQuery("(max-width:495px)");
-  const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "PRINT", "WHATSAPP", "APP", "RESEND"]);
-  const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "print", "whatsapp", "appNotification", "resend"]);
+  const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "WHATSAPP", "NOTIFICATION", "PRINT", "RESEND", "APP N.", "SYNC", "RETRY-SYNC"]);
+  const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "whatsappStatus", "notiStatus", "print", "resend", "appNotification", "syncStatus", "syncTran"]);
 
   const [printData, setPrintData] = useState();
 
@@ -62,6 +66,7 @@ const VasuliTransaction = () => {
     setValue,
     watch,
     trigger,
+    clearErrors
   } = useForm({
     defaultValues: {
       date: priorDate,
@@ -131,13 +136,11 @@ const VasuliTransaction = () => {
   }, [owedAmount]);
 
   const onSubmit = async (data) => {
-    if (!isValid) {
-      return;
-    }
+    if (!isValid) return;
 
     const formValue = getValues();
 
-    const existingDate = new Date(); // Existing Date object for time
+    const existingDate = new Date();
     const datePart = new Date(formValue.date);
     datePart.setHours(existingDate.getHours(), existingDate.getMinutes(), existingDate.getSeconds());
 
@@ -148,41 +151,17 @@ const VasuliTransaction = () => {
       name: formValue?.vyapariId?.name,
       date: datePart,
       contact: formValue?.vyapariId?.contact,
-      remark: formValue?.remark,
+      printStatus: formValue.toggle ? "YES" : "NO",
+      whatsappStatus: formValue.whatsappToggle ? "PENDING" : "NO",
+      notiStatus: formValue.appNotiToggle ? "PENDING" : "NO",
     };
+    setPrintTable((prevItems) => [vasuliTran, ...prevItems]);
 
-    const whatsappStatus = !formValue.whatsappToggle
-      ? "NO"
-      : !formValue?.vyapariId?.contact || formValue?.vyapariId?.contact.length !== 10
-      ? "INVALID NUMBER"
-      : "pending";
+    if (formValue.toggle) setPrintData({ ...vasuliTran, date: formValue.date });
+    if (formValue.whatsappToggle) sendWhatsAppReceipt(vasuliTran, 0);
+    if (formValue.appNotiToggle) appNotification(vasuliTran, 0);
 
-    const dataSaved = await addVasuliTransaction(vasuliTran);
-    if (formValue.toggle && dataSaved === "success") {
-      setPrintData({
-        vyapariName: formValue.vyapariId?.name,
-        vyapariId: formValue?.vyapariId?.partyId,
-        idNo: formValue.vyapariId?.idNo,
-        date: formValue?.date,
-        amount: formValue?.amount,
-        remark: formValue?.remark,
-      });
-    } else if (dataSaved === "success") {
-      const newItem = {
-        name: formValue?.vyapariId?.name,
-        vyapariId: formValue?.vyapariId?.partyId,
-        idNo: formValue?.vyapariId?.idNo,
-        remark: formValue?.remark,
-        contact: formValue?.vyapariId?.contact,
-        amount: formValue?.amount,
-        date: formValue?.date,
-        printStatus: "NO",
-        whatsapp: whatsappStatus,
-      };
-      setPrintTable((prevItems) => [newItem, ...prevItems]);
-    }
-
-    if (formValue.whatsappToggle) sendWhatsAppReceipt(vasuliTran);
+    syncTran(vasuliTran, 0, true);
     reset({
       vyapariId: null,
       idNo: null,
@@ -190,154 +169,69 @@ const VasuliTransaction = () => {
       remark: "",
       toggle: formValue.toggle,
       whatsappToggle: formValue.whatsappToggle,
+      appNotiToggle: formValue.appNotiToggle,
     });
+    clearErrors();
     if (vyapariRef.current) {
       setTimeout(() => {
         vyapariRef.current.focus();
       }, 0);
     }
-    setOpen({
-      open: true,
-      message: "Successfully Added. Sync to Save.",
-      severity: "success",
-    });
   };
 
-  const sendWhatsAppReceipt = async (vasuliTran, index = 0) => {
-    if (!vasuliTran.contact.length || vasuliTran.contact.length != 10) {
-      setWhatsappOpen({
+  const syncTran = async (rowData, index, isNew = false) => {
+    const dataSaved = await vasuliPost(rowData);
+    const syncStatus = dataSaved.responseCode === "200" ? "SUCCESS" : "FAILED";
+    updateStatusInArray(index, "syncStatus", syncStatus);
+    if (dataSaved.responseCode === "200") {
+      setOpen({
         open: true,
-        message: "WhatsApp number - NOT CORRECT.",
-        severity: "error",
+        message: "Sync Successful.",
+        severity: "success",
       });
-      setPrintTable((prev) => {
-        const updatedArray = [...prev];
-        updatedArray[index] = {
-          ...updatedArray[index],
-          whatsapp: "INVALID NUMBER",
-        };
-        return updatedArray;
-      });
-      return;
-    }
 
-    const day = String(new Date(vasuliTran.date).getDate()).padStart(2, "0");
-    const month = String(new Date(vasuliTran.date).getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
-    const year = new Date(vasuliTran.date).getFullYear();
+      const localObj = JSON.parse(localStorage.getItem("localObj"));
+      if (localObj?.vasuli && localObj?.vasuli.length) {
+        const index = localObj.vasuli.findIndex(obj => obj.date === rowData.date);
+        if (index !== -1) {
+          localObj.vasuli.splice(index, 1);
+        }
+        localStorage.setItem("localObj", JSON.stringify(localObj));
+      }
 
-    const formattedDate = `${day}/${month}/${year}`;
-
-    let whatsAppResponse = "pending";
-    try {
-      let res = await whatsAppVasuli({
-        name: vasuliTran.name,
-        idNo: vasuliTran.idNo || "-",
-        contact: vasuliTran.contact,
-        message: vasuliTran.amount,
-        date: formattedDate,
-        remark: vasuliTran.remark || "-",
-        templateName: "payment_receipt3",
-      });
-      console.log("WhatsApp response:", res);
-      
-
-      const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
-      whatsAppResponse = JSON.parse(unescapedStr || "{}")?.messages?.[0]?.message_status;
-    } catch (error) {
-      whatsAppResponse = "FAILED";
-      setWhatsappOpen({
+    } else {
+      if (isNew) { 
+        rowData.syncStatus = "FAILED";
+        addVasuliTransaction(rowData);
+      }
+      setOpen({
         open: true,
-        message: "WhatsApp message failed to send.",
+        message: "Sync Failed.",
         severity: "error",
       });
     }
-
-    setPrintTable((prev) => {
-      const updatedArray = [...prev];
-      updatedArray[index] = {
-        ...updatedArray[index],
-        whatsapp: whatsAppResponse || "FAILED",
-      };
-      return updatedArray;
-    });
   };
 
   useEffect(() => {
     if (!printData) return;
-    if (printData?.vyapariName) printReceipt();
+    if (printData?.name) printReceipt();
   }, [printData]);
-
-  const handleEnterPress = async (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault("Enter");
-      const amountValid = await trigger(`amount`);
-      if (remarkRef.current && amountValid) {
-        setTimeout(() => {
-          remarkRef.current.focus();
-        }, 100);
-      }
-    }
-  };
-
-  const onEnterPress = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      onSubmit();
-    }
-  };
-
-  const handleClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setOpen({
-      open: false,
-      message: "",
-      severity: "",
-    });
-    setWhatsappOpen({
-      open: false,
-      message: "",
-      severity: "",
-    });
-  };
 
   const printReceipt = async () => {
     const contentToPrint = printRef.current.innerHTML;
-
     if (window.electron && window.electron.ipcRenderer) {
-      // Invoke a print action
       window.electron.ipcRenderer
         .invoke("print-content", contentToPrint)
-        .then(() => {
-          console.log(`printed`);
-        })
-        .catch((err) => console.error("Print failed:", err));
     } else {
       triggerRef.current.click();
     }
-    const whatsappStatus = !getValues().whatsappToggle
-      ? "NO"
-      : !printData?.contact || printData.contact.length !== 10
-      ? "INVALID NUMBER"
-      : "pending";
-    const newItem = {
-      name: printData.vyapariName,
-      contact: printData.contact,
-      idNo: printData.idNo,
-      amount: printData.amount,
-      date: printData.date,
-      whatsapp: whatsappStatus,
-      remark: printData.remark,
-      printStatus: "YES",
-    };
-    setPrintTable((prevItems) => [...prevItems, newItem]);
   };
 
   const rePrintPrev = (data, index) => {
-    setPrintTable((printTable) => printTable.filter((_, i) => i !== index));
+    console.log(data, index);
+    
     setPrintData({
-      vyapariName: data?.name,
+      name: data?.name,
       vyapariId: data?.vyapariId,
       idNo: data?.idNo,
       date: data?.date,
@@ -345,29 +239,48 @@ const VasuliTransaction = () => {
       remark: data?.remark,
       contact: data?.contact,
     });
+    updateStatusInArray(index, "printStatus", "YES");
   };
 
-  const editFromTable = (rowData, index) => {};
+  const sendWhatsAppReceipt = async (vasuliTran, index) => {
+    let whatsappStatus = "PENDING";
+    if (!vasuliTran.contact.length || vasuliTran.contact.length != 10) {
+      setWhatsappOpen({
+        open: true,
+        message: "WhatsApp number - NOT CORRECT.",
+        severity: "error",
+      });
+      whatsappStatus = "INVALID NUMBER";
+      updateStatusInArray(index, "whatsappStatus", whatsappStatus);
+    } else {
+      const day = String(new Date(vasuliTran.date).getDate()).padStart(2, "0");
+      const month = String(new Date(vasuliTran.date).getMonth() + 1).padStart(2, "0");
+      const year = new Date(vasuliTran.date).getFullYear();
 
-  const handleAfterPrint = () => {
-    reset();
-    if (vyapariRef.current) {
-      setTimeout(() => {
-        vyapariRef.current.focus();
-      }, 0);
+      const formattedDate = `${day}/${month}/${year}`;
+
+      try {
+        let res = await whatsAppVasuli({
+          name: vasuliTran.name,
+          idNo: vasuliTran.idNo || "-",
+          contact: vasuliTran.contact,
+          message: vasuliTran.amount,
+          date: formattedDate,
+          remark: vasuliTran.remark || "-",
+          templateName: "payment_receipt3",
+        });
+        const unescapedStr = res?.data?.responseBody?.replace(/\\"/g, '"');
+        whatsappStatus = JSON.parse(unescapedStr || "{}")?.messages?.[0]?.message_status;
+      } catch (error) {
+        whatsappStatus = "FAILED";
+        setWhatsappOpen({
+          open: true,
+          message: "WhatsApp message failed to send.",
+          severity: "error",
+        });
+      }
+      updateStatusInArray(index, "whatsappStatus", whatsappStatus);
     }
-  };
-
-  const resend = (rowData, index) => {
-    const vasuliTran = {
-      name: rowData?.name,
-      idNo: rowData?.idNo,
-      contact: rowData?.contact,
-      amount: rowData?.amount,
-      date: rowData?.date,
-      remark: rowData?.remark,
-    };
-    sendWhatsAppReceipt(vasuliTran, index);
   };
 
   const appNotification = (rowData, index) => {
@@ -380,7 +293,62 @@ const VasuliTransaction = () => {
       date: rowData?.date,
       remark: rowData?.remark,
     };
-    sendNotification(vasuliTran, index);
+    const appNotiStatus = sendNotification(vasuliTran, index);
+    updateStatusInArray(index, "appNotification", appNotiStatus ? "SENT" : "FAILED");
+  };
+
+  const updateStatusInArray = (index, key, value) => {
+    
+    setPrintTable((prev) => {
+      const updatedArray = [...prev];
+      updatedArray[index] = {
+        ...updatedArray[index],
+        [key]: value,
+      };
+      return updatedArray;
+    });
+  };
+
+  const handleAfterPrint = () => {
+    reset();
+    if (vyapariRef.current) {
+      setTimeout(() => {
+        vyapariRef.current.focus();
+      }, 0);
+    }
+  };
+
+  const amountEnterKeyPress = async (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault("Enter");
+      const amountValid = await trigger(`amount`);
+      if (remarkRef.current && amountValid) {
+        setTimeout(() => {
+          remarkRef.current.focus();
+        }, 100);
+      }
+    }
+  };
+
+  const remarkEnterKeyPress = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      onSubmit();
+    }
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") return;
+    setOpen({
+      open: false,
+      message: "",
+      severity: "",
+    });
+    setWhatsappOpen({
+      open: false,
+      message: "",
+      severity: "",
+    });
   };
 
   return (
@@ -398,19 +366,29 @@ const VasuliTransaction = () => {
                   VASULI TRANSACTION
                 </Typography>
               </Grid>
-              <Grid item xs={2} className={styles.toggle}>
+              <Grid item xs={1} className={styles.toggle}>
                 <Controller
                   name="whatsappToggle"
                   control={control}
-                  render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="SEND WHATSAPP" />}
+                  render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} />}
                 />
+                <WhatsAppIcon />
               </Grid>
-              <Grid item xs={2} className={styles.toggle}>
+              <Grid item xs={1} className={styles.toggle}>
                 <Controller
                   name="toggle"
                   control={control}
-                  render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="PRINT ON SUBMIT" />}
+                  render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} />}
                 />
+                <PrintIcon />
+              </Grid>
+              <Grid item xs={1} className={styles.toggle}>
+                <Controller
+                  name="appNotiToggle"
+                  control={control}
+                  render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} />}
+                />
+                <PhoneAndroidIcon />
               </Grid>
               <Grid item xs={4}>
                 <Controller
@@ -469,7 +447,7 @@ const VasuliTransaction = () => {
                       type="number"
                       inputRef={amountRef}
                       label="COLLECTED AMOUNT"
-                      onKeyDown={handleEnterPress} // Add onKeyDown here
+                      onKeyDown={amountEnterKeyPress} // Add onKeyDown here
                       error={!!error} // Highlight field in red if there's an error
                       helperText={error?.message || " "} // Show error message
                       size={isSmallScreen ? "small" : "medium"}
@@ -487,7 +465,7 @@ const VasuliTransaction = () => {
                       fullWidth
                       type="text"
                       inputRef={remarkRef}
-                      onKeyDown={onEnterPress}
+                      onKeyDown={remarkEnterKeyPress}
                       helperText=" "
                       label="REMARK"
                       size={isSmallScreen ? "small" : "medium"}
@@ -540,10 +518,11 @@ const VasuliTransaction = () => {
                   columns={columns}
                   tableData={printTable}
                   keyArray={keyArray}
-                  resend={resend}
+                  syncTran={syncTran}
+                  resend={sendWhatsAppReceipt}
                   rePrintPrev={rePrintPrev}
-                  editFromTable={editFromTable}
                   appNotification={appNotification}
+                  height="65vh"
                 />
               </Grid>
             </Grid>
@@ -575,7 +554,7 @@ const VasuliTransaction = () => {
               <hr className={styles.line} />
               <div className={styles.printData}>
                 <div>
-                  NAME: {printData?.vyapariName} | {printData?.idNo}{" "}
+                  NAME: {printData?.name} | {printData?.idNo}{" "}
                 </div>
                 <div>DATE: {printData?.date}</div>
                 <div>AMOUNT: {printData?.amount}</div>
