@@ -143,7 +143,7 @@ function NavBar(props) {
                   "aria-labelledby": "basic-button",
                 }}
               >
-                {remNavItems.map((item, index) => (
+                {remNavItems?.map((item, index) => (
                   <MenuItem key={index} onClick={closeMoreMenu}>
                     <Link to={item.name} key={index}>
                       <Button key={item.name} onClick={() => setLabel(item.label)}>{item.label}</Button>

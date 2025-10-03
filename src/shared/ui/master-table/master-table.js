@@ -5,10 +5,11 @@ import { Button } from "@mui/material";
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
 import styles from "./masterTable.module.css";
 import Pagination from "@mui/material/Pagination";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import PrintIcon from "@mui/icons-material/Print";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
+import ReplayIcon from '@mui/icons-material/Replay';
 
 function MasterTable(props) {
   const [open, setOpen] = useState(false);
@@ -21,29 +22,19 @@ function MasterTable(props) {
   const [allTableData, setAllTableData] = useState([]);
   const [keyArray, setKeyArray] = useState([]);
   const [fieldDefinitions, setFieldDefinitions] = useState([]);
-  const excludeArr = ["edit", "delete", "index", "navigation", "auctionDate"];
   const [paginationLength, setPaginationLength] = useState(100);
 
   const {
     control,
-    handleSubmit,
-    register,
-    reset,
     formState: { errors },
     setValue,
-    getValues,
   } = useForm();
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
 
   const handleClose = () => {
     setOpen(false);
   };
 
   const editFromTable = (index) => {
-    // setEditingIndex(index);
     setOpen(true);
     for (let int = 0; int < props.keyArray.length; int++) {
       if (
@@ -59,11 +50,7 @@ function MasterTable(props) {
     }
   };
 
-  const deleteFromTable = (index) => {
-    // const newRows = [...buyItemsArr];
-    // newRows.splice(index, 1);
-    // setTableData(newRows);
-  };
+  const deleteFromTable = (index) => { };
 
   useEffect(() => {
     setColumns(props.columns);
@@ -106,7 +93,7 @@ function MasterTable(props) {
     setTableData(props.tableData?.slice(0, selectedValue));
   };
 
-  const updateRecord = (event, value) => {};
+  const updateRecord = (event, value) => { };
 
   return (
     <div>
@@ -157,6 +144,12 @@ function MasterTable(props) {
                             return (
                               <Button onClick={() => props.appNotification(rowData, index)}>
                                 <PhoneAndroidIcon />
+                              </Button>
+                            );
+                          case "syncTran":
+                            return (
+                              <Button onClick={() => props.syncTran(rowData, index)} disabled={rowData.syncStatus !== "FAILED"}>
+                                <ReplayIcon />
                               </Button>
                             );
                           case "index":

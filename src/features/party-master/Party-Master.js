@@ -198,7 +198,7 @@ const PartyMaster = () => {
           <Grid item xs={12} md={12}>
             <Grid item xs={6} sm={3}>
               <ul>
-                {partyListFiltered.slice(0, 5).map((party, index) => (
+                {partyListFiltered.slice(0, 5)?.map((party, index) => (
                   <li key={index}>{party.name}</li>
                 ))}
               </ul>
