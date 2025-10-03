@@ -38,7 +38,7 @@ export const sendNotification = async (vasuliData) => {
   vasuliData.date = datePart.toLocaleDateString('en-GB');
 
   try {
-    const response = await fetch(`https://imll8stdk8.execute-api.ap-southeast-1.amazonaws.com/prod/sendnotification/${vasuliData.vyapariId}`, {
+    const response = await fetch(`https://5txvte0v46.execute-api.ap-southeast-1.amazonaws.com/dev/sendnotification/${vasuliData.vyapariId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
