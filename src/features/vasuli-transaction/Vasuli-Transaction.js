@@ -200,7 +200,7 @@ const VasuliTransaction = () => {
       }
 
     } else {
-      if (isNew) { 
+      if (isNew) {
         rowData.syncStatus = "FAILED";
         addVasuliTransaction(rowData);
       }
@@ -228,18 +228,25 @@ const VasuliTransaction = () => {
   };
 
   const rePrintPrev = (data, index) => {
-    console.log(data, index);
-    
-    setPrintData({
-      name: data?.name,
-      vyapariId: data?.vyapariId,
-      idNo: data?.idNo,
-      date: data?.date,
-      amount: data?.amount,
-      remark: data?.remark,
-      contact: data?.contact,
-    });
-    updateStatusInArray(index, "printStatus", "YES");
+    try {
+      const datePart = new Date(data.date).toLocaleDateString('en-GB');     
+      setPrintData({
+        name: data?.name,
+        vyapariId: data?.vyapariId,
+        idNo: data?.idNo,
+        date: datePart,
+        amount: data?.amount,
+        remark: data?.remark,
+        contact: data?.contact,
+      });
+      updateStatusInArray(index, "printStatus", "YES");
+    } catch (error) {
+      setOpen({
+        open: true,
+        message: "Print Failed.",
+        severity: "error",
+      });
+    }
   };
 
   const sendWhatsAppReceipt = async (vasuliTran, index) => {
@@ -298,7 +305,7 @@ const VasuliTransaction = () => {
   };
 
   const updateStatusInArray = (index, key, value) => {
-    
+
     setPrintTable((prev) => {
       const updatedArray = [...prev];
       updatedArray[index] = {
