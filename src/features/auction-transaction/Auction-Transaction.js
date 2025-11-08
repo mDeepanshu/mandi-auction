@@ -33,7 +33,6 @@ import AlertDialog from "../../dialogs/corformation/conformation";
 function AuctionTransaction() {
   function getUTCDateTimeFromDateOnly(dateString) {
     const now = new Date(); // current local time
-    // Extract hours, minutes, seconds, milliseconds from current time
     const hours = now.getHours();
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();

@@ -6,8 +6,6 @@ export const addItemGlobal = async (data) => {
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);
-            console.error('Not Throwing Error');
-
     }
 };
 
@@ -17,7 +15,5 @@ export const getItem = async () => {
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);
-            console.error('Not Throwing Error');
-
     }
 };
