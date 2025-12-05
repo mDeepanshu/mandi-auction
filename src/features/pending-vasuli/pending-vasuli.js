@@ -39,65 +39,6 @@ function PendingVasuli() {
     setOpenConformationDialog(false);
   };
 
-  const emptyVasuliArr = [
-    {
-      id: "",
-      index: "",
-      name: "",
-      amount: "",
-      remark: "",
-      vyapariId: "",
-    },
-    {
-      id: "",
-      index: "",
-      name: "",
-      amount: "",
-      remark: "",
-      vyapariId: "",
-    },
-    {
-      id: "",
-      index: "",
-      name: "",
-      amount: "",
-      remark: "",
-      vyapariId: "",
-    },
-    {
-      id: "",
-      index: "",
-      name: "",
-      amount: "",
-      remark: "",
-      vyapariId: "",
-    },
-    {
-      id: "",
-      index: "",
-      name: "",
-      amount: "",
-      remark: "",
-      vyapariId: "",
-    },
-    {
-      id: "",
-      index: "",
-      name: "",
-      amount: "",
-      remark: "",
-      vyapariId: "",
-    },
-    {
-      id: "",
-      index: "",
-      name: "",
-      amount: "",
-      remark: "",
-      vyapariId: "",
-    },
-  ];
-
   useEffect(() => {
     fetch_pending_vasuli();
   }, []);
@@ -113,7 +54,7 @@ function PendingVasuli() {
   const fetch_pending_vasuli = async () => {
     const PendingVasuli = await getPendingVasuliList(`${vasuliSection}`);
     if (PendingVasuli?.responseBody?.length) {
-      let wrapped_arr = [...emptyVasuliArr, ...PendingVasuli?.responseBody, ...emptyVasuliArr];
+      let wrapped_arr = [...PendingVasuli?.responseBody];
       wrapped_arr.forEach((obj) => (obj.isChecked = false));
       setPendingVasuliList(wrapped_arr);
 
@@ -144,30 +85,22 @@ function PendingVasuli() {
   };
 
   const navigation = (direction) => {
-    const changedIndex = navigationIndex + 7 + direction;
+    const changedIndex = navigationIndex + direction;
 
-    if (
-      (pendingVasuliList[navigationIndex + 7].amount !== currAmount &&
-        !(currAmount === "" && pendingVasuliList[navigationIndex + 7].amount === null)) ||
-      (pendingVasuliList[navigationIndex + 7].remark !== remark &&
-        !(remark === "" && pendingVasuliList[navigationIndex + 7].remark === null))
-    ) {
-      editEntry();
-    }
+    editEntry();
     setNavigationIndex((prev) => prev + direction);
-    setCurrAmount(pendingVasuliList[changedIndex]?.amount ?? "");
-    setRemark(pendingVasuliList[changedIndex]?.remark ?? "");
-
-    amountRef.current.focus();
+    setVariablesOnNavigation(changedIndex);
+    if (amountRef.current) {
+      setTimeout(() => {
+        amountRef.current.focus();
+      }, 0);
+    }
   };
 
-  const amountChange = (amount) => {
-    setCurrAmount(amount);
-  };
-
-  const remarkChange = (remark) => {
-    setRemark(remark);
-  };
+  const setVariablesOnNavigation = (index) => {
+    setCurrAmount(pendingVasuliList[index]?.amount ?? "");
+    setRemark(pendingVasuliList[index]?.remark ?? "");
+  }
 
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -177,18 +110,25 @@ function PendingVasuli() {
   };
 
   const editEntry = async () => {
+
+    if (!(
+      (pendingVasuliList[navigationIndex].amount !== currAmount &&
+        !(currAmount === "" && pendingVasuliList[navigationIndex].amount === null)) ||
+      (pendingVasuliList[navigationIndex].remark !== remark &&
+        !(remark === "" && pendingVasuliList[navigationIndex].remark === null))
+    )) return;
     const editObject = {
       amount: currAmount,
-      vyapariId: pendingVasuliList[navigationIndex + 7].vyapariId,
+      vyapariId: pendingVasuliList[navigationIndex].vyapariId,
       remark: remark,
-      id: pendingVasuliList[navigationIndex + 7].id,
+      id: pendingVasuliList[navigationIndex].id,
     };
 
     const editRes = await editVasuli(editObject);
     if (editRes?.responseBody) {
       setPendingVasuliList((prev) => {
         const updatedList = [...prev];
-        const index = navigationIndex + 7;
+        const index = navigationIndex;
         updatedList[index] = {
           ...updatedList[index],
           amount: currAmount,
@@ -204,17 +144,17 @@ function PendingVasuli() {
       const formattedDate = `${day}/${month}/${year}`;
       if (sendWhatsApp)
         await whatsAppVasuli({
-          name: pendingVasuliList[navigationIndex + 7].vyapariName,
-          vyapariId: pendingVasuliList[navigationIndex + 7].vyapariId,
-          idNo: pendingVasuliList[navigationIndex + 7].idNo || "-",
-          contact: pendingVasuliList[navigationIndex + 7].contact,
+          name: pendingVasuliList[navigationIndex].vyapariName,
+          vyapariId: pendingVasuliList[navigationIndex].vyapariId,
+          idNo: pendingVasuliList[navigationIndex].idNo || "-",
+          contact: pendingVasuliList[navigationIndex].contact,
           message: currAmount,
           date: formattedDate,
           remark: remark || "-",
           templateName: "payment_receipt3",
         });
 
-      setTotalAmount((prev) => prev - Number(pendingVasuliList[navigationIndex + 7].amount) + Number(currAmount));
+      setTotalAmount((prev) => prev - Number(pendingVasuliList[navigationIndex].amount) + Number(currAmount));
       setSuccessTransactionDialog(true);
     }
   };
@@ -249,23 +189,29 @@ function PendingVasuli() {
   const commonCheckAll = (checked) => {
     setAllChecked(checked);
     setPendingVasuliList((prev) => {
-      if (checked) {
+      if (checked)
         return prev?.map((item) => ({ ...item, isChecked: item.amount != null && item.amount != "0" && item.amount != "0.00" && item.amount != item.lastNotifiedAmount }));
-      } else {
+      else
         return prev?.map((item) => ({ ...item, isChecked: false }));
-      }
     });
   };
 
   const toggleSelectItem = (index, checked) => {
-    console.log(index);
-
     setPendingVasuliList((prev) => {
       const updatedList = [...prev];
       updatedList[index].isChecked = checked;
       return updatedList;
     });
   };
+
+  const handleActivate = (index) => {
+    editEntry();
+    setNavigationIndex(index);
+    setVariablesOnNavigation(index);
+  };
+
+  const handleAmountChange = (val) => setCurrAmount(val);
+  const handleRemarkChange = (val) => setRemark(val);
 
   return (
     <>
@@ -306,81 +252,78 @@ function PendingVasuli() {
             </div>
             <div className={styles.row_two}>
               <ul className={styles.ul}>
-                <li className={`${styles.list_item} ${styles.list_header}`} key={0}>
-                  <div className={styles.remark_column}>
-                    <input type="checkbox" checked={allChecked} onChange={(e) => commonCheckAll(e.target.checked)} />
-                  </div>
-                  <div className={styles.vyapari_column}>VYAPARI</div>
-                  <div className={styles.small_column}>{isMobile ? "AMT" : "AMOUNT"}</div>
-                  <div className={styles.remark_column}>{isMobile ? "RMK" : "REMARK"}</div>
-                </li>
-                {pendingVasuliList.slice(navigationIndex, navigationIndex + 7)?.map((item, index) => {
-                  return (
-                    <li className={styles.list_item} key={index}>
-                      {item?.vyapariName && (
-                        <input
-                          type="checkbox"
-                          checked={item?.isChecked}
-                          onChange={(e) => toggleSelectItem(navigationIndex + index, e.target.checked)}
-                        />
-                      )}
-                      <div className={styles.vyapari_column}>{item?.vyapariName?.toUpperCase()}</div>
-                      <div className={styles.small_column}>{item?.amount}</div>
-                      <div className={styles.remark_column}>{item?.remark}</div>
-                    </li>
-                  );
-                })}
-                <li className={styles.selected_list_item}>
-                  <div>
+                <li className={`${styles.list_item} ${styles.list_header}`} key="header">
+                  <div className={styles.checkbox_column}>
                     <input
                       type="checkbox"
-                      checked={pendingVasuliList[navigationIndex + 7]?.isChecked}
-                      onChange={(e) => toggleSelectItem(navigationIndex + 7, e.target.checked)}
-                    />
-                  </div>
-                  <div className={styles.vyapari_column}>{pendingVasuliList[navigationIndex + 7]?.vyapariName?.toUpperCase()}</div>
-                  <div className={styles.small_column}>
-                    <input
-                      type="number"
-                      placeholder="Amount"
-                      className={styles.amount_input}
-                      ref={amountRef}
-                      value={currAmount}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          navigation(1);
-                        }
+                      checked={allChecked}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        commonCheckAll(checked);
                       }}
-                      onInput={(e) => amountChange(e.target.value)}
                     />
                   </div>
-                  <div className={styles.remark_column}>
-                    <input
-                      placeholder="Remark"
-                      tabIndex={-1}
-                      value={remark}
-                      className={styles.remark_input}
-                      onInput={(e) => remarkChange(e.target.value)}
-                    />
-                  </div>
+                  <div className={styles.vyapari_column}>VYAPARI</div>
+                  <div className={styles.small_column}>AMOUNT</div>
+                  <div className={styles.remark_column}>REMARK</div>
                 </li>
-                {pendingVasuliList.slice(navigationIndex + 8, navigationIndex + 15)?.map((item, index) => {
-                  return (
-                    <li className={styles.list_item} key={8 + index}>
-                      {item?.vyapariName && (
+                {pendingVasuliList.map((item, index) => (
+                  <li
+                    key={index}
+                    className={`${styles.list_item} ${styles.selectable_item} ${navigationIndex === index ? styles.selected_list_item : ""}`}
+                    onClick={() => handleActivate(index)}
+                  >
+                    <div className={styles.checkbox_column}>
+                      <input
+                        type="checkbox"
+                        checked={item.isChecked}
+                        onChange={(e) => {
+                          toggleSelectItem(index, e.target.checked);
+                        }}
+                        onClick={(e) => e.stopPropagation()} // don't activate when clicking checkbox
+                      />
+                    </div>
+                    <div className={styles.vyapari_column}>
+                      {item.vyapariName?.toUpperCase()}
+                    </div>
+                    <div className={styles.small_column}>
+                      {navigationIndex === index ? (
                         <input
-                          type="checkbox"
-                          checked={item?.isChecked}
-                          onChange={(e) => toggleSelectItem(navigationIndex + 8 + index, e.target.checked)}
+                          type="number"
+                          className={styles.amount_input}
+                          ref={amountRef}
+                          value={currAmount}
+                          placeholder="Amount"
+                          onKeyDownCapture={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              navigation(1);
+                            }
+                          }}
+                          onInput={(e) => handleAmountChange(e.target.value)}
+                          onClick={(e) => e.stopPropagation()} // prevent row activation re-trigger
                         />
+                      ) : (
+                        <span>{item.amount}</span>
                       )}
-                      <div className={styles.vyapari_column}>{item?.vyapariName?.toUpperCase()}</div>
-                      <div className={styles.small_column}>{item?.amount}</div>
-                      <div className={styles.remark_column}>{item?.remark}</div>
-                    </li>
-                  );
-                })}
+                    </div>
+                    <div className={styles.remark_column}>
+                      {navigationIndex === index ? (
+                        <input
+                          type="text"
+                          tabIndex={-1}
+                          className={styles.remark_input}
+                          value={remark}
+                          placeholder="Remark"
+                          onInput={(e) => handleRemarkChange(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <span>{item.remark}</span>
+                      )}
+                    </div>
+                  </li>
+                ))}
               </ul>
             </div>
             <div className={styles.row_three}>

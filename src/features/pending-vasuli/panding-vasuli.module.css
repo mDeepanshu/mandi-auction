@@ -1,7 +1,7 @@
 .container {
   background-color: #ebf0ff;
-  height: 100vh;
-  /* overflow-y: hidden; */
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .row_one_two, .row_one_one {
@@ -55,11 +55,13 @@
   width: 90%;
   /* height: 65vh; */
   /* max-height: 60vh; */
-  min-height: 53vh;
+  /* min-height: 43vh; */
   /* overflow-y: hidden; */
+  height: 60vh;
   background-color: white;
   border-radius: 10px;
   font-size: 13px;
+  overflow-y: scroll;
 }
 
 li {
@@ -72,6 +74,10 @@ li {
 
 .list_header {
   font-weight: 750;
+}
+
+.checkbox_column {
+  width: 10%;
 }
 
 .small_column {
