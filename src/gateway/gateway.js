@@ -30,8 +30,8 @@ export const syncAll = async () => {
 
     await Promise.all([
       runSync("Item", syncItems),
-      runSync("Vyapari", () => syncParties("VYAPARI")),
-      runSync("Kisan", () => syncParties("KISAN")),
+      runSync("Vyapari", () => syncParties("1")),
+      runSync("Kisan", () => syncParties("0")),
     ]);
 
     return "done";

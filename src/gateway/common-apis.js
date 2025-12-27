@@ -13,7 +13,7 @@ export const syncTransactions = async (api, data) => {
 
 export const syncItems = async () => {
     try {
-        const response = await axiosHttp.get('/listItems');
+        const response = await axiosHttp.get('/item/listItems');
         addItem(response.data.responseBody, "items");
     } catch (error) {
         console.error('Error posting data:', error);
@@ -26,7 +26,8 @@ export const syncItems = async () => {
 export const syncParties = async (partyType) => {
     try {
         const response = await axiosHttp.get(`/party/listAllParties?partyType=${partyType}`);
-        addItem(response.data.responseBody, partyType);
+        const type = partyType === "1" ? "VYAPARI" : "KISAN";
+        addItem(response.data.responseBody, type);
     } catch (error) {
         console.error('Error posting data:', error);
         return 'error';

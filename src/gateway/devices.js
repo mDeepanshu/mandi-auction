@@ -14,7 +14,7 @@ export const getDevices = async () => {
 
 export const updateStatus = async (deviceId) => {
     try {
-        const response = await axiosHttp.put(`device/${deviceId}/status?status=REQUESTED`);
+        const response = await axiosHttp.put(`device/updateStatus?id=${deviceId}&status=REQUESTED`);
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);
