@@ -26,8 +26,7 @@ export const syncItems = async () => {
 export const syncParties = async (partyType) => {
     try {
         const response = await axiosHttp.get(`/party/listAllParties?partyType=${partyType}`);
-        const type = partyType === "1" ? "VYAPARI" : "KISAN";
-        addItem(response.data.responseBody, type);
+        addItem(response.data.responseBody, partyType);
     } catch (error) {
         console.error('Error posting data:', error);
         return 'error';

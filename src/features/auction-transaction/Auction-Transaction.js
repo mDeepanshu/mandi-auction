@@ -97,11 +97,12 @@ function AuctionTransaction() {
         return rest;
       });
       const auctionData = {
-        kisanId: data.kisaan.partyId,
-        itemId: data.itemName.itemId,
+        kisan_id: data.kisaan.partyId,
+        item_id: data.itemName.item_id,
         buyItems,
         // auctionDate: `${data.date}T${new Date().toISOString().split("T")[1]}`,
         auctionDate: getUTCDateTimeFromDateOnly(data.date),
+        total_bags: Number(data.bagTotal),
       };
       try {
         await addAuctionTransaction(auctionData);
@@ -109,7 +110,7 @@ function AuctionTransaction() {
         reset();
         setValue("kisaan", null);
         setValue("itemName", null);
-        setValue("totalBag", null);
+        setValue("bagTotal", null);
         setTableData([]);
         let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
         let newLocal = oldLocal;
@@ -133,11 +134,11 @@ function AuctionTransaction() {
 
   const addBag = (event, adding) => {
     event.preventDefault();
-    const currentVal = getValues("bags");
+    const currentVal = getValues("bag");
     if (adding) {
-      setValue("bags", Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
+      setValue("bag", Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
     } else {
-      setValue("bags", Number(currentVal) - 1, { shouldValidate: true, shouldDirty: true });
+      setValue("bag", Number(currentVal) - 1, { shouldValidate: true, shouldDirty: true });
     }
   };
 
@@ -145,7 +146,7 @@ function AuctionTransaction() {
     if (event) {
       event.preventDefault();
     }
-    const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate", "date"]);
+    const result = await trigger(["kisaan", "itemName", "vyapari", "bag", "chungi", "rate", "date"]);
     if (!auctionType && (qty.length == 0 || qtyTotal == 0)) return;
     if (result) {
       const values = getValues();
@@ -164,7 +165,7 @@ function AuctionTransaction() {
         newAuctionRow.chungi = Number(values.chungi);
       } else {
         newAuctionRow.quantity = Number(qtyTotal);
-        newAuctionRow.bags = Number(values.bags);
+        newAuctionRow.bag = Number(values.bag);
       }
       addNewEntry({ trId: Number(Date.now().toString()), ...newAuctionRow, kisanName: values.kisaan.name, itemName: values.itemName.name });
 
@@ -177,7 +178,7 @@ function AuctionTransaction() {
       if (auctionType) {
         setValue("nag", null);
       } else {
-        setValue("bags", "");
+        setValue("bag", "");
         setValue("quantity", null);
       }
 
@@ -303,8 +304,8 @@ function AuctionTransaction() {
     }
     setQty([...qty, value]);
     setQtyTotal((prev) => Number(prev) + Number(value));
-    const currentVal = getValues("bags");
-    setValue("bags", Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
+    const currentVal = getValues("bag");
+    setValue("bag", Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
     setValue("quantity", "", { shouldValidate: false, shouldDirty: true });
   };
 
@@ -314,8 +315,8 @@ function AuctionTransaction() {
     newQty.splice(index, 1);
     setQty(newQty);
     setQtyTotal((prev) => Number(prev) - Number(qty[index]));
-    const currentVal = getValues("bags");
-    setValue("bags", Number(currentVal) - 1, { shouldValidate: true, shouldDirty: true });
+    const currentVal = getValues("bag");
+    setValue("bag", Number(currentVal) - 1, { shouldValidate: true, shouldDirty: true });
   };
 
   const vasuliDays = (maxLoanDays, lastVasuliDateString) => {
@@ -363,7 +364,7 @@ function AuctionTransaction() {
 
   const handleEnterKeyPress = (val) => {
     if (val === "submit" || auctionType) addToTable();
-    else setFocus("bags");
+    else setFocus("bag");
   };
   const debounceTimeout = useRef(null);
 
@@ -529,7 +530,7 @@ function AuctionTransaction() {
                     options={itemsList}
                     disabled={getValues()?.itemName && buyItemsArr.length > 0}
                     getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) => option.itemId === value.itemId}
+                    isOptionEqualToValue={(option, value) => option.item_id === value.item_id}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -565,7 +566,7 @@ function AuctionTransaction() {
             </div>
             <div className="totalBags">
               <Controller
-                name="totalBag"
+                name="bagTotal"
                 control={control}
                 defaultValue=""
                 rules={{ required: "Enter Total Bags" }}
@@ -586,7 +587,7 @@ function AuctionTransaction() {
                   />
                 )}
               />
-              <p className="err-msg">{errors.totalBag?.message}</p>
+              <p className="err-msg">{errors.bagTotal?.message}</p>
             </div>
             <div className="vyapari">
               <Controller
@@ -735,7 +736,7 @@ function AuctionTransaction() {
                 {!auctionType ? (
                   <>
                     <TextField
-                      {...register("bags", { required: "Bags is required" })}
+                      {...register("bag", { required: "Bags is required" })}
                       fullWidth
                       size="small"
                       label="Bags"
@@ -755,7 +756,7 @@ function AuctionTransaction() {
                         }
                       }}
                     />
-                    <p className="err-msg">{errors.bags?.message}</p>
+                    <p className="err-msg">{errors.bag?.message}</p>
                   </>
                 ) : (
                   <>
@@ -877,7 +878,7 @@ function AuctionTransaction() {
                         ) : (
                           <>
                             <StyledTableCell align="left">{row.rate}</StyledTableCell>
-                            <StyledTableCell align="left">{row.bags}</StyledTableCell>
+                            <StyledTableCell align="left">{row.bag}</StyledTableCell>
                             <StyledTableCell align="left">{row.rate * row.quantity}</StyledTableCell>
                           </>
                         )}

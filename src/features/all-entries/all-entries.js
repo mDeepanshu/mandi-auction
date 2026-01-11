@@ -31,7 +31,7 @@ function AllEntries() {
     "bagWiseQuantity",
     "chungi",
     "amount",
-    "bag",
+    "bags",
     "auctionDate",
   ]);
   const [tabletList, setTabletList] = useState([]);

@@ -11,7 +11,7 @@ export const addItemGlobal = async (data) => {
 
 export const getItem = async () => {
     try {
-        const response = await axiosHttp.get('/items/listItems');
+        const response = await axiosHttp.get('/item/listItems');
         return response.data;
     } catch (error) {
         console.error('Error posting data:', error);
