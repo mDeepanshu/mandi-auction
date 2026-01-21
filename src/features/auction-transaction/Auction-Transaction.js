@@ -401,9 +401,6 @@ function AuctionTransaction() {
       <div className="wrapper">
         <form>
           <div className="container">
-            {/* <div className='full-grid-heading hidden-xs'>
-            <h1>AUCTION TRANSACTION</h1>
-          </div> */}
             <div className="auction_date">
               <Controller
                 name="date"
@@ -424,29 +421,6 @@ function AuctionTransaction() {
                 )}
               />
               <p className="err-msg">{errors.date?.message}</p>
-            </div>
-            <div className="switch">
-              <FormControlLabel
-                control={
-                  <Controller
-                    name="auctionType"
-                    control={control}
-                    defaultValue={false}
-                    render={({ field }) => (
-                      <Switch
-                        {...field}
-                        checked={field.value}
-                        onChange={(event) => {
-                          field.onChange(event.target.checked);
-                          changeAuctionType(event.target.checked);
-                        }}
-                        disabled={buyItemsArr.length > 0}
-                      />
-                    )}
-                  />
-                }
-                label="TYPE"
-              />
             </div>
             <div className="submit-area">
               <Button type="button" variant="contained" color="primary" onClick={onSubmit}>
@@ -661,51 +635,35 @@ function AuctionTransaction() {
             <div className="quantity">
               <div className="qty-input">
                 <div>
-                  {auctionType ? (
-                    <>
-                      <TextField
-                        {...register("nag", { required: "ENTER NAG" })}
-                        fullWidth
-                        size="small"
-                        label="NAG"
-                        type="number"
-                        variant="outlined"
-                      />
-                      <p className="err-msg">{errors.nag?.message}</p>
-                    </>
-                  ) : (
-                    <>
-                      <TextField
-                        {...register("quantity", { required: "Enter Quantity" })}
-                        fullWidth
-                        size="small"
-                        label="QUANTITY"
-                        type="number"
-                        variant="outlined"
-                      />
-                      <p className="err-msg">{errors.quantity?.message}</p>
-                    </>
-                  )}
+                  <>
+                    <TextField
+                      {...register("quantity", { required: "Enter Quantity" })}
+                      fullWidth
+                      size="small"
+                      label="QUANTITY"
+                      type="number"
+                      variant="outlined"
+                    />
+                    <p className="err-msg">{errors.quantity?.message}</p>
+                  </>
                 </div>
                 <button className="add-qty-btn" onClick={newQty}>
                   A
                 </button>
               </div>
-              {!auctionType && (
-                <div className="quantity-list">
-                  <ul className="horizontal-list">
-                    {qty?.map((item, index) => (
-                      <li key={index}>
-                        {item}
-                        <button className="qty-btn" onClick={(event) => removeQty(event, index)}>
-                          x
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="qty-total">{qtyTotal}</div>
-                </div>
-              )}
+              <div className="quantity-list">
+                <ul className="horizontal-list">
+                  {qty?.map((item, index) => (
+                    <li key={index}>
+                      {item}
+                      <button className="qty-btn" onClick={(event) => removeQty(event, index)}>
+                        x
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="qty-total">{qtyTotal}</div>
+              </div>
             </div>
             <div className="rate">
               <TextField
@@ -732,57 +690,28 @@ function AuctionTransaction() {
             </div>
             <div className="bags-box">
               <div className="bag">
-                {!auctionType ? (
-                  <>
-                    <TextField
-                      {...register("bags", { required: "Bags is required" })}
-                      fullWidth
-                      size="small"
-                      label="Bags"
-                      placeholder="Bags"
-                      type="number"
-                      variant="outlined"
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                      inputProps={{
-                        tabIndex: -1,
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleEnterKeyPress(`submit`);
-                        }
-                      }}
-                    />
-                    <p className="err-msg">{errors.bags?.message}</p>
-                  </>
-                ) : (
-                  <>
-                    <TextField
-                      {...register("chungi", { required: "Chungi is required" })}
-                      fullWidth
-                      label="CHUNGI"
-                      size="small"
-                      placeholder="CHUNGI"
-                      type="number"
-                      variant="outlined"
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                      inputProps={{
-                        tabIndex: -1,
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleEnterKeyPress(`submit`);
-                        }
-                      }}
-                    />
-                    <p className="err-msg">{errors.chungi?.message}</p>
-                  </>
-                )}
+                <TextField
+                  {...register("bags", { required: "Bags is required" })}
+                  fullWidth
+                  size="small"
+                  label="Bags"
+                  placeholder="Bags"
+                  type="number"
+                  variant="outlined"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  inputProps={{
+                    tabIndex: -1,
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleEnterKeyPress(`submit`);
+                    }
+                  }}
+                />
+                <p className="err-msg">{errors.bags?.message}</p>
               </div>
               <div className="btn-1 count-btn">
                 <button onClick={(event) => addBag(event, true)} className="add-btn secondary-btn one">
@@ -792,6 +721,30 @@ function AuctionTransaction() {
                   -
                 </button>
               </div>
+            </div>
+            <div className="chungi">
+              <TextField
+                {...register("chungi", { required: "Chungi is required" })}
+                fullWidth
+                label="CHUNGI"
+                size="small"
+                placeholder="CHUNGI"
+                type="number"
+                variant="outlined"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                inputProps={{
+                  tabIndex: -1,
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleEnterKeyPress(`submit`);
+                  }
+                }}
+              />
+              <p className="err-msg">{errors.chungi?.message}</p>
             </div>
             <div className="btn-2">
               <button onClick={(event) => addToTable(event)} className="add-btn">

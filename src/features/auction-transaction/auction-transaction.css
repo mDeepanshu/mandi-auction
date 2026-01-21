@@ -1,4 +1,4 @@
-.wrapper{
+.wrapper {
   padding-top: 4rem;
 }
 
@@ -81,20 +81,25 @@
 
 .rate {
   grid-column-start: 1;
-  grid-column-end: 6;
+  grid-column-end: 5;
 }
 
 .bags-box {
-  grid-column-start: 6;
-  grid-column-end: 12;
+  grid-column-start: 5;
+  grid-column-end: 10;
   display: flex;
   flex-wrap: wrap;
   padding: 3px;
   margin-top: -3px;
 }
 
+.chungi {
+  grid-column-start: 10;
+  grid-column-end: 13;
+}
+
 .btn-2 {
-  grid-column-start: 12;
+  grid-column-start: 13;
   grid-column-end: 17;
 }
 
@@ -200,7 +205,7 @@
   min-height: 130px;
 }
 
-@media (min-width: 650px) {
+@media (min-width: 940px) {
 
   .table_container {
     height: calc(100vh - 330px);
@@ -230,27 +235,32 @@
 
   .vyapari {
     grid-column-start: 1;
-    grid-column-end: 7;
+    grid-column-end: 6;
   }
 
   .quantity {
-    grid-column-start: 7;
+    grid-column-start: 6;
     grid-column-end: 10;
   }
 
   .rate {
     grid-column-start: 10;
-    grid-column-end: 12;
+    grid-column-end: 11;
   }
 
   .bags-box {
-    grid-column-start: 12;
-    grid-column-end: 15;
+    grid-column-start: 11;
+    grid-column-end: 13;
     display: flex;
     /* flex-wrap: wrap; */
     /* Adds a solid black border around the container */
     /* padding: 3px; */
     /* margin-top: -3px; */
+  }
+
+  .chungi {
+    grid-column-start: 13;
+    grid-column-end: 15;
   }
 
   .btn-2 {
