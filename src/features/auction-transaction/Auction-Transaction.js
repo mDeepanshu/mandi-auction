@@ -82,7 +82,7 @@ function AuctionTransaction() {
   const kisanRef = useRef(null);
   const itemRef = useRef(null);
   const totalBagInputRef = useRef(null);
-  const auctionType = watch("auctionType");
+  // const auctionType = watch("auctionType");
   // const auctionType = false;
   const [openConformationDialog, setOpenConformationDialog] = useState(false);
   const [deleteRow, setDeleteRow] = useState();
@@ -146,7 +146,7 @@ function AuctionTransaction() {
       event.preventDefault();
     }
     const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate", "date"]);
-    if (!auctionType && (qty.length == 0 || qtyTotal == 0)) return;
+    if (qty.length == 0 || qtyTotal == 0) return;
     if (result) {
       const values = getValues();
       const newAuctionRow = {
@@ -159,13 +159,10 @@ function AuctionTransaction() {
         // auctionDate: `${values.date}T${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
       };
 
-      if (auctionType) {
-        newAuctionRow.quantity = Number(values.nag);
-        newAuctionRow.chungi = Number(values.chungi);
-      } else {
-        newAuctionRow.quantity = Number(qtyTotal);
-        newAuctionRow.bags = Number(values.bags);
-      }
+
+      newAuctionRow.chungi = Number(values.chungi);
+      newAuctionRow.quantity = Number(qtyTotal);
+      newAuctionRow.bags = Number(values.bags);
       addNewEntry({ trId: Number(Date.now().toString()), ...newAuctionRow, kisanName: values.kisaan.name, itemName: values.itemName.name });
 
       let newTableData = [newAuctionRow, ...buyItemsArr];
@@ -174,12 +171,8 @@ function AuctionTransaction() {
       setQty([]);
       setQtyTotal(0);
       setValue("vyapari", null);
-      if (auctionType) {
-        setValue("nag", null);
-      } else {
-        setValue("bags", "");
-        setValue("quantity", null);
-      }
+      setValue("bags", "");
+      setValue("quantity", null);
 
       const currAuctionSate = {
         formValues: getValues(),
@@ -362,7 +355,7 @@ function AuctionTransaction() {
   };
 
   const handleEnterKeyPress = (val) => {
-    if (val === "submit" || auctionType) addToTable();
+    if (val === "submit") addToTable();
     else setFocus("bags");
   };
   const debounceTimeout = useRef(null);
@@ -759,31 +752,18 @@ function AuctionTransaction() {
                       <TableCell align="left">
                         <b>VYAPARI NAME</b>
                       </TableCell>
-                      {auctionType ? (
-                        <>
-                          <TableCell align="left">
-                            <b>NAG</b>
-                          </TableCell>
-                          <TableCell align="left">
-                            <b>RATE</b>
-                          </TableCell>
-                          <TableCell align="left">
-                            <b>CHUNGI</b>
-                          </TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell align="left">
-                            <b>QUANTITY</b>
-                          </TableCell>
-                          <TableCell align="left">
-                            <b>RATE</b>
-                          </TableCell>
-                          <TableCell align="left">
-                            <b>BAGS</b>
-                          </TableCell>
-                        </>
-                      )}
+                      <TableCell align="left">
+                        <b>CHUNGI</b>
+                      </TableCell>
+                      <TableCell align="left">
+                        <b>QUANTITY</b>
+                      </TableCell>
+                      <TableCell align="left">
+                        <b>RATE</b>
+                      </TableCell>
+                      <TableCell align="left">
+                        <b>BAGS</b>
+                      </TableCell>
                       <TableCell>
                         <b>TOTAL</b>
                       </TableCell>
@@ -796,19 +776,10 @@ function AuctionTransaction() {
                     </TableRow>
                     <TableRow style={{ display: matchesTwo ? "table-row" : "none" }}>
                       <TableCell align="left">VYAPARI</TableCell>
-                      {auctionType ? (
-                        <>
-                          <TableCell align="left">N</TableCell>
-                          <TableCell align="left">R</TableCell>
-                          <TableCell align="left">C</TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell align="left">Q</TableCell>
-                          <TableCell align="left">R</TableCell>
-                          <TableCell align="left">B</TableCell>
-                        </>
-                      )}
+                      <TableCell align="left">C</TableCell>
+                      <TableCell align="left">Q</TableCell>
+                      <TableCell align="left">R</TableCell>
+                      <TableCell align="left">B</TableCell>
                       <TableCell align="left">T</TableCell>
                       <TableCell align="centre">E</TableCell>
                       <TableCell align="centre">D</TableCell>
@@ -821,19 +792,10 @@ function AuctionTransaction() {
                           {row.vyapariName}
                         </StyledTableCell>
                         <StyledTableCell align="left">{row.quantity}</StyledTableCell>
-                        {auctionType ? (
-                          <>
-                            <StyledTableCell align="left">{row.rate}</StyledTableCell>
-                            <StyledTableCell align="left">{row.chungi}</StyledTableCell>
-                            <StyledTableCell align="left">{(row.rate + row.chungi) * row.quantity}</StyledTableCell>
-                          </>
-                        ) : (
-                          <>
-                            <StyledTableCell align="left">{row.rate}</StyledTableCell>
-                            <StyledTableCell align="left">{row.bags}</StyledTableCell>
-                            <StyledTableCell align="left">{row.rate * row.quantity}</StyledTableCell>
-                          </>
-                        )}
+                        <StyledTableCell align="left">{row.rate}</StyledTableCell>
+                        <StyledTableCell align="left">{row.bags}</StyledTableCell>
+                        <StyledTableCell align="left">{row.chungi}</StyledTableCell>
+                        <StyledTableCell align="left">{(row.rate + row.chungi) * row.quantity}</StyledTableCell>
                         <StyledTableCell align="centre">
                           <Button onClick={() => editFromTable(index)}>
                             <Edit />

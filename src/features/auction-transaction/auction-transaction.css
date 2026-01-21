@@ -388,3 +388,7 @@
     /* Correct display value for table rows */
   }
 }
+
+.css-y8ay40-MuiTableCell-root {
+  padding: 16px 8px !important;
+}
