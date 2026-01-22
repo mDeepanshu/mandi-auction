@@ -356,6 +356,7 @@ function AuctionTransaction() {
 
   const handleEnterKeyPress = (val) => {
     if (val === "submit") addToTable();
+    else if (val === "submitrate") setFocus("chungi");
     else setFocus("bags");
   };
   const debounceTimeout = useRef(null);
@@ -675,7 +676,7 @@ function AuctionTransaction() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    handleEnterKeyPress(`submit`);
+                    handleEnterKeyPress(`submitrate`);
                   }
                 }}
               />
@@ -753,9 +754,6 @@ function AuctionTransaction() {
                         <b>VYAPARI NAME</b>
                       </TableCell>
                       <TableCell align="left">
-                        <b>CHUNGI</b>
-                      </TableCell>
-                      <TableCell align="left">
                         <b>QUANTITY</b>
                       </TableCell>
                       <TableCell align="left">
@@ -763,6 +761,9 @@ function AuctionTransaction() {
                       </TableCell>
                       <TableCell align="left">
                         <b>BAGS</b>
+                      </TableCell>
+                      <TableCell align="left">
+                        <b>CHUNGI</b>
                       </TableCell>
                       <TableCell>
                         <b>TOTAL</b>
