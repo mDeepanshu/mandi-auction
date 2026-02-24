@@ -556,7 +556,7 @@ const VasuliTransaction = () => {
           <div style={{ display: "none" }}>
             <div ref={printRef} className={styles.printContainer}>
               <div className={styles.printHeadings}>
-                <div>****H.I.S ---- MOBILE: 9826306406****</div>
+                <div>****H.M.B ---- MOBILE: 9977426390****</div>
               </div>
               <hr className={styles.line} />
               <div className={styles.printData}>

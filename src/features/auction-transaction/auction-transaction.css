@@ -52,13 +52,13 @@
 
 .item {
   grid-column-start: 9;
-  grid-column-end: 14;
-}
-
-.totalBags {
-  grid-column-start: 14;
   grid-column-end: 17;
 }
+
+/* .totalBags {
+  grid-column-start: 14;
+  grid-column-end: 17;
+} */
 
 .vyapari {
   grid-column-start: 1;
@@ -105,7 +105,7 @@
 
 
 .bag {
-  width: 73%;
+  /* width: 73%; */
 }
 
 .btn-1 {
@@ -190,7 +190,7 @@
 
 .bags-field {
   height: 3.3rem;
-  width: 80%;
+  /* width: 80%; */
   border-radius: 5px;
   font-size: 15px;
   padding-left: 10px;
@@ -240,22 +240,22 @@
 
   .quantity {
     grid-column-start: 6;
-    grid-column-end: 10;
-  }
-
-  .rate {
-    grid-column-start: 10;
-    grid-column-end: 11;
+    grid-column-end: 9;
   }
 
   .bags-box {
-    grid-column-start: 11;
-    grid-column-end: 13;
+    grid-column-start: 9;
+    grid-column-end: 11;
     display: flex;
     /* flex-wrap: wrap; */
     /* Adds a solid black border around the container */
     /* padding: 3px; */
     /* margin-top: -3px; */
+  }
+
+  .rate {
+    grid-column-start: 11;
+    grid-column-end: 13;
   }
 
   .chungi {

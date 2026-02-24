@@ -146,22 +146,21 @@ function AuctionTransaction() {
       event.preventDefault();
     }
     const result = await trigger(["kisaan", "itemName", "vyapari", "bags", "chungi", "rate", "date"]);
-    if (qty.length == 0 || qtyTotal == 0) return;
     if (result) {
       const values = getValues();
       const newAuctionRow = {
         vyapariName: values.vyapari.name,
         vyapariId: values.vyapari.partyId,
         rate: Number(values.rate),
-        bagWiseQuantity: qty,
+        bagWiseQuantity: [],
         auctionDate: getUTCDateTimeFromDateOnly(values.date).slice(0, -1),
         // auctionDate: new Date(`${values.date}T${new Date().toISOString().split("T")[1].slice(0, -1)}`).toISOString(),
         // auctionDate: `${values.date}T${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
       };
 
 
-      newAuctionRow.chungi = Number(values.chungi);
-      newAuctionRow.quantity = Number(qtyTotal);
+      newAuctionRow.chungi = 10;
+      newAuctionRow.quantity = Number(values.quantity);
       newAuctionRow.bags = Number(values.bags);
       addNewEntry({ trId: Number(Date.now().toString()), ...newAuctionRow, kisanName: values.kisaan.name, itemName: values.itemName.name });
 
@@ -296,8 +295,8 @@ function AuctionTransaction() {
     }
     setQty([...qty, value]);
     setQtyTotal((prev) => Number(prev) + Number(value));
-    const currentVal = getValues("bags");
-    setValue("bags", Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
+    // const currentVal = getValues("bags");
+    // setValue("bags", Number(currentVal) + 1, { shouldValidate: true, shouldDirty: true });
     setValue("quantity", "", { shouldValidate: false, shouldDirty: true });
   };
 
@@ -355,10 +354,21 @@ function AuctionTransaction() {
   };
 
   const handleEnterKeyPress = (val) => {
-    if (val === "submit") addToTable();
-    else if (val === "submitrate") setFocus("chungi");
-    else setFocus("bags");
+
+    const rateValue = getValues("rate");
+
+    if (val === "frombags") {
+      calculateChungi();
+      if (!rateValue) setFocus("rate");
+      else addToTable();
+    }
+    else if (val === "fromrate") addToTable();
   };
+
+  const calculateChungi = () => {
+    setValue("chungi", Number(getValues("bags")) * 10, { shouldValidate: true, shouldDirty: true });
+  }
+
   const debounceTimeout = useRef(null);
 
   const autoSetVyapari = (event) => {
@@ -522,7 +532,8 @@ function AuctionTransaction() {
                     )}
                     onChange={(event, value) => {
                       field.onChange(value); // Updates the React Hook Form state
-                      totalBagInputRef.current.focus();
+                      vyapariRef.current.focus();
+                      // setFocus("vyapari");
                     }}
                     disablePortal
                     id="combo-box-demo"
@@ -531,7 +542,7 @@ function AuctionTransaction() {
               />
               <p className="err-msg">{errors.itemName?.message}</p>
             </div>
-            <div className="totalBags">
+            {/* <div className="totalBags">
               <Controller
                 name="totalBag"
                 control={control}
@@ -555,7 +566,7 @@ function AuctionTransaction() {
                 )}
               />
               <p className="err-msg">{errors.totalBag?.message}</p>
-            </div>
+            </div> */}
             <div className="vyapari">
               <Controller
                 name="vyapari"
@@ -627,25 +638,31 @@ function AuctionTransaction() {
               <p className="err-msg">{errors.vyapari?.message}</p>
             </div>
             <div className="quantity">
-              <div className="qty-input">
-                <div>
-                  <>
-                    <TextField
-                      {...register("quantity", { required: "Enter Quantity" })}
-                      fullWidth
-                      size="small"
-                      label="QUANTITY"
-                      type="number"
-                      variant="outlined"
-                    />
-                    <p className="err-msg">{errors.quantity?.message}</p>
-                  </>
-                </div>
-                <button className="add-qty-btn" onClick={newQty}>
-                  A
-                </button>
+              {/* <div className="qty-input"> */}
+              <div>
+                <>
+                  <TextField
+                    {...register("quantity", { required: "Enter Quantity" })}
+                    fullWidth
+                    size="small"
+                    label="QUANTITY"
+                    type="number"
+                    variant="outlined"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        setFocus("bags");
+                      }
+                    }}
+                  />
+                  <p className="err-msg">{errors.quantity?.message}</p>
+                </>
               </div>
-              <div className="quantity-list">
+              {/* <button className="add-qty-btn" onClick={newQty}>
+                  A
+                </button> */}
+              {/* </div> */}
+              {/* <div className="quantity-list">
                 <ul className="horizontal-list">
                   {qty?.map((item, index) => (
                     <li key={index}>
@@ -657,7 +674,41 @@ function AuctionTransaction() {
                   ))}
                 </ul>
                 <div className="qty-total">{qtyTotal}</div>
-              </div>
+              </div> */}
+            </div>
+            <div className="bags-box">
+              {/* <div className="bag"> */}
+              <TextField
+                {...register("bags", { required: "Bags is required" })}
+                fullWidth
+                size="small"
+                label="Bags"
+                placeholder="Bags"
+                type="number"
+                variant="outlined"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                inputProps={{
+                  tabIndex: -1,
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleEnterKeyPress("frombags");
+                  }
+                }}
+              />
+              <p className="err-msg">{errors.bags?.message}</p>
+              {/* </div> */}
+              {/* <div className="btn-1 count-btn">
+                <button onClick={(event) => addBag(event, true)} className="add-btn secondary-btn one">
+                  +
+                </button>
+                <button onClick={(event) => addBag(event, false)} className="add-btn secondary-btn one two">
+                  -
+                </button>
+              </div> */}
             </div>
             <div className="rate">
               <TextField
@@ -666,6 +717,7 @@ function AuctionTransaction() {
                 size="small"
                 label="RATE"
                 type="number"
+                placeholder="Rate"
                 variant="outlined"
                 InputLabelProps={{
                   shrink: true,
@@ -676,53 +728,19 @@ function AuctionTransaction() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    handleEnterKeyPress(`submitrate`);
+                    handleEnterKeyPress("fromrate");
                   }
                 }}
               />
               {errors.rate && <p className="err-msg">{errors.rate.message}</p>}
             </div>
-            <div className="bags-box">
-              <div className="bag">
-                <TextField
-                  {...register("bags", { required: "Bags is required" })}
-                  fullWidth
-                  size="small"
-                  label="Bags"
-                  placeholder="Bags"
-                  type="number"
-                  variant="outlined"
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  inputProps={{
-                    tabIndex: -1,
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleEnterKeyPress(`submit`);
-                    }
-                  }}
-                />
-                <p className="err-msg">{errors.bags?.message}</p>
-              </div>
-              <div className="btn-1 count-btn">
-                <button onClick={(event) => addBag(event, true)} className="add-btn secondary-btn one">
-                  +
-                </button>
-                <button onClick={(event) => addBag(event, false)} className="add-btn secondary-btn one two">
-                  -
-                </button>
-              </div>
-            </div>
             <div className="chungi">
               <TextField
-                {...register("chungi", { required: "Chungi is required" })}
+                {...register("chungi", { required: "Commission is required" })}
                 fullWidth
-                label="CHUNGI"
+                label="Commission"
                 size="small"
-                placeholder="CHUNGI"
+                placeholder="Commission"
                 type="number"
                 variant="outlined"
                 InputLabelProps={{
@@ -730,12 +748,6 @@ function AuctionTransaction() {
                 }}
                 inputProps={{
                   tabIndex: -1,
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleEnterKeyPress(`submit`);
-                  }
                 }}
               />
               <p className="err-msg">{errors.chungi?.message}</p>
@@ -763,7 +775,7 @@ function AuctionTransaction() {
                         <b>BAGS</b>
                       </TableCell>
                       <TableCell align="left">
-                        <b>CHUNGI</b>
+                        <b>COMMISSION</b>
                       </TableCell>
                       <TableCell>
                         <b>TOTAL</b>
@@ -796,7 +808,7 @@ function AuctionTransaction() {
                         <StyledTableCell align="left">{row.rate}</StyledTableCell>
                         <StyledTableCell align="left">{row.bags}</StyledTableCell>
                         <StyledTableCell align="left">{row.chungi}</StyledTableCell>
-                        <StyledTableCell align="left">{(row.rate + row.chungi) * row.quantity}</StyledTableCell>
+                        <StyledTableCell align="left">{(row.rate * row.quantity) + (10 * row.bags)}</StyledTableCell>
                         <StyledTableCell align="centre">
                           <Button onClick={() => editFromTable(index)}>
                             <Edit />
