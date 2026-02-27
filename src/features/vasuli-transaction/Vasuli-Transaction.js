@@ -565,7 +565,7 @@ const VasuliTransaction = () => {
                 </div>
                 <div>DATE: {printData?.date}</div>
                 <div>AMOUNT: {printData?.amount}</div>
-                <div>REMARK: {printData?.remark}</div>
+                <div>बकाया: {printData?.remark}</div>
               </div>
               <b>
                 <hr className={styles.line} />
