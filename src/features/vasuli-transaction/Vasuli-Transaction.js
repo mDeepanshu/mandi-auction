@@ -157,7 +157,7 @@ const VasuliTransaction = () => {
     };
     setPrintTable((prevItems) => [vasuliTran, ...prevItems]);
 
-    if (formValue.toggle) setPrintData({ ...vasuliTran, date: formValue.date });
+    if (formValue.toggle) setPrintData({ ...vasuliTran, date:  new Date(formValue.date).toLocaleDateString('en-GB') });
     if (formValue.whatsappToggle) sendWhatsAppReceipt(vasuliTran, 0);
     if (formValue.appNotiToggle) appNotification(vasuliTran, 0);
 
