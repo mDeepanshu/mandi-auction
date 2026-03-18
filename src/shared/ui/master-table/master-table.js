@@ -157,6 +157,8 @@ function MasterTable(props) {
                           case "date":
                           case "auctionDate":
                             return new Date(rowData[key] + "Z").toLocaleString();
+                          case "amount":
+                            return rowData[key] + "/-";
                           default:
                             return rowData[key];
                         }

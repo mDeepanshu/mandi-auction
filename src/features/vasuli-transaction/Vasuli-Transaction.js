@@ -564,7 +564,7 @@ const VasuliTransaction = () => {
                   NAME: {printData?.name} | {printData?.idNo}{" "}
                 </div>
                 <div>DATE: {printData?.date}</div>
-                <div>AMOUNT: {printData?.amount}</div>
+                <div>AMOUNT: {printData?.amount}/-</div>
                 <div>बकाया: {printData?.remark}</div>
               </div>
               <b>
