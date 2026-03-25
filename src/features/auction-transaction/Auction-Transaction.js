@@ -159,9 +159,9 @@ function AuctionTransaction() {
       };
 
 
-      newAuctionRow.chungi = 10;
       newAuctionRow.quantity = Number(values.quantity);
       newAuctionRow.bags = Number(values.bags);
+      newAuctionRow.chungi = Number(values.chungi || 0);
       addNewEntry({ trId: Number(Date.now().toString()), ...newAuctionRow, kisanName: values.kisaan.name, itemName: values.itemName.name });
 
       let newTableData = [newAuctionRow, ...buyItemsArr];
@@ -358,16 +358,11 @@ function AuctionTransaction() {
     const rateValue = getValues("rate");
 
     if (val === "frombags") {
-      calculateChungi();
       if (!rateValue) setFocus("rate");
       else addToTable();
     }
     else if (val === "fromrate") addToTable();
   };
-
-  const calculateChungi = () => {
-    setValue("chungi", Number(getValues("bags")) * 10, { shouldValidate: true, shouldDirty: true });
-  }
 
   const debounceTimeout = useRef(null);
 
@@ -736,11 +731,12 @@ function AuctionTransaction() {
             </div>
             <div className="chungi">
               <TextField
-                {...register("chungi", { required: "Commission is required" })}
+                {...register("chungi", { required: "Chungi is required" })}
                 fullWidth
-                label="Commission"
+                label="Chungi"
                 size="small"
-                placeholder="Commission"
+                placeholder="Chungi"
+                defaultValue={10}
                 type="number"
                 variant="outlined"
                 InputLabelProps={{
@@ -775,6 +771,9 @@ function AuctionTransaction() {
                         <b>BAGS</b>
                       </TableCell>
                       <TableCell align="left">
+                        <b>CHUNGI</b>
+                      </TableCell>
+                      <TableCell align="left">
                         <b>COMMISSION</b>
                       </TableCell>
                       <TableCell>
@@ -789,10 +788,11 @@ function AuctionTransaction() {
                     </TableRow>
                     <TableRow style={{ display: matchesTwo ? "table-row" : "none" }}>
                       <TableCell align="left">VYAPARI</TableCell>
-                      <TableCell align="left">C</TableCell>
                       <TableCell align="left">Q</TableCell>
                       <TableCell align="left">R</TableCell>
                       <TableCell align="left">B</TableCell>
+                      <TableCell align="left">CH</TableCell>
+                      <TableCell align="left">CO</TableCell>
                       <TableCell align="left">T</TableCell>
                       <TableCell align="centre">E</TableCell>
                       <TableCell align="centre">D</TableCell>
@@ -808,7 +808,8 @@ function AuctionTransaction() {
                         <StyledTableCell align="left">{row.rate}</StyledTableCell>
                         <StyledTableCell align="left">{row.bags}</StyledTableCell>
                         <StyledTableCell align="left">{row.chungi}</StyledTableCell>
-                        <StyledTableCell align="left">{(row.rate * row.quantity) + (10 * row.bags)}</StyledTableCell>
+                        <StyledTableCell align="left">{row.chungi * row.bags}</StyledTableCell>
+                        <StyledTableCell align="left">{(row.rate * row.quantity) + (row.chungi * row.bags)}</StyledTableCell>
                         <StyledTableCell align="centre">
                           <Button onClick={() => editFromTable(index)}>
                             <Edit />
