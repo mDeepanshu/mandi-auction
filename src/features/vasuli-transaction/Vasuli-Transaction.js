@@ -94,6 +94,14 @@ const VasuliTransaction = () => {
   };
 
   useEffect(() => {
+    if (watchedVyapariId) {
+      document.title = watchedVyapariId.name;
+    } else {
+      document.title = "Mandi Auction";
+    }
+  }, [watchedVyapariId]);
+
+  useEffect(() => {
     fetchList("VYAPARI");
     if (isSmallScreen) {
       setColumns(["INDEX", "NAME", "AMOUNT"]);
