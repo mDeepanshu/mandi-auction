@@ -166,9 +166,7 @@ const VasuliTransaction = () => {
     if (formValue.toggle) setPrintData({ ...vasuliTran, date: formValue.date });
     if (formValue.whatsappToggle) sendWhatsAppReceipt(vasuliTran, 0);
     if (formValue.appNotiToggle) appNotification(vasuliTran, 0);
-    if(formValue.speakOn){
-      speak(formValue.amount, formValue.vyapariId?.idNo, formValue.vyapariId?.name);
-    }
+
     syncTran(vasuliTran, 0, true);
     reset({
       vyapariId: null,
@@ -192,6 +190,10 @@ const VasuliTransaction = () => {
     const syncStatus = dataSaved.responseCode === "200" ? "SUCCESS" : "FAILED";
     updateStatusInArray(index, "syncStatus", syncStatus);
     if (dataSaved.responseCode === "200") {
+      const formValue = getValues();
+      if (formValue.speakOn) {
+        speak(formValue.amount, formValue.vyapariId?.idNo, formValue.vyapariId?.name);
+      }
       setOpen({
         open: true,
         message: "Sync Successful.",
