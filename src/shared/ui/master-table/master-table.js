@@ -10,6 +10,7 @@ import PrintIcon from "@mui/icons-material/Print";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import ReplayIcon from '@mui/icons-material/Replay';
+import { CampaignOutlined } from "@mui/icons-material";
 
 function MasterTable(props) {
   const [open, setOpen] = useState(false);
@@ -144,6 +145,12 @@ function MasterTable(props) {
                             return (
                               <Button onClick={() => props.appNotification(rowData, index)}>
                                 <PhoneAndroidIcon />
+                              </Button>
+                            );
+                          case "speakOn":
+                            return (
+                              <Button onClick={() => props.speak( rowData.amount, rowData.idNo, rowData.name )}>
+                                <CampaignOutlined />
                               </Button>
                             );
                           case "syncTran":
