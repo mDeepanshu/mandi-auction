@@ -190,9 +190,8 @@ const VasuliTransaction = () => {
     const syncStatus = dataSaved.responseCode === "200" ? "SUCCESS" : "FAILED";
     updateStatusInArray(index, "syncStatus", syncStatus);
     if (dataSaved.responseCode === "200") {
-      const formValue = getValues();
-      if (formValue.speakOn) {
-        speak(formValue.amount, formValue.vyapariId?.idNo, formValue.vyapariId?.name);
+      if (rowData?.speakOn) {
+        speak(rowData?.amount, rowData?.idNo, rowData?.name);
       }
       setOpen({
         open: true,
