@@ -16,6 +16,8 @@ import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 
 import MasterTable from "../../shared/ui/master-table/master-table";
 import { useMediaQuery } from "@mui/material";
+import { speakCreditEntry } from "../../utils/announcement";
+import { CampaignOutlined } from "@mui/icons-material";
 
 const VasuliTransaction = () => {
   const printRef = useRef();
@@ -41,9 +43,8 @@ const VasuliTransaction = () => {
   const [printTable, setPrintTable] = useState([]);
 
   const isSmallScreen = useMediaQuery("(max-width:495px)");
-  const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "WHATSAPP", "NOTIFICATION", "PRINT", "RESEND", "APP N.", "SYNC", "RETRY-SYNC"]);
-  const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "whatsappStatus", "notiStatus", "print", "resend", "appNotification", "syncStatus", "syncTran"]);
-
+  const [columns, setColumns] = useState(["INDEX", "NAME", "AMOUNT", "PRINT STATUS", "WHATSAPP", "NOTIFICATION", "PRINT", "RESEND", "APP N.", "SPEAK", "SYNC", "RETRY-SYNC"]);
+  const [keyArray, setKeyArray] = useState(["index", "name", "amount", "printStatus", "whatsappStatus", "notiStatus", "print", "resend", "appNotification", "speakOn", "syncStatus", "syncTran"]);
   const [printData, setPrintData] = useState();
 
   let oneDaysPrior = new Date();
@@ -72,6 +73,7 @@ const VasuliTransaction = () => {
       date: priorDate,
       toggle: false,
       whatsappToggle: false,
+      speakOn: true,
     },
   });
   const watchedVyapariId = watch("vyapariId");
@@ -135,6 +137,10 @@ const VasuliTransaction = () => {
     }
   }, [owedAmount]);
 
+  const speak = (amount, vyapariId, vyapariName) => {
+    speakCreditEntry({ amount: amount, vyapariId: vyapariId, vyapariName: vyapariName });
+  };
+
   const onSubmit = async (data) => {
     if (!isValid) return;
 
@@ -160,7 +166,9 @@ const VasuliTransaction = () => {
     if (formValue.toggle) setPrintData({ ...vasuliTran, date: formValue.date });
     if (formValue.whatsappToggle) sendWhatsAppReceipt(vasuliTran, 0);
     if (formValue.appNotiToggle) appNotification(vasuliTran, 0);
-
+    if(formValue.speakOn){
+      speak(formValue.amount, formValue.vyapariId?.idNo, formValue.vyapariId?.name);
+    }
     syncTran(vasuliTran, 0, true);
     reset({
       vyapariId: null,
@@ -229,7 +237,7 @@ const VasuliTransaction = () => {
 
   const rePrintPrev = (data, index) => {
     try {
-      const datePart = new Date(data.date).toLocaleDateString('en-GB');     
+      const datePart = new Date(data.date).toLocaleDateString('en-GB');
       setPrintData({
         name: data?.name,
         vyapariId: data?.vyapariId,
@@ -368,7 +376,7 @@ const VasuliTransaction = () => {
         <div className={styles.wrapper}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={1} p={1} alignItems="center">
-              <Grid item xs={8} className={styles.heading}>
+              <Grid item xs={5} className={styles.heading}>
                 <Typography variant="h4" component="h1" align="left">
                   VASULI TRANSACTION
                 </Typography>
@@ -396,6 +404,14 @@ const VasuliTransaction = () => {
                   render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} />}
                 />
                 <PhoneAndroidIcon />
+              </Grid>
+              <Grid item xs={1} className={styles.toggle}>
+                <Controller
+                  name="speakOn"
+                  control={control}
+                  render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} />}
+                />
+                <CampaignOutlined />
               </Grid>
               <Grid item xs={4}>
                 <Controller
@@ -529,6 +545,7 @@ const VasuliTransaction = () => {
                   resend={sendWhatsAppReceipt}
                   rePrintPrev={rePrintPrev}
                   appNotification={appNotification}
+                  speak={speak}
                   height="65vh"
                 />
               </Grid>
