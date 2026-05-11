@@ -53,7 +53,7 @@ const VasuliTransaction = () => {
   const todaysDate = new Date();
   const currentHour = todaysDate.getHours();
 
-  if (currentHour >= 18) {
+  if (currentHour >= 16) {
     priorDate = todaysDate.toLocaleDateString("en-CA");
   }
 
