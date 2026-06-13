@@ -50,13 +50,15 @@ function numberToHindi(num) {
   return num.toString();
 }
 
-let currentAudio = null;
+const phraseCache = new Map();
 
-async function speakViaSarvam(text) {
+async function fetchAudioBuffer(text) {
+  if (phraseCache.has(text)) return phraseCache.get(text);
+
   const apiKey = process.env.REACT_APP_SARVAM_API_KEY;
   if (!apiKey) throw new Error("No Sarvam API key");
 
-  const response = await fetch("https://api.sarvam.ai/text-to-speech", {
+  const res = await fetch("https://api.sarvam.ai/text-to-speech", {
     method: "POST",
     headers: {
       "api-subscription-key": apiKey,
@@ -72,30 +74,30 @@ async function speakViaSarvam(text) {
     }),
   });
 
-  if (!response.ok) throw new Error(`Sarvam API error: ${response.status}`);
+  if (!res.ok) throw new Error(`Sarvam API error: ${res.status}`);
+  const { audios } = await res.json();
 
-  const { audios } = await response.json();
-  const base64 = audios[0];
-
-  const binary = atob(base64);
+  const binary = atob(audios[0]);
   const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
-  const blob = new Blob([bytes], { type: "audio/wav" });
-  const url = URL.createObjectURL(blob);
+  const buffer = bytes.buffer;
+  phraseCache.set(text, buffer);
+  return buffer;
+}
 
-  if (currentAudio) {
-    currentAudio.pause();
-    URL.revokeObjectURL(currentAudio._objectUrl);
-  }
+let currentAudio = null;
 
-  const audio = new Audio(url);
-  audio._objectUrl = url;
-  currentAudio = audio;
-  audio.onended = () => URL.revokeObjectURL(url);
-  await audio.play();
+function playBuffer(buffer) {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([buffer], { type: "audio/wav" });
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    currentAudio = audio;
+    audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
+    audio.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    audio.play().catch(reject);
+  });
 }
 
 function speakViaWebSpeech(text) {
@@ -117,15 +119,31 @@ function speakViaWebSpeech(text) {
 }
 
 export const speakCreditEntry = async ({ amount, vyapariId, vyapariName }) => {
-  const text =
-    `व्यापारी जिनका, ` +
-    `आई डी नंबर ${numberToHindi(vyapariId)}, ` +
-    `के लिए ${numberToHindi(amount)} रुपये जमा हुए|`;
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+
+  const segments = [
+    "व्यापारी जिनका",
+    "आई डी नंबर",
+    numberToHindi(vyapariId),
+    "के लिए",
+    numberToHindi(amount),
+    "रुपये जमा हुए",
+  ];
 
   try {
-    await speakViaSarvam(text);
-  } catch(error) {
+    const buffers = await Promise.all(segments.map(fetchAudioBuffer));
+    for (const buffer of buffers) {
+      await playBuffer(buffer);
+    }
+  } catch (error) {
     console.error("Sarvam TTS failed, falling back to Web Speech API:", error);
+    const text =
+      `व्यापारी जिनका, ` +
+      `आई डी नंबर ${numberToHindi(vyapariId)}, ` +
+      `के लिए ${numberToHindi(amount)} रुपये जमा हुए|`;
     speakViaWebSpeech(text);
   }
 };
