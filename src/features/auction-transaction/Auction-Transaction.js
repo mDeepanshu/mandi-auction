@@ -14,6 +14,10 @@ import {
   useMediaQuery,
   Switch,
   FormControlLabel,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
 import TextField from "@mui/material/TextField";
@@ -30,6 +34,13 @@ import { useOutletContext } from "react-router-dom";
 import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
 import { StyledTableCell } from "../../shared/ui/elements/Table-Cell";
 import AlertDialog from "../../dialogs/corformation/conformation";
+const CRATE_TYPES = [
+  { id: 1, name: "Taal" },
+  { id: 2, name: "Peti" },
+  { id: 3, name: "Bori" },
+  { id: 4, name: "Crate" },
+];
+
 function AuctionTransaction() {
   function getUTCDateTimeFromDateOnly(dateString) {
     const now = new Date(); // current local time
@@ -81,7 +92,6 @@ function AuctionTransaction() {
   const [auctionId, setAuctionId] = useState([]);
   const kisanRef = useRef(null);
   const itemRef = useRef(null);
-  const totalBagInputRef = useRef(null);
   const auctionType = watch("auctionType");
   // const auctionType = false;
   const [openConformationDialog, setOpenConformationDialog] = useState(false);
@@ -94,12 +104,14 @@ function AuctionTransaction() {
     if (isValid && buyItemsArr.length) {
       const buyItems = buyItemsArr?.map((obj) => {
         const { vyapariName, ...rest } = obj;
-        return rest;
+        return { ...rest, crate_count: obj.bags };
       });
       const auctionData = {
         kisanId: data.kisaan.partyId,
-        itemId: data.itemName.itemId,
+        itemId: data.itemName.itemId ?? data.itemName.id,
         buyItems,
+        totalBag: 0,
+        crate_id: data.crateType,
         // auctionDate: `${data.date}T${new Date().toISOString().split("T")[1]}`,
         auctionDate: getUTCDateTimeFromDateOnly(data.date),
       };
@@ -109,7 +121,7 @@ function AuctionTransaction() {
         reset();
         setValue("kisaan", null);
         setValue("itemName", null);
-        setValue("totalBag", null);
+        setValue("crateType", "");
         setTableData([]);
         let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
         let newLocal = oldLocal;
@@ -529,7 +541,7 @@ function AuctionTransaction() {
                     options={itemsList}
                     disabled={getValues()?.itemName && buyItemsArr.length > 0}
                     getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) => option.itemId === value.itemId}
+                    isOptionEqualToValue={(option, value) => (option.itemId ?? option.id) === (value.itemId ?? value.id)}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -554,7 +566,7 @@ function AuctionTransaction() {
                     )}
                     onChange={(event, value) => {
                       field.onChange(value); // Updates the React Hook Form state
-                      totalBagInputRef.current.focus();
+                      if (vyapariRef.current) vyapariRef.current.focus();
                     }}
                     disablePortal
                     id="combo-box-demo"
@@ -565,28 +577,32 @@ function AuctionTransaction() {
             </div>
             <div className="totalBags">
               <Controller
-                name="totalBag"
+                name="crateType"
                 control={control}
                 defaultValue=""
-                rules={{ required: "Enter Total Bags" }}
+                rules={{ required: "Select Crate Type" }}
                 render={({ field, fieldState: { error } }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Total Bags"
-                    size="small"
-                    placeholder="Total Bags"
-                    type="number"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    variant="outlined"
-                    error={!!error}
-                    inputRef={totalBagInputRef}
-                  />
+                  <FormControl fullWidth size="small" error={!!error}>
+                    <InputLabel shrink id="crate-type-label">Crate Type</InputLabel>
+                    <Select
+                      {...field}
+                      labelId="crate-type-label"
+                      label="Crate Type"
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (vyapariRef.current) vyapariRef.current.focus();
+                      }}
+                    >
+                      {CRATE_TYPES.map((crate) => (
+                        <MenuItem key={crate.id} value={crate.id}>
+                          {crate.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 )}
               />
-              <p className="err-msg">{errors.totalBag?.message}</p>
+              <p className="err-msg">{errors.crateType?.message}</p>
             </div>
             <div className="vyapari">
               <Controller

@@ -13,7 +13,7 @@ export const syncTransactions = async (api, data) => {
 
 export const syncItems = async () => {
     try {
-        const response = await axiosHttp.get('/listItems');
+        const response = await axiosHttp.get('/item/listItems');
         addItem(response.data.responseBody, "items");
     } catch (error) {
         console.error('Error posting data:', error);

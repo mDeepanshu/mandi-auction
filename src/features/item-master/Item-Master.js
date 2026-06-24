@@ -5,22 +5,24 @@ import { TextField, Button } from "@mui/material";
 import { Table, Typography, TableBody, TableCell, TableHead, TableRow, InputAdornment } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { addItemGlobal, getItem } from "../../gateway/item-master-apis";
-// import SearchIcon from '@mui/icons-material/Search';
 // import { addItem, deleteItem, getAllItems, getItem } from "../../gateway/curdDB";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import "./item-master.module.css";
 import { Delete, AddCircleOutline } from "@mui/icons-material";
 import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 import MasterTable from "../../shared/ui/master-table/master-table";
 import styles from "./item-master.module.css";
 
 const ItemMaster = () => {
   const [open, setOpen] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
   const {
     handleSubmit,
     control,
     getValues,
+    reset,
     formState: { errors },
   } = useForm();
 
@@ -45,8 +47,8 @@ const ItemMaster = () => {
   }, []);
 
   const onItemInput = (event, field) => {
-    field.onChange(event); // Update the value in react-hook-form
-    setTableDataFiltered(tableData.filter((elem) => elem.name.includes(event.target.value)));
+    field.onChange(event);
+    setTableDataFiltered(tableData.filter((elem) => elem.name.toLowerCase().includes(event.target.value.toLowerCase())));
   };
 
   const deleteFromTable = (index) => {
@@ -57,7 +59,7 @@ const ItemMaster = () => {
 
   const onSubmit = async () => {
     const values = getValues();
-    if (tableData.some((elem) => elem.name == values.itemName)) {
+    if (tableData.some((elem) => elem.name.toLowerCase() === values.itemName.toLowerCase())) {
       setOpen(true);
       return;
     }
@@ -70,12 +72,16 @@ const ItemMaster = () => {
     ];
     try {
       const result = await addItemGlobal(newTableData);
-      if (result.responseCode == 200) {
-        setTableData([...tableData, newTableData[0]]);
-        setTableDataFiltered([...tableDataFiltered, newTableData[0]]);
+      if (result.responseCode == 200 || result.responseCode == 201) {
+        const updated = [...tableData, newTableData[0]];
+        setTableData(updated);
+        setTableDataFiltered(updated);
+        reset({ itemName: "" });
+        setSuccessOpen(true);
       }
     } catch (error) {
       console.log(error);
+      setOpen(true);
     }
   };
 
@@ -84,6 +90,13 @@ const ItemMaster = () => {
       return;
     }
     setOpen(false);
+  };
+
+  const handleSuccessClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSuccessOpen(false);
   };
 
   const action = (
@@ -135,12 +148,21 @@ const ItemMaster = () => {
 
           <Grid item xs={12}>
             <div className="table-container">
-              <MasterTable columns={itemsColumns} tableData={tableData} keyArray={keyArray} height={"60vh"} />
+              <MasterTable columns={itemsColumns} tableData={tableDataFiltered} keyArray={keyArray} height={"60vh"} />
             </div>
           </Grid>
         </Grid>
         <div>
-          <Snackbar open={open} autoHideDuration={4000} message="ITEM ALREADY EXISTS" action={action} onClose={handleClose} />
+          <Snackbar open={open} autoHideDuration={4000} onClose={handleClose} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+            <Alert onClose={handleClose} severity="error" variant="filled">
+              ITEM ALREADY EXISTS
+            </Alert>
+          </Snackbar>
+          <Snackbar open={successOpen} autoHideDuration={3000} onClose={handleSuccessClose} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+            <Alert onClose={handleSuccessClose} severity="success" variant="filled">
+              ITEM ADDED SUCCESSFULLY
+            </Alert>
+          </Snackbar>
         </div>
       </form>
     </div>
