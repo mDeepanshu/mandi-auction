@@ -9,7 +9,8 @@ const openDB = () => {
 
     const localObj = {
       auction:[],
-      vasuli:[]
+      vasuli:[],
+      crateIssue:[]
     }
 
     if (!localStorage.getItem("localObj")) {

@@ -1,4 +1,5 @@
 import { syncTransactions, syncItems, syncParties } from "./common-apis";
+import { syncCrateIssues } from "./crate-apis";
 
 const clearLocalStorageFields = (fields) => {
   const localObj = JSON.parse(localStorage.getItem("localObj") || "{}");
@@ -17,6 +18,9 @@ const runSync = async (label, promiseFn) => {
 
 export const syncAll = async () => {
   const dataToSync = JSON.parse(localStorage.getItem("localObj") || "{}");
+
+  // fire and forget — crate sync must not affect the sync status
+  syncCrateIssues();
 
   try {
     await Promise.all([

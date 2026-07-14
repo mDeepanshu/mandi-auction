@@ -16,6 +16,7 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
+import { addCrateIssues } from "../../gateway/crate-apis";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -30,6 +31,10 @@ import { useOutletContext } from "react-router-dom";
 import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
 import { StyledTableCell } from "../../shared/ui/elements/Table-Cell";
 import AlertDialog from "../../dialogs/corformation/conformation";
+
+// Temporary: crate selection is not exposed in the UI yet, so all issues go against "HIS".
+const DEFAULT_CRATE_ID = 3;
+
 function AuctionTransaction() {
   function getUTCDateTimeFromDateOnly(dateString) {
     const now = new Date(); // current local time
@@ -105,6 +110,7 @@ function AuctionTransaction() {
       };
       try {
         await addAuctionTransaction(auctionData);
+        queueCrateIssues(data);
         setSuccessTransactionDialog(true);
         reset();
         setValue("kisaan", null);
@@ -128,6 +134,26 @@ function AuctionTransaction() {
       if (!buyItemsArr.length) {
         setOpen(true);
       }
+    }
+  };
+
+  // Crate issuing is under test: no UI for picking a crate yet, so every issue goes out
+  // against DEFAULT_CRATE_ID and must never surface an error to the user.
+  const queueCrateIssues = (data) => {
+    try {
+      const countsByVyapari = {};
+      buyItemsArr.forEach((row) => {
+        const count = Number(row.bags) || 0;
+        if (count > 0) countsByVyapari[row.vyapariId] = (countsByVyapari[row.vyapariId] || 0) + count;
+      });
+      const crateIssues = Object.entries(countsByVyapari).map(([vyapariId, count]) => ({
+        vyapariId,
+        date: data.date,
+        crates: [{ crate_id: DEFAULT_CRATE_ID, count }],
+      }));
+      addCrateIssues(crateIssues);
+    } catch (error) {
+      console.error("Failed to queue crate issues:", error);
     }
   };
 
