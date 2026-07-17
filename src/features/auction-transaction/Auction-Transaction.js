@@ -16,7 +16,7 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
-import { addCrateIssues } from "../../gateway/crate-apis";
+import { fetchCrateList, addCrateIssues } from "../../gateway/crate-apis";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -31,10 +31,6 @@ import { useOutletContext } from "react-router-dom";
 import OnGoingAuctions from "../../dialogs/ongoing-auctions/ongoing-auctions";
 import { StyledTableCell } from "../../shared/ui/elements/Table-Cell";
 import AlertDialog from "../../dialogs/corformation/conformation";
-
-// Temporary: crate selection is not exposed in the UI yet, so all issues go against "HIS".
-const DEFAULT_CRATE_ID = 3;
-
 function AuctionTransaction() {
   function getUTCDateTimeFromDateOnly(dateString) {
     const now = new Date(); // current local time
@@ -70,6 +66,7 @@ function AuctionTransaction() {
     },
   });
   const [itemsList, setItemsList] = useState([]);
+  const [crateList, setCrateList] = useState([]);
   const [kisanList, setKisanList] = useState([]);
   const [vyapariList, setVyapariList] = useState([]);
   const [buyItemsArr, setTableData] = useState([]);
@@ -88,6 +85,9 @@ function AuctionTransaction() {
   const itemRef = useRef(null);
   const totalBagInputRef = useRef(null);
   const auctionType = watch("auctionType");
+  const crateMode = watch("crateMode");
+  // crate dropdown + crate issuing only apply when both switches are on
+  const isCrateMode = crateMode && auctionType;
   // const auctionType = false;
   const [openConformationDialog, setOpenConformationDialog] = useState(false);
   const [deleteRow, setDeleteRow] = useState();
@@ -116,6 +116,7 @@ function AuctionTransaction() {
         setValue("kisaan", null);
         setValue("itemName", null);
         setValue("totalBag", null);
+        setValue("crateType", null);
         setTableData([]);
         let oldLocal = JSON.parse(localStorage.getItem("onGoingAuction"));
         let newLocal = oldLocal;
@@ -137,19 +138,23 @@ function AuctionTransaction() {
     }
   };
 
-  // Crate issuing is under test: no UI for picking a crate yet, so every issue goes out
-  // against DEFAULT_CRATE_ID and must never surface an error to the user.
+  // Crate issuing is under test and must never surface an error to the user.
+  // It only runs when both the CRATE and TYPE switches are on; NAG (stored on the
+  // row as `quantity`) is the crate count and the crate is picked from the dropdown.
   const queueCrateIssues = (data) => {
     try {
+      if (!(data.crateMode && data.auctionType)) return;
+      const crateId = data.crateType?.id;
+      if (!crateId) return;
       const countsByVyapari = {};
       buyItemsArr.forEach((row) => {
-        const count = Number(row.bags) || 0;
+        const count = Number(row.quantity) || 0;
         if (count > 0) countsByVyapari[row.vyapariId] = (countsByVyapari[row.vyapariId] || 0) + count;
       });
       const crateIssues = Object.entries(countsByVyapari).map(([vyapariId, count]) => ({
         vyapariId,
         date: data.date,
-        crates: [{ crate_id: DEFAULT_CRATE_ID, count }],
+        crates: [{ crate_id: crateId, count }],
       }));
       addCrateIssues(crateIssues);
     } catch (error) {
@@ -304,6 +309,7 @@ function AuctionTransaction() {
     fetchList("VYAPARI");
     fetchList("KISAN");
     fetchList("items");
+    fetchCrateList().then(setCrateList);
   }, [loading]);
 
   const handleClose = (event, reason) => {
@@ -473,6 +479,24 @@ function AuctionTransaction() {
                 }
                 label="TYPE"
               />
+              <FormControlLabel
+                control={
+                  <Controller
+                    name="crateMode"
+                    control={control}
+                    defaultValue={false}
+                    render={({ field }) => (
+                      <Switch
+                        {...field}
+                        checked={field.value}
+                        onChange={(event) => field.onChange(event.target.checked)}
+                        disabled={buyItemsArr.length > 0}
+                      />
+                    )}
+                  />
+                }
+                label="CRATE"
+              />
             </div>
             <div className="submit-area">
               <Button type="button" variant="contained" color="primary" onClick={onSubmit}>
@@ -590,29 +614,63 @@ function AuctionTransaction() {
               <p className="err-msg">{errors.itemName?.message}</p>
             </div>
             <div className="totalBags">
-              <Controller
-                name="totalBag"
-                control={control}
-                defaultValue=""
-                rules={{ required: "Enter Total Bags" }}
-                render={({ field, fieldState: { error } }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Total Bags"
-                    size="small"
-                    placeholder="Total Bags"
-                    type="number"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    variant="outlined"
-                    error={!!error}
-                    inputRef={totalBagInputRef}
+              {isCrateMode ? (
+                <>
+                  <Controller
+                    name="crateType"
+                    control={control}
+                    render={({ field }) => (
+                      <Autocomplete
+                        {...field}
+                        value={field.value || null}
+                        options={crateList}
+                        getOptionLabel={(option) => option.crate_name}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="CRATE"
+                            size="small"
+                            InputProps={{
+                              ...params.InputProps,
+                              inputRef: totalBagInputRef,
+                            }}
+                          />
+                        )}
+                        onChange={(event, value) => field.onChange(value)}
+                        disablePortal
+                      />
+                    )}
                   />
-                )}
-              />
-              <p className="err-msg">{errors.totalBag?.message}</p>
+                  <p className="err-msg">{errors.crateType?.message}</p>
+                </>
+              ) : (
+                <>
+                  <Controller
+                    name="totalBag"
+                    control={control}
+                    defaultValue=""
+                    rules={{ required: "Enter Total Bags" }}
+                    render={({ field, fieldState: { error } }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Total Bags"
+                        size="small"
+                        placeholder="Total Bags"
+                        type="number"
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        variant="outlined"
+                        error={!!error}
+                        inputRef={totalBagInputRef}
+                      />
+                    )}
+                  />
+                  <p className="err-msg">{errors.totalBag?.message}</p>
+                </>
+              )}
             </div>
             <div className="vyapari">
               <Controller

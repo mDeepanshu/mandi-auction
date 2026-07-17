@@ -27,22 +27,33 @@
 
 .auction_date {
   grid-column-start: 1;
-  grid-column-end: 9;
-  /* align-content: center; */
+  grid-column-end: 6;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* keep the error message from offsetting the field's vertical center in the top row */
+.auction_date .err-msg {
+  position: absolute;
+  top: 100%;
+  margin: 0;
 }
 
 .switch {
-  grid-column-start: 10;
+  grid-column-start: 6;
   grid-column-end: 13;
-  /* align-content:start; */
-  vertical-align: top;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .submit-area {
   grid-column-start: 13;
   grid-column-end: 17;
-  /* align-content:start; */
-  vertical-align: top;
+  display: flex;
+  align-items: center;
 }
 
 .kisan {
@@ -208,7 +219,7 @@
   }
 
   .switch {
-    grid-column-start: 13;
+    grid-column-start: 8;
     grid-column-end: 14;
     vertical-align: top;
   }
