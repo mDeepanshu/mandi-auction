@@ -50,6 +50,14 @@ function AuctionTransaction() {
     return num.toString().padStart(size, "0");
   }
 
+  // Local wall-clock datetime for the IndexedDB copy — no UTC conversion,
+  // so the all-entries table (which parses it as local time) shows the real
+  // entry time instead of one shifted back by the timezone offset.
+  function getLocalDateTimeFromDateOnly(dateString) {
+    const now = new Date();
+    return `${dateString}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+
   const {
     control,
     getValues,
@@ -197,7 +205,13 @@ function AuctionTransaction() {
         newAuctionRow.quantity = Number(qtyTotal);
         newAuctionRow.bags = Number(values.bags);
       }
-      addNewEntry({ trId: Number(Date.now().toString()), ...newAuctionRow, kisanName: values.kisaan.name, itemName: values.itemName.name });
+      addNewEntry({
+        trId: Number(Date.now().toString()),
+        ...newAuctionRow,
+        auctionDate: getLocalDateTimeFromDateOnly(values.date),
+        kisanName: values.kisaan.name,
+        itemName: values.itemName.name,
+      });
 
       let newTableData = [newAuctionRow, ...buyItemsArr];
 

@@ -163,7 +163,7 @@ function MasterTable(props) {
                             return (page - 1) * paginationLength + index + 1;
                           case "date":
                           case "auctionDate":
-                            return new Date(rowData[key] + "Z").toLocaleString();
+                            return new Date(rowData[key]).toLocaleString();
                           default:
                             return rowData[key];
                         }
