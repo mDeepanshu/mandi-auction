@@ -10,6 +10,7 @@ import Login from "./features/login/login";
 import RegisterDevice from "./dialogs/register-device/register-device";
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import { preloadAnnouncements } from "./utils/announcement";
 
 const initializeDB = async () => {
   try {
@@ -61,6 +62,9 @@ function App() {
       if (localStorage.getItem("deviceId") === "" || localStorage.getItem("deviceId") === null) {
         setUnregistered(true);
       }
+      // warm the announcement clip cache in the background, so the first
+      // vasuli of the day does not wait on ~115 downloads
+      preloadAnnouncements();
     }
   }, [loginStatus]);
 

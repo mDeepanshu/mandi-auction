@@ -1,4 +1,31 @@
-const hindiNumbers = {
+import config from "../constants/config";
+
+// Hindi announcements, assembled from a closed alphabet of pre-rendered clips.
+//
+// Every announcement is a sequence of ~10 tokens, and the set of tokens that
+// can ever appear is finite (100 irregular numerals + 4 scale words + a handful
+// of fixed phrases), so the clips are rendered once by the backend seed script
+// and stored in Supabase. Here we only ever look them up, cache them in
+// IndexedDB, and stitch them together with the Web Audio API.
+//
+// That means: no TTS API key in this bundle, no per-announcement API cost, and
+// announcements keep working when the mandi wifi drops.
+
+// the configured base carries a trailing slash in some .env variants, and these
+// are raw fetch() calls rather than axios, so nothing normalizes it for us —
+// "http://localhost:3000//tts/manifest" would not match the Lambda's route
+const API_BASE = String(config.mandiLambdaApiUrl || "").replace(/\/+$/, "");
+
+const MANIFEST_URL = `${API_BASE}/tts/manifest`;
+const ENSURE_CLIPS_URL = `${API_BASE}/tts/clips`;
+
+// ---------------------------------------------------------------------------
+// Tokens — mirrors mandi-lambda-core/src/tts/tokens.ts. Keep the two in sync;
+// a token that was never seeded still works (the backend renders it on demand)
+// but costs one slow announcement the first time.
+// ---------------------------------------------------------------------------
+
+const HINDI_UNITS = {
   0: "शून्य", 1: "एक", 2: "दो", 3: "तीन", 4: "चार", 5: "पांच",
   6: "छह", 7: "सात", 8: "आठ", 9: "नौ", 10: "दस", 11: "ग्यारह",
   12: "बारह", 13: "तेरह", 14: "चौदह", 15: "पंद्रह", 16: "सोलह",
@@ -28,87 +55,314 @@ const hindiNumbers = {
   96: "छियानबे", 97: "सत्तानबे", 98: "अट्ठानबे", 99: "निन्यानबे",
 };
 
-function numberToHindi(num) {
-  if (num <= 99) return hindiNumbers[num];
+const SCALES = { hundred: "सौ", thousand: "हज़ार", lakh: "लाख", crore: "करोड़" };
 
-  if (num < 1000) {
-    const hundreds = Math.floor(num / 100);
-    const remainder = num % 100;
-    return remainder
-      ? `${hindiNumbers[hundreds]} सौ ${numberToHindi(remainder)}`
-      : `${hindiNumbers[hundreds]} सौ`;
-  }
+const PHRASES = {
+  vyapariWhose: "व्यापारी जिनका",
+  idNumber: "आई डी नंबर",
+  forWhom: "के लिए",
+  rupeesCredited: "रुपये जमा हुए",
+};
 
-  if (num < 100000) {
-    const thousands = Math.floor(num / 1000);
-    const remainder = num % 1000;
-    return remainder
-      ? `${numberToHindi(thousands)} हज़ार ${numberToHindi(remainder)}`
-      : `${numberToHindi(thousands)} हज़ार`;
-  }
+const LARGEST_SPEAKABLE = 999999999; // 99,99,99,999
 
-  return num.toString();
+/**
+ * Decompose a whole number into clip tokens, Indian numbering system.
+ * Returns [] when out of range, so the caller falls back instead of emitting
+ * a token that was never seeded.
+ */
+export function numberToTokens(value) {
+  const num = Math.round(Math.abs(Number(value)));
+  if (!Number.isFinite(num) || num > LARGEST_SPEAKABLE) return [];
+  if (num <= 99) return [HINDI_UNITS[num]];
+
+  const split = (divisor, scale) => {
+    const rest = num % divisor;
+    return [
+      ...numberToTokens(Math.floor(num / divisor)),
+      scale,
+      ...(rest ? numberToTokens(rest) : []),
+    ];
+  };
+
+  if (num < 1000) return split(100, SCALES.hundred);
+  if (num < 100000) return split(1000, SCALES.thousand);
+  if (num < 10000000) return split(100000, SCALES.lakh);
+  return split(10000000, SCALES.crore);
 }
 
-const phraseCache = new Map();
+/**
+ * Speak a number one digit at a time. Used for IDs: clearer than a quantity
+ * over a noisy mandi PA, and it only ever touches 10 clips.
+ */
+export function digitsToTokens(value) {
+  return String(value ?? "")
+    .replace(/\D/g, "")
+    .split("")
+    .map((d) => HINDI_UNITS[Number(d)]);
+}
 
-async function fetchAudioBuffer(text) {
-  if (phraseCache.has(text)) return phraseCache.get(text);
+// ---------------------------------------------------------------------------
+// IndexedDB — raw clip bytes, so a page reload does not re-download anything
+// ---------------------------------------------------------------------------
 
-  const apiKey = process.env.REACT_APP_SARVAM_API_KEY;
-  if (!apiKey) throw new Error("No Sarvam API key");
+const DB_NAME = "mandi-tts";
+const DB_VERSION = 1;
+const STORE = "clips";
 
-  const res = await fetch("https://api.sarvam.ai/text-to-speech", {
+let dbPromise = null;
+
+function openDb() {
+  if (dbPromise) return dbPromise;
+
+  dbPromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: "token" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  }).catch((error) => {
+    // private browsing / blocked storage — fall through to the memory cache
+    console.warn("TTS clip store unavailable, using memory cache only:", error);
+    dbPromise = null;
+    return null;
+  });
+
+  return dbPromise;
+}
+
+async function idbReadBytes(tokens) {
+  const db = await openDb();
+  if (!db) return new Map();
+
+  return new Promise((resolve) => {
+    const found = new Map();
+    const tx = db.transaction(STORE, "readonly");
+    const store = tx.objectStore(STORE);
+
+    tokens.forEach((token) => {
+      const request = store.get(token);
+      request.onsuccess = () => {
+        if (request.result?.bytes) found.set(token, request.result.bytes);
+      };
+    });
+
+    tx.oncomplete = () => resolve(found);
+    tx.onerror = () => resolve(found);
+  });
+}
+
+async function idbReadTokens() {
+  const db = await openDb();
+  if (!db) return new Set();
+
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE, "readonly");
+    const request = tx.objectStore(STORE).getAllKeys();
+    request.onsuccess = () => resolve(new Set(request.result));
+    request.onerror = () => resolve(new Set());
+  });
+}
+
+async function idbWriteBytes(records) {
+  const db = await openDb();
+  if (!db || !records.length) return;
+
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE, "readwrite");
+    const store = tx.objectStore(STORE);
+    records.forEach((record) => store.put(record));
+    tx.oncomplete = resolve;
+    tx.onerror = resolve;
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Manifest + clip fetching
+// ---------------------------------------------------------------------------
+
+let manifestPromise = null;
+
+/** token -> clip url, for every seeded clip. Fetched once per page load. */
+function loadManifest(force = false) {
+  if (!manifestPromise || force) {
+    manifestPromise = fetch(MANIFEST_URL)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Manifest request failed: ${res.status}`);
+        return res.json();
+      })
+      .then((payload) => {
+        const clips = payload?.responseBody?.clips || [];
+        return new Map(clips.map((clip) => [clip.token, clip.url]));
+      })
+      .catch((error) => {
+        manifestPromise = null; // let the next announcement retry
+        throw error;
+      });
+  }
+
+  return manifestPromise;
+}
+
+/**
+ * Ask the backend to render tokens the manifest does not have yet. Rare by
+ * design — it only happens when this file emits a token the seed script never
+ * covered — but it keeps a missing clip from breaking the announcement.
+ */
+async function renderMissingClips(tokens) {
+  const res = await fetch(ENSURE_CLIPS_URL, {
     method: "POST",
-    headers: {
-      "api-subscription-key": apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      text,
-      target_language_code: "hi-IN",
-      model: "bulbul:v3",
-      speaker: "aditya",
-      pace: 1.05,
-      speech_sample_rate: 22050,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tokens }),
   });
 
-  if (!res.ok) throw new Error(`Sarvam API error: ${res.status}`);
-  const { audios } = await res.json();
+  if (!res.ok) throw new Error(`Clip render failed: ${res.status}`);
 
-  const binary = atob(audios[0]);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-  const buffer = bytes.buffer;
-  phraseCache.set(text, buffer);
-  return buffer;
+  const payload = await res.json();
+  return new Map((payload?.responseBody || []).map((clip) => [clip.token, clip.url]));
 }
 
-let currentAudio = null;
+async function downloadClips(entries) {
+  return Promise.all(
+    entries.map(async ([token, url]) => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Clip download failed for "${token}": ${res.status}`);
+      return { token, bytes: await res.arrayBuffer() };
+    })
+  );
+}
 
-function playBuffer(buffer) {
-  return new Promise((resolve, reject) => {
-    const blob = new Blob([buffer], { type: "audio/wav" });
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    currentAudio = audio;
-    audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
-    audio.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
-    audio.play().catch(reject);
+/** Fetch bytes for `tokens`, filling IndexedDB along the way. */
+async function fetchClipBytes(tokens) {
+  const cached = await idbReadBytes(tokens);
+  const missing = tokens.filter((token) => !cached.has(token));
+  if (!missing.length) return cached;
+
+  const manifest = await loadManifest();
+  const resolved = missing.filter((token) => manifest.has(token));
+  const unseeded = missing.filter((token) => !manifest.has(token));
+
+  const urls = resolved.map((token) => [token, manifest.get(token)]);
+
+  if (unseeded.length) {
+    const rendered = await renderMissingClips(unseeded);
+    rendered.forEach((url, token) => {
+      manifest.set(token, url);
+      urls.push([token, url]);
+    });
+  }
+
+  const downloaded = await downloadClips(urls);
+  await idbWriteBytes(downloaded);
+  downloaded.forEach(({ token, bytes }) => cached.set(token, bytes));
+
+  return cached;
+}
+
+// ---------------------------------------------------------------------------
+// Playback
+// ---------------------------------------------------------------------------
+
+// Clips are stored with their silence trimmed, so back-to-back scheduling on a
+// single timeline is what makes a stitched sequence sound like one sentence.
+// A tiny gap keeps word boundaries from slurring together.
+const WORD_GAP_SECONDS = 0.02;
+
+const decodedCache = new Map();
+let audioContext = null;
+let activeSources = [];
+
+function getAudioContext() {
+  if (!audioContext) {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) throw new Error("Web Audio API unavailable");
+    audioContext = new Ctor();
+  }
+  return audioContext;
+}
+
+function stopPlayback() {
+  activeSources.forEach((source) => {
+    try {
+      source.stop();
+    } catch {
+      // already finished
+    }
   });
+  activeSources = [];
 }
 
+async function decodeTokens(tokens) {
+  const needed = [...new Set(tokens)].filter((token) => !decodedCache.has(token));
+
+  if (needed.length) {
+    const ctx = getAudioContext();
+    const bytesByToken = await fetchClipBytes(needed);
+
+    await Promise.all(
+      needed.map(async (token) => {
+        const bytes = bytesByToken.get(token);
+        if (!bytes) throw new Error(`No audio for token "${token}"`);
+        // decodeAudioData detaches its input, so hand it a copy — the original
+        // stays reusable if a later decode has to be retried
+        decodedCache.set(token, await ctx.decodeAudioData(bytes.slice(0)));
+      })
+    );
+  }
+
+  return tokens.map((token) => decodedCache.get(token));
+}
+
+async function playTokens(tokens) {
+  const buffers = await decodeTokens(tokens);
+  const ctx = getAudioContext();
+
+  // browsers suspend contexts created outside a gesture
+  if (ctx.state === "suspended") await ctx.resume();
+
+  stopPlayback();
+
+  // small lead-in so the first clip is not clipped by scheduling jitter
+  let at = ctx.currentTime + 0.05;
+  const scheduled = [];
+
+  buffers.forEach((buffer) => {
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(at);
+    at += buffer.duration + WORD_GAP_SECONDS;
+    scheduled.push(source);
+  });
+
+  if (!scheduled.length) return;
+
+  activeSources = scheduled;
+
+  await new Promise((resolve) => {
+    scheduled[scheduled.length - 1].onended = resolve;
+  });
+
+  // a newer announcement may have taken over while this one was playing —
+  // only clear the list if it is still ours
+  if (activeSources === scheduled) activeSources = [];
+}
+
+/** Last resort: the OS voice. Robotic, but it always says the number. */
 function speakViaWebSpeech(text) {
   const synth = window.speechSynthesis;
+  if (!synth) return;
+
   synth.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-  const voices = synth.getVoices();
-  const hindiVoice = voices.find(
-    (v) => v.name === "Microsoft Kalpana - Hindi (India)"
-  );
+  const hindiVoice = synth
+    .getVoices()
+    .find((v) => v.name === "Microsoft Kalpana - Hindi (India)");
   if (hindiVoice) utterance.voice = hindiVoice;
 
   utterance.lang = "hi-IN";
@@ -118,32 +372,65 @@ function speakViaWebSpeech(text) {
   synth.speak(utterance);
 }
 
-export const speakCreditEntry = async ({ amount, vyapariId, vyapariName }) => {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio = null;
-  }
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
-  const segments = [
-    "व्यापारी जिनका",
-    "आई डी नंबर",
-    numberToHindi(vyapariId),
-    "के लिए",
-    numberToHindi(amount),
-    "रुपये जमा हुए",
+/**
+ * Download every seeded clip into IndexedDB. Call once at app start: it is
+ * ~5 MB across ~115 files, after which announcements are instant and survive
+ * losing the network.
+ */
+export async function preloadAnnouncements() {
+  try {
+    const manifest = await loadManifest();
+    const stored = await idbReadTokens();
+    const missing = [...manifest.entries()].filter(([token]) => !stored.has(token));
+
+    if (!missing.length) return;
+
+    const downloaded = await downloadClips(missing);
+    await idbWriteBytes(downloaded);
+  } catch (error) {
+    // not fatal — announcements fetch what they need on demand
+    console.warn("TTS preload failed:", error);
+  }
+}
+
+/**
+ * "व्यापारी जिनका आई डी नंबर <id> के लिए <amount> रुपये जमा हुए"
+ *
+ * `vyapariName` is accepted for call-site compatibility but deliberately not
+ * spoken — arbitrary names cannot come from a closed clip alphabet.
+ */
+export const speakCreditEntry = async ({ amount, vyapariId }) => {
+  const amountTokens = numberToTokens(amount);
+  const idTokens = digitsToTokens(vyapariId);
+
+  const tokens = [
+    PHRASES.vyapariWhose,
+    PHRASES.idNumber,
+    ...idTokens,
+    PHRASES.forWhom,
+    ...amountTokens,
+    PHRASES.rupeesCredited,
   ];
 
+  const spokenText =
+    `${PHRASES.vyapariWhose}, ${PHRASES.idNumber} ${idTokens.join(" ")}, ` +
+    `${PHRASES.forWhom} ${amountTokens.join(" ")} ${PHRASES.rupeesCredited}|`;
+
+  // an amount outside the alphabet has no clips to stitch
+  if (!amountTokens.length) {
+    speakViaWebSpeech(`${PHRASES.forWhom} ${amount} ${PHRASES.rupeesCredited}`);
+    return;
+  }
+
   try {
-    const buffers = await Promise.all(segments.map(fetchAudioBuffer));
-    for (const buffer of buffers) {
-      await playBuffer(buffer);
-    }
+    await playTokens(tokens);
   } catch (error) {
-    console.error("Sarvam TTS failed, falling back to Web Speech API:", error);
-    const text =
-      `व्यापारी जिनका, ` +
-      `आई डी नंबर ${numberToHindi(vyapariId)}, ` +
-      `के लिए ${numberToHindi(amount)} रुपये जमा हुए|`;
-    speakViaWebSpeech(text);
+    console.error("Clip playback failed, falling back to Web Speech API:", error);
+    stopPlayback();
+    speakViaWebSpeech(spokenText);
   }
 };
