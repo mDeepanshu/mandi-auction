@@ -209,7 +209,7 @@ function AllEntries() {
   const handleSync = async (entry) => {
     if (entry.syncStatus === SYNCED || syncingId) return;
     setSyncingId(entry.trId);
-    const status = await syncOneAuction(entry.auctionData, entry.trId);
+    const status = await syncOneAuction(entry.auctionData);
     try {
       await setEntrySyncStatus(entry.trId, status);
     } catch (error) {

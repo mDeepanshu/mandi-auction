@@ -75,6 +75,30 @@ const setEntrySyncStatus = (trId, syncStatus) => {
   });
 };
 
+// Every auction still awaiting the server, oldest first so a bulk sync posts
+// them in the order they were entered. This store is the only queue for
+// auctions, so an already-SYNCED record can never be picked up again.
+const getUnsyncedAuctions = () => {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["allentries"], "readonly");
+    const store = transaction.objectStore("allentries");
+    const request = store.getAll();
+
+    request.onsuccess = (event) => {
+      const records = event.target.result || [];
+      resolve(
+        records
+          .filter((record) => record.auctionData && record.syncStatus !== "SYNCED")
+          .sort((a, b) => a.trId - b.trId)
+      );
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+};
+
 const getAuctionEntries = (start, end) => {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(["allentries"], "readonly");
@@ -204,4 +228,5 @@ export {
   getAuctionEntries,
   deleteOldAuctionEntries,
   setEntrySyncStatus,
+  getUnsyncedAuctions,
 };

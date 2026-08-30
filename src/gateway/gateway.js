@@ -1,6 +1,6 @@
 import { syncTransactions, syncItems, syncParties } from "./common-apis";
 import { syncCrateIssues } from "./crate-apis";
-import { setEntrySyncStatus } from "./curdDB";
+import { getUnsyncedAuctions, setEntrySyncStatus } from "./curdDB";
 
 // Drops only the records that were actually sent. Clearing the whole array
 // instead would re-send anything queued while the request was in flight, or
@@ -19,28 +19,29 @@ const runSync = async (label, promiseFn) => {
 };
 
 // Posts a batch only when there is something to post, and reports back how many
-// records it sent so only those get dropped from the queue. trId is a local
-// marker tying the queued record to its IndexedDB row — it is not sent.
+// records it sent so only those get dropped from the queue.
 const runTransactionSync = async (label, api, records) => {
   const batch = records || [];
   if (batch.length === 0) return 0;
-  const payload = batch.map(({ trId, ...rest }) => rest);
-  await runSync(label, () => syncTransactions(api, payload));
+  await runSync(label, () => syncTransactions(api, batch));
   return batch.length;
 };
 
-// Keeps the all-entries page honest after a bulk sync: every auction this run
-// actually posted is marked SYNCED, so its per-row button stays disabled and
-// cannot send the same auction a second time.
-const markAuctionsSynced = async (auctions) => {
+// Auctions live in IndexedDB, keyed on trId, and are marked SYNCED once posted.
+// Reading the queue from there means a record that already went through is
+// never picked up again, so a repeat sync cannot duplicate it.
+const syncPendingAuctions = async () => {
+  const pending = await getUnsyncedAuctions();
+  if (pending.length === 0) return;
+
+  await runSync("Auction", () => syncTransactions("auction", pending.map((record) => record.auctionData)));
+
   await Promise.all(
-    (auctions || [])
-      .filter((auction) => auction.trId)
-      .map((auction) =>
-        setEntrySyncStatus(auction.trId, "SYNCED").catch((error) =>
-          console.error("Failed to mark auction synced:", auction.trId, error)
-        )
+    pending.map((record) =>
+      setEntrySyncStatus(record.trId, "SYNCED").catch((error) =>
+        console.error("Failed to mark auction synced:", record.trId, error)
       )
+    )
   );
 };
 
@@ -56,14 +57,12 @@ const runSyncAll = async () => {
   syncCrateIssues();
 
   try {
-    const [auctionCount, vasuliCount] = await Promise.all([
-      runTransactionSync("Auction", "auction", dataToSync.auction),
+    const [, vasuliCount] = await Promise.all([
+      syncPendingAuctions(),
       runTransactionSync("Vasuli Transaction", "party/vasuliTrasaction?confirmDuplicate=true", dataToSync.vasuli),
     ]);
 
-    dropSyncedRecords("auction", auctionCount);
     dropSyncedRecords("vasuli", vasuliCount);
-    await markAuctionsSynced((dataToSync.auction || []).slice(0, auctionCount));
 
     await Promise.all([
       runSync("Item", syncItems),

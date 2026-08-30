@@ -15,7 +15,6 @@ import {
   Switch,
   FormControlLabel,
 } from "@mui/material";
-import { addAuctionTransaction } from "../../gateway/auction-transaction-apis";
 import { fetchCrateList, addCrateIssues } from "../../gateway/crate-apis";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
@@ -99,6 +98,7 @@ function AuctionTransaction() {
   // const auctionType = false;
   const [openConformationDialog, setOpenConformationDialog] = useState(false);
   const [deleteRow, setDeleteRow] = useState();
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const onSubmit = async () => {
     const data = getValues();
@@ -109,9 +109,6 @@ function AuctionTransaction() {
         const { vyapariName, ...rest } = obj;
         return rest;
       });
-      // Shared id: the localStorage sync queue and the IndexedDB record refer to
-      // the same auction by it, so whichever path syncs first can mark it done.
-      const trId = Number(Date.now().toString());
       const auctionData = {
         kisanId: data.kisaan.partyId,
         itemId: data.itemName.itemId,
@@ -120,19 +117,19 @@ function AuctionTransaction() {
         auctionDate: getUTCDateTimeFromDateOnly(data.date),
       };
       try {
-        await addAuctionTransaction({ ...auctionData, trId });
-        // One IndexedDB record per submitted auction, carrying the names the
-        // all-entries page shows plus the payload its per-row sync button posts.
-        // Keyed on trId, so syncing it twice updates the same row.
-        addNewEntry({
-          trId,
+        // The IndexedDB record is the auction's only local copy and its sync
+        // queue — keyed on trId and marked SYNCED once posted, so neither the
+        // bulk nor the per-row sync can send it twice. Awaited because losing
+        // this write would lose the auction.
+        await addNewEntry({
+          trId: Number(Date.now().toString()),
           kisanName: data.kisaan.name,
           itemName: data.itemName.name,
           auctionDate: getLocalDateTimeFromDateOnly(data.date),
           syncStatus: "PENDING",
           auctionData,
           buyItems: buyItemsArr,
-        }).catch((error) => console.error("Failed to store auction locally:", error));
+        });
         queueCrateIssues(data);
         setSuccessTransactionDialog(true);
         reset();
@@ -152,7 +149,11 @@ function AuctionTransaction() {
           }, 0);
         }
       } catch (error) {
-        console.log(error);
+        // The local write is the only copy of this auction, so a failure here
+        // must be visible: keep the form and its rows intact so the user can
+        // retry instead of silently losing the entry.
+        console.error("Failed to save auction locally:", error);
+        setSaveFailed(true);
       }
     } else {
       if (!buyItemsArr.length) {
@@ -1023,6 +1024,18 @@ function AuctionTransaction() {
           >
             <Alert onClose={handleClose} severity="success" variant="filled" sx={{ width: "100%" }}>
               TRANSACTION SUCCESSFULLY ADDED.
+            </Alert>
+          </Snackbar>
+        </div>
+        <div>
+          <Snackbar
+            open={saveFailed}
+            autoHideDuration={6000}
+            onClose={() => setSaveFailed(false)}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <Alert onClose={() => setSaveFailed(false)} severity="error" variant="filled" sx={{ width: "100%" }}>
+              COULD NOT SAVE AUCTION. DO NOT CLOSE — TRY SUBMIT AGAIN.
             </Alert>
           </Snackbar>
         </div>
