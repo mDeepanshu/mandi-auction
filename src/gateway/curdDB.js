@@ -33,13 +33,46 @@ const addItem = (data, collectionName) => {
 };
 
 const addNewEntry = (NewEntryObj) => {
-  const transaction = db.transaction(["allentries"], "readwrite");
-  const store = transaction.objectStore("allentries");
-  const request = store.add(NewEntryObj);
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["allentries"], "readwrite");
+    const store = transaction.objectStore("allentries");
+    const request = store.add(NewEntryObj);
 
-  request.onerror = (event) => {
-    console.log(`item added error`);
-  };
+    request.onsuccess = () => {
+      resolve(NewEntryObj);
+    };
+
+    request.onerror = (event) => {
+      console.log(`item added error`);
+      reject(event.target.error);
+    };
+  });
+};
+
+// Flips one auction's sync status in place. The record is keyed on trId, so a
+// second sync of the same auction overwrites the same row instead of adding one.
+const setEntrySyncStatus = (trId, syncStatus) => {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["allentries"], "readwrite");
+    const store = transaction.objectStore("allentries");
+    const getRequest = store.get(trId);
+
+    getRequest.onsuccess = (event) => {
+      const record = event.target.result;
+      if (!record) {
+        resolve(null);
+        return;
+      }
+      record.syncStatus = syncStatus;
+      const putRequest = store.put(record);
+      putRequest.onsuccess = () => resolve(record);
+      putRequest.onerror = (err) => reject(err.target.error);
+    };
+
+    getRequest.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
 };
 
 const getAuctionEntries = (start, end) => {
@@ -160,4 +193,15 @@ const deleteItem = (id, collectionName) => {
   });
 };
 
-export { setDB, addItem, getItem, getAllItems, updateItem, deleteItem, addNewEntry, getAuctionEntries, deleteOldAuctionEntries };
+export {
+  setDB,
+  addItem,
+  getItem,
+  getAllItems,
+  updateItem,
+  deleteItem,
+  addNewEntry,
+  getAuctionEntries,
+  deleteOldAuctionEntries,
+  setEntrySyncStatus,
+};

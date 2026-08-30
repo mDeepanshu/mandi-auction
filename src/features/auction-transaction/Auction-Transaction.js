@@ -109,6 +109,9 @@ function AuctionTransaction() {
         const { vyapariName, ...rest } = obj;
         return rest;
       });
+      // Shared id: the localStorage sync queue and the IndexedDB record refer to
+      // the same auction by it, so whichever path syncs first can mark it done.
+      const trId = Number(Date.now().toString());
       const auctionData = {
         kisanId: data.kisaan.partyId,
         itemId: data.itemName.itemId,
@@ -117,7 +120,19 @@ function AuctionTransaction() {
         auctionDate: getUTCDateTimeFromDateOnly(data.date),
       };
       try {
-        await addAuctionTransaction(auctionData);
+        await addAuctionTransaction({ ...auctionData, trId });
+        // One IndexedDB record per submitted auction, carrying the names the
+        // all-entries page shows plus the payload its per-row sync button posts.
+        // Keyed on trId, so syncing it twice updates the same row.
+        addNewEntry({
+          trId,
+          kisanName: data.kisaan.name,
+          itemName: data.itemName.name,
+          auctionDate: getLocalDateTimeFromDateOnly(data.date),
+          syncStatus: "PENDING",
+          auctionData,
+          buyItems: buyItemsArr,
+        }).catch((error) => console.error("Failed to store auction locally:", error));
         queueCrateIssues(data);
         setSuccessTransactionDialog(true);
         reset();
@@ -205,14 +220,6 @@ function AuctionTransaction() {
         newAuctionRow.quantity = Number(qtyTotal);
         newAuctionRow.bags = Number(values.bags);
       }
-      addNewEntry({
-        trId: Number(Date.now().toString()),
-        ...newAuctionRow,
-        auctionDate: getLocalDateTimeFromDateOnly(values.date),
-        kisanName: values.kisaan.name,
-        itemName: values.itemName.name,
-      });
-
       let newTableData = [newAuctionRow, ...buyItemsArr];
 
       setTableData(newTableData);
