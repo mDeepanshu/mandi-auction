@@ -64,6 +64,9 @@ const setEntrySyncStatus = (trId, syncStatus) => {
         return;
       }
       record.syncStatus = syncStatus;
+      // The claim is over once the record reaches a terminal status; leaving the
+      // timestamp behind would confuse the staleness check on a later retry.
+      delete record.claimedAt;
       const putRequest = store.put(record);
       putRequest.onsuccess = () => resolve(record);
       putRequest.onerror = (err) => reject(err.target.error);
@@ -75,28 +78,81 @@ const setEntrySyncStatus = (trId, syncStatus) => {
   });
 };
 
-// Every auction still awaiting the server, oldest first so a bulk sync posts
-// them in the order they were entered. This store is the only queue for
-// auctions, so an already-SYNCED record can never be picked up again.
-const getUnsyncedAuctions = () => {
+// A claim older than this is treated as abandoned — the tab that made it was
+// closed or crashed mid-sync. Long enough to outlast a slow POST on a bad
+// connection, short enough that a stranded auction recovers on the next sync.
+const CLAIM_TIMEOUT_MS = 120000;
+
+const isClaimable = (record, now) => {
+  if (!record.auctionData || record.syncStatus === "SYNCED") return false;
+  if (record.syncStatus !== "SYNCING") return true;
+  // Reclaim a stale SYNCING record left behind by a tab that went away.
+  return !record.claimedAt || now - record.claimedAt > CLAIM_TIMEOUT_MS;
+};
+
+// Claims every auction still awaiting the server and returns what it claimed,
+// oldest first. Read and claim happen inside ONE readwrite transaction: two
+// tabs sharing this IndexedDB are serialised by the transaction, so the second
+// sees the first's SYNCING marks and claims nothing. Without this, both tabs
+// read the same pending list and POST it — duplicating every auction.
+const claimUnsyncedAuctions = () => {
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(["allentries"], "readonly");
+    const transaction = db.transaction(["allentries"], "readwrite");
     const store = transaction.objectStore("allentries");
     const request = store.getAll();
+    const now = Date.now();
+    let claimed = [];
 
     request.onsuccess = (event) => {
-      const records = event.target.result || [];
-      resolve(
-        records
-          .filter((record) => record.auctionData && record.syncStatus !== "SYNCED")
-          .sort((a, b) => a.trId - b.trId)
-      );
+      claimed = (event.target.result || []).filter((record) => isClaimable(record, now)).sort((a, b) => a.trId - b.trId);
+      claimed.forEach((record) => {
+        record.syncStatus = "SYNCING";
+        record.claimedAt = now;
+        store.put(record);
+      });
     };
 
-    request.onerror = (event) => {
-      reject(event.target.error);
-    };
+    request.onerror = (event) => reject(event.target.error);
+    transaction.oncomplete = () => resolve(claimed);
+    transaction.onerror = (event) => reject(event.target.error);
+    transaction.onabort = (event) => reject(event.target.error);
   });
+};
+
+// Same claim, for a single auction — the all-entries row button. Resolves null
+// when another tab already holds it, so the caller knows not to post.
+const claimAuction = (trId) => {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["allentries"], "readwrite");
+    const store = transaction.objectStore("allentries");
+    const getRequest = store.get(trId);
+    const now = Date.now();
+    let claimedRecord = null;
+
+    getRequest.onsuccess = (event) => {
+      const record = event.target.result;
+      if (!record || !isClaimable(record, now)) return;
+      record.syncStatus = "SYNCING";
+      record.claimedAt = now;
+      store.put(record);
+      claimedRecord = record;
+    };
+
+    getRequest.onerror = (event) => reject(event.target.error);
+    transaction.oncomplete = () => resolve(claimedRecord);
+    transaction.onerror = (event) => reject(event.target.error);
+    transaction.onabort = (event) => reject(event.target.error);
+  });
+};
+
+// Releases claims that were never posted, so a failed sync retries next time
+// instead of sitting SYNCING until the claim goes stale.
+const releaseAuctionClaims = async (trIds) => {
+  await Promise.all(
+    (trIds || []).map((trId) =>
+      setEntrySyncStatus(trId, "FAILED").catch((error) => console.error("Failed to release claim:", trId, error))
+    )
+  );
 };
 
 const getAuctionEntries = (start, end) => {
@@ -228,5 +284,7 @@ export {
   getAuctionEntries,
   deleteOldAuctionEntries,
   setEntrySyncStatus,
-  getUnsyncedAuctions,
+  claimUnsyncedAuctions,
+  claimAuction,
+  releaseAuctionClaims,
 };

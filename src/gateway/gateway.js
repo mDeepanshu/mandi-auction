@@ -1,6 +1,6 @@
 import { syncTransactions, syncItems, syncParties } from "./common-apis";
 import { syncCrateIssues } from "./crate-apis";
-import { getUnsyncedAuctions, setEntrySyncStatus } from "./curdDB";
+import { claimUnsyncedAuctions, releaseAuctionClaims, setEntrySyncStatus } from "./curdDB";
 
 // Drops only the records that were actually sent. Clearing the whole array
 // instead would re-send anything queued while the request was in flight, or
@@ -27,22 +27,37 @@ const runTransactionSync = async (label, api, records) => {
   return batch.length;
 };
 
-// Auctions live in IndexedDB, keyed on trId, and are marked SYNCED once posted.
-// Reading the queue from there means a record that already went through is
-// never picked up again, so a repeat sync cannot duplicate it.
+// Auctions live in IndexedDB, keyed on trId. Records are CLAIMED (marked
+// SYNCING in one atomic transaction) before the POST, not after it: operators
+// work with several tabs open, and a tab-local guard cannot stop a second tab
+// from reading the same pending list mid-request and posting it again.
 const syncPendingAuctions = async () => {
-  const pending = await getUnsyncedAuctions();
-  if (pending.length === 0) return;
+  const claimed = await claimUnsyncedAuctions();
+  if (claimed.length === 0) return;
 
-  await runSync("Auction", () => syncTransactions("auction", pending.map((record) => record.auctionData)));
+  try {
+    await runSync("Auction", () => syncTransactions("auction", claimed.map((record) => record.auctionData)));
+  } catch (error) {
+    // Nothing reached the server — hand the claims back so the next sync retries.
+    await releaseAuctionClaims(claimed.map((record) => record.trId));
+    throw error;
+  }
 
   await Promise.all(
-    pending.map((record) =>
+    claimed.map((record) =>
       setEntrySyncStatus(record.trId, "SYNCED").catch((error) =>
         console.error("Failed to mark auction synced:", record.trId, error)
       )
     )
   );
+};
+
+// Web Locks serialise the whole sync across tabs, so a second tab waits rather
+// than racing. The claim above is what actually guarantees correctness; this
+// avoids the wasted round-trip, and is skipped where the API is unavailable.
+const withSyncLock = async (fn) => {
+  if (!navigator.locks?.request) return fn();
+  return navigator.locks.request("mandi-sync-all", fn);
 };
 
 // Tapping Sync twice used to POST the same queue twice, because the queue was
@@ -79,7 +94,7 @@ const runSyncAll = async () => {
 
 export const syncAll = async () => {
   if (inFlightSync) return inFlightSync;
-  inFlightSync = runSyncAll().finally(() => {
+  inFlightSync = withSyncLock(runSyncAll).finally(() => {
     inFlightSync = null;
   });
   return inFlightSync;
