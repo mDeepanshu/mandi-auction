@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { getAuctionEntries, setEntrySyncStatus } from "../../gateway/curdDB";
+import { getAuctionEntries, setEntrySyncStatus, claimAuction } from "../../gateway/curdDB";
 import { syncOneAuction } from "../../gateway/auction-transaction-apis";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -45,6 +45,7 @@ const auctionAmount = (entry) => (entry.buyItems || []).reduce((sum, row) => sum
 const statusChip = (syncStatus) => {
   if (syncStatus === SYNCED) return { label: "SYNCED", color: "success" };
   if (syncStatus === "FAILED") return { label: "FAILED", color: "error" };
+  if (syncStatus === "SYNCING") return { label: "SYNCING", color: "info" };
   return { label: "PENDING", color: "warning" };
 };
 
@@ -209,7 +210,25 @@ function AllEntries() {
   const handleSync = async (entry) => {
     if (entry.syncStatus === SYNCED || syncingId) return;
     setSyncingId(entry.trId);
-    const status = await syncOneAuction(entry.auctionData, entry.trId);
+
+    // Claim before posting. Operators keep several tabs open, and the disabled
+    // button only guards this one — the claim is what stops another tab (or the
+    // navbar Sync) from posting the same auction at the same time.
+    let claim;
+    try {
+      claim = await claimAuction(entry.trId);
+    } catch (error) {
+      console.error("Failed to claim auction:", error);
+    }
+
+    if (!claim) {
+      setSyncingId(null);
+      await loadEntries();
+      setToast({ open: true, message: "ALREADY SYNCING ELSEWHERE.", severity: "warning" });
+      return;
+    }
+
+    const status = await syncOneAuction(entry.auctionData);
     try {
       await setEntrySyncStatus(entry.trId, status);
     } catch (error) {

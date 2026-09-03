@@ -1,6 +1,6 @@
 import { syncTransactions, syncItems, syncParties } from "./common-apis";
 import { syncCrateIssues } from "./crate-apis";
-import { setEntrySyncStatus } from "./curdDB";
+import { claimUnsyncedAuctions, releaseAuctionClaims, setEntrySyncStatus } from "./curdDB";
 
 // Drops only the records that were actually sent. Clearing the whole array
 // instead would re-send anything queued while the request was in flight, or
@@ -19,29 +19,45 @@ const runSync = async (label, promiseFn) => {
 };
 
 // Posts a batch only when there is something to post, and reports back how many
-// records it sent so only those get dropped from the queue. trId is a local
-// marker tying the queued record to its IndexedDB row — it is not sent.
+// records it sent so only those get dropped from the queue.
 const runTransactionSync = async (label, api, records) => {
   const batch = records || [];
   if (batch.length === 0) return 0;
-  const payload = batch.map(({ trId, ...rest }) => rest);
-  await runSync(label, () => syncTransactions(api, payload));
+  await runSync(label, () => syncTransactions(api, batch));
   return batch.length;
 };
 
-// Keeps the all-entries page honest after a bulk sync: every auction this run
-// actually posted is marked SYNCED, so its per-row button stays disabled and
-// cannot send the same auction a second time.
-const markAuctionsSynced = async (auctions) => {
+// Auctions live in IndexedDB, keyed on trId. Records are CLAIMED (marked
+// SYNCING in one atomic transaction) before the POST, not after it: operators
+// work with several tabs open, and a tab-local guard cannot stop a second tab
+// from reading the same pending list mid-request and posting it again.
+const syncPendingAuctions = async () => {
+  const claimed = await claimUnsyncedAuctions();
+  if (claimed.length === 0) return;
+
+  try {
+    await runSync("Auction", () => syncTransactions("auction", claimed.map((record) => record.auctionData)));
+  } catch (error) {
+    // Nothing reached the server — hand the claims back so the next sync retries.
+    await releaseAuctionClaims(claimed.map((record) => record.trId));
+    throw error;
+  }
+
   await Promise.all(
-    (auctions || [])
-      .filter((auction) => auction.trId)
-      .map((auction) =>
-        setEntrySyncStatus(auction.trId, "SYNCED").catch((error) =>
-          console.error("Failed to mark auction synced:", auction.trId, error)
-        )
+    claimed.map((record) =>
+      setEntrySyncStatus(record.trId, "SYNCED").catch((error) =>
+        console.error("Failed to mark auction synced:", record.trId, error)
       )
+    )
   );
+};
+
+// Web Locks serialise the whole sync across tabs, so a second tab waits rather
+// than racing. The claim above is what actually guarantees correctness; this
+// avoids the wasted round-trip, and is skipped where the API is unavailable.
+const withSyncLock = async (fn) => {
+  if (!navigator.locks?.request) return fn();
+  return navigator.locks.request("mandi-sync-all", fn);
 };
 
 // Tapping Sync twice used to POST the same queue twice, because the queue was
@@ -56,14 +72,12 @@ const runSyncAll = async () => {
   syncCrateIssues();
 
   try {
-    const [auctionCount, vasuliCount] = await Promise.all([
-      runTransactionSync("Auction", "auction", dataToSync.auction),
+    const [, vasuliCount] = await Promise.all([
+      syncPendingAuctions(),
       runTransactionSync("Vasuli Transaction", "party/vasuliTrasaction?confirmDuplicate=true", dataToSync.vasuli),
     ]);
 
-    dropSyncedRecords("auction", auctionCount);
     dropSyncedRecords("vasuli", vasuliCount);
-    await markAuctionsSynced((dataToSync.auction || []).slice(0, auctionCount));
 
     await Promise.all([
       runSync("Item", syncItems),
@@ -80,7 +94,7 @@ const runSyncAll = async () => {
 
 export const syncAll = async () => {
   if (inFlightSync) return inFlightSync;
-  inFlightSync = runSyncAll().finally(() => {
+  inFlightSync = withSyncLock(runSyncAll).finally(() => {
     inFlightSync = null;
   });
   return inFlightSync;
