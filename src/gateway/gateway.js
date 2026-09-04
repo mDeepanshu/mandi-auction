@@ -40,6 +40,7 @@ const syncPendingAuctions = async () => {
   } catch (error) {
     // Nothing reached the server — hand the claims back so the next sync retries.
     await releaseAuctionClaims(claimed.map((record) => record.trId));
+    announceAuctionChange();
     throw error;
   }
 
@@ -50,6 +51,23 @@ const syncPendingAuctions = async () => {
       )
     )
   );
+  announceAuctionChange();
+};
+
+// Tells every open tab that auction rows changed, so a page showing them can
+// re-read IndexedDB. Without this the all-entries table keeps rendering the
+// state it loaded on mount and rows sit at PENDING long after they synced.
+export const AUCTION_SYNC_CHANNEL = "mandi-auction-sync";
+
+const announceAuctionChange = () => {
+  try {
+    const channel = new BroadcastChannel(AUCTION_SYNC_CHANNEL);
+    channel.postMessage({ type: "auctions-updated", at: Date.now() });
+    channel.close();
+  } catch (error) {
+    // BroadcastChannel is unavailable — same-tab refresh still works.
+    console.warn("Could not broadcast auction sync:", error);
+  }
 };
 
 // Web Locks serialise the whole sync across tabs, so a second tab waits rather
