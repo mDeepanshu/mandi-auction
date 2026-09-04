@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { getAuctionEntries, setEntrySyncStatus, claimAuction } from "../../gateway/curdDB";
 import { syncOneAuction } from "../../gateway/auction-transaction-apis";
+import { AUCTION_SYNC_CHANNEL } from "../../gateway/gateway";
+import { useOutletContext } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import {
   TextField,
@@ -150,6 +152,8 @@ function AllEntries() {
   const [search, setSearch] = useState("");
   const [syncingId, setSyncingId] = useState(null);
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
+  // Flips while the navbar Sync runs; used below to re-read the rows it changed.
+  const { loading } = useOutletContext();
 
   const date = new Date();
   const currentDate =
@@ -181,11 +185,32 @@ function AllEntries() {
     );
     auctions.sort((a, b) => b.trId - a.trId);
     setEntries(auctions);
+    return auctions;
   }, [getValues]);
 
   useEffect(() => {
     loadEntries();
   }, [loadEntries, selectedDate]);
+
+  // The navbar Sync writes straight to IndexedDB, so without this the table
+  // keeps showing the rows it read on mount — auctions stay at PENDING on
+  // screen long after they synced, and their button then reports the record as
+  // busy elsewhere. Re-read whenever a sync finishes in this tab.
+  useEffect(() => {
+    if (!loading?.isLoading) loadEntries();
+  }, [loading, loadEntries]);
+
+  // Same refresh when a different tab is the one that synced.
+  useEffect(() => {
+    let channel;
+    try {
+      channel = new BroadcastChannel(AUCTION_SYNC_CHANNEL);
+      channel.onmessage = () => loadEntries();
+    } catch (error) {
+      console.warn("Cross-tab auction refresh unavailable:", error);
+    }
+    return () => channel?.close();
+  }, [loadEntries]);
 
   useEffect(() => {
     const term = search.trim().toLowerCase();
@@ -203,7 +228,7 @@ function AllEntries() {
     );
   }, [entries, search]);
 
-  const pendingCount = entries.filter((entry) => entry.syncStatus !== SYNCED).length;
+  const pendingCount = entries.filter((entry) => entry.syncStatus !== SYNCED && entry.syncStatus !== "SYNCING").length;
   // Whole-day figure, not the filtered view — searching should not change the total.
   const dayTotal = entries.reduce((sum, entry) => sum + auctionAmount(entry), 0);
 
@@ -222,9 +247,17 @@ function AllEntries() {
     }
 
     if (!claim) {
+      // Either it synced elsewhere while this page held stale rows, or another
+      // tab holds the claim right now. Re-read so the row shows what actually
+      // happened, and say which case it was rather than one message for both.
       setSyncingId(null);
-      await loadEntries();
-      setToast({ open: true, message: "ALREADY SYNCING ELSEWHERE.", severity: "warning" });
+      const refreshed = await loadEntries();
+      const current = refreshed?.find((item) => item.trId === entry.trId);
+      setToast(
+        current?.syncStatus === SYNCED
+          ? { open: true, message: "ALREADY SYNCED.", severity: "success" }
+          : { open: true, message: "SYNCING IN ANOTHER TAB. TRY AGAIN SHORTLY.", severity: "warning" }
+      );
       return;
     }
 
