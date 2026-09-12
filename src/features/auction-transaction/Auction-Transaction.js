@@ -216,7 +216,9 @@ function AuctionTransaction() {
 
       if (auctionType) {
         newAuctionRow.quantity = Number(values.nag);
-        newAuctionRow.chungi = Number(values.chungi);
+        // Chungi is a per-vyapari charge: parties flagged `chungi: false` are
+        // exempt, so they take 0 no matter what the input box holds.
+        newAuctionRow.chungi = values.vyapari.chungi ? Number(values.chungi) : 0;
       } else {
         newAuctionRow.quantity = Number(qtyTotal);
         newAuctionRow.bags = Number(values.bags);
