@@ -465,8 +465,11 @@ const VasuliTransaction = () => {
                       size={isSmallScreen ? "small" : "medium"}
                       slotProps={{
                         paper: {
+                          // `&&` doubles the generated class so these rules outrank
+                          // MUI's own option styles regardless of the order emotion
+                          // injects the <style> tags (dev and prod differ).
                           sx: {
-                            "& .MuiAutocomplete-option": {
+                            "&& .MuiAutocomplete-option": {
                               // keyboard-highlighted option (arrow keys / first match)
                               '&.Mui-focused, &[data-focus="true"]': {
                                 backgroundColor: "#1976d2",
@@ -484,7 +487,7 @@ const VasuliTransaction = () => {
                                 fontWeight: 600,
                               },
                               // selected AND highlighted
-                              '&[aria-selected="true"].Mui-focused, &[aria-selected="true"]:hover': {
+                              '&[aria-selected="true"].Mui-focused, &[aria-selected="true"][data-focus="true"], &[aria-selected="true"]:hover': {
                                 backgroundColor: "#1565c0",
                                 color: "#fff",
                               },
