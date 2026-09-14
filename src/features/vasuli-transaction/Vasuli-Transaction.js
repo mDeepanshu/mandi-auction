@@ -463,6 +463,35 @@ const VasuliTransaction = () => {
                       disablePortal
                       id="combo-box-demo"
                       size={isSmallScreen ? "small" : "medium"}
+                      slotProps={{
+                        paper: {
+                          sx: {
+                            "& .MuiAutocomplete-option": {
+                              // keyboard-highlighted option (arrow keys / first match)
+                              '&.Mui-focused, &[data-focus="true"]': {
+                                backgroundColor: "#1976d2",
+                                color: "#fff",
+                              },
+                              // mouse hover
+                              "&:hover": {
+                                backgroundColor: "#1976d2",
+                                color: "#fff",
+                              },
+                              // previously selected value
+                              '&[aria-selected="true"]': {
+                                backgroundColor: "#bbdefb",
+                                color: "#0d47a1",
+                                fontWeight: 600,
+                              },
+                              // selected AND highlighted
+                              '&[aria-selected="true"].Mui-focused, &[aria-selected="true"]:hover': {
+                                backgroundColor: "#1565c0",
+                                color: "#fff",
+                              },
+                            },
+                          },
+                        },
+                      }}
                     />
                   )}
                 />
