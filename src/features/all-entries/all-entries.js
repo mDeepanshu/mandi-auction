@@ -43,6 +43,7 @@ function AllEntries() {
 
   const [dateOptions, setDateOptions] = useState([]);
   const [total, setTotal] = useState([]);
+  const [itemTotals, setItemTotals] = useState([]);
 
   const {
     control,
@@ -59,14 +60,16 @@ function AllEntries() {
 
   const fetchData = async () => {
     const data = await getAuctionEntriesList(currentDate, currentDate);
+    const entries = data?.responseBody?.auctionTransactions ?? [];
     let total = 0;
-    data?.responseBody.forEach((element, index) => {
+    entries.forEach((element, index) => {
       element.entryIdx = index + 1;
       total += element.amount;
     });
     setTotal(total);
-    setTabletList(data?.responseBody);
-    setTableDataFiltered(data?.responseBody);
+    setItemTotals(data?.responseBody?.itemTotals ?? []);
+    setTabletList(entries);
+    setTableDataFiltered(entries);
   };
 
   const setLocalData = async (date) => {
@@ -84,6 +87,7 @@ function AllEntries() {
   useEffect(() => {
     setTabletList([]);
     setTableDataFiltered([]);
+    setItemTotals([]);
     setTimeout(() => {
       if (showSyncedData) fetchData();
       else setLocalData(currentDate);
@@ -188,6 +192,15 @@ function AllEntries() {
           {showSyncedData && (
             <div className={styles.auctionTotal}>
               <b>TOTAL:{Number(total).toFixed(0)}</b>
+              {itemTotals?.length > 0 && (
+                <span className={styles.itemTotals}>
+                  {itemTotals.map((item) => (
+                    <span key={item.name} className={styles.itemTotal}>
+                      {item.name}: {Number(item.bags).toFixed(0)}B / {Number(item.quantity).toFixed(0)}Q / {Number(item.amount).toFixed(0)}
+                    </span>
+                  ))}
+                </span>
+              )}
             </div>
           )}
         </div>
