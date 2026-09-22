@@ -1,0 +1,45 @@
+name: Deploy to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - mandi2
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # .env is gitignored, so CI reconstructs it from repo secrets.
+      # CRA inlines REACT_APP_* at build time, which is why these are
+      # needed here rather than at runtime.
+      - name: Write .env
+        run: |
+          cat > .env <<'ENVEOF'
+          REACT_APP_API_URL='${{ secrets.REACT_APP_API_URL }}'
+          REACT_APP_MANDI_LAMBDA_API_URL='${{ secrets.REACT_APP_MANDI_LAMBDA_API_URL }}'
+          REACT_APP_PASS='${{ secrets.REACT_APP_PASS }}'
+          ENVEOF
+
+      # CI=false: react-scripts treats lint warnings as errors when CI is set,
+      # and this project has pre-existing warnings that would fail the build.
+      - name: Build
+        run: CI=false npm run build
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_HMB_AUCTION }}
+          projectId: hmb-auction
+          channelId: live
