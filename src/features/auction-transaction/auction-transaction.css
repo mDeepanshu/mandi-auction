@@ -79,22 +79,20 @@
   justify-content: space-between;
 }
 
-.rate {
+/* bags comes before rate in the markup, so it must come first in the row too,
+   otherwise grid auto-placement pushes rate onto a new row */
+.bags-box {
   grid-column-start: 1;
   grid-column-end: 5;
 }
 
-.bags-box {
+.rate {
   grid-column-start: 5;
-  grid-column-end: 10;
-  display: flex;
-  flex-wrap: wrap;
-  padding: 3px;
-  margin-top: -3px;
+  grid-column-end: 9;
 }
 
 .chungi {
-  grid-column-start: 10;
+  grid-column-start: 9;
   grid-column-end: 13;
 }
 
@@ -201,7 +199,7 @@
 }
 
 .table_container {
-  height: calc(100vh - 440px);
+  height: calc(100vh - 400px);
   min-height: 130px;
 }
 
@@ -246,11 +244,6 @@
   .bags-box {
     grid-column-start: 9;
     grid-column-end: 11;
-    display: flex;
-    /* flex-wrap: wrap; */
-    /* Adds a solid black border around the container */
-    /* padding: 3px; */
-    /* margin-top: -3px; */
   }
 
   .rate {
