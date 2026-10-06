@@ -193,7 +193,6 @@ function AuctionTransaction() {
     reset({
       ...getValues(),
       ...buyItemsArr[index],
-      quantity: null,
       vyapari: defaultOption,
     });
     setQty(buyItemsArr[index]?.bagWiseQuantity);
@@ -642,7 +641,11 @@ function AuctionTransaction() {
                     size="small"
                     label="QUANTITY"
                     type="number"
+                    placeholder="Quantity"
                     variant="outlined"
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
