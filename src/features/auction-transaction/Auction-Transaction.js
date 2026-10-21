@@ -170,16 +170,16 @@ function AuctionTransaction() {
       if (!(data.crateMode && data.auctionType)) return;
       const crateId = data.crateType?.id;
       if (!crateId) return;
-      const countsByVyapari = {};
-      buyItemsArr.forEach((row) => {
-        const count = Number(row.quantity) || 0;
-        if (count > 0) countsByVyapari[row.vyapariId] = (countsByVyapari[row.vyapariId] || 0) + count;
-      });
-      const crateIssues = Object.entries(countsByVyapari).map(([vyapariId, count]) => ({
-        vyapariId,
-        date: data.date,
-        crates: [{ crate_id: crateId, count }],
-      }));
+      // One issue per row, even when a vyapari appears on several rows, so the
+      // backend receives every entry separately instead of a per-vyapari total.
+      const crateIssues = buyItemsArr
+        .map((row) => ({ vyapariId: row.vyapariId, count: Number(row.quantity) || 0 }))
+        .filter(({ count }) => count > 0)
+        .map(({ vyapariId, count }) => ({
+          vyapariId,
+          date: data.date,
+          crates: [{ crate_id: crateId, count }],
+        }));
       addCrateIssues(crateIssues);
     } catch (error) {
       console.error("Failed to queue crate issues:", error);
