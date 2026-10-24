@@ -38,7 +38,8 @@ export const sendNotification = async (vasuliData) => {
   vasuliData.date = datePart.toLocaleDateString('en-GB');
 
   try {
-    const response = await fetch(`https://5txvte0v46.execute-api.ap-southeast-1.amazonaws.com/dev/sendnotification/${vasuliData.vyapariId}`, {
+    // HMB's push server (mandi-vyapari-lambda, stage hmb); the HIS one has none of HMB's subscriptions
+    const response = await fetch(`https://i9iv6ybzx9.execute-api.ap-southeast-1.amazonaws.com/hmb/sendNotification/${vasuliData.vyapariId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
