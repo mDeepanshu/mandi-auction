@@ -54,7 +54,7 @@ export const sendNotification = async (vasuliData) => {
     return data;
   } catch (error) {
     console.error("Error:", error);
-    return "error";
+    return { status: "FAILED" };
   }
 };
 

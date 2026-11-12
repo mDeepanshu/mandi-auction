@@ -307,7 +307,7 @@ const VasuliTransaction = () => {
     }
   };
 
-  const appNotification = (rowData, index) => {
+  const appNotification = async (rowData, index) => {
     const vasuliTran = {
       vyapariId: rowData?.vyapariId,
       name: rowData?.name,
@@ -317,8 +317,9 @@ const VasuliTransaction = () => {
       date: rowData?.date,
       remark: rowData?.remark,
     };
-    const appNotiStatus = sendNotification(vasuliTran, index);
-    updateStatusInArray(index, "appNotification", appNotiStatus ? "SENT" : "FAILED");
+    updateStatusInArray(index, "notiStatus", "PENDING");
+    const res = await sendNotification(vasuliTran);
+    updateStatusInArray(index, "notiStatus", res?.status || (res?.sent > 0 ? "SENT" : "FAILED"));
   };
 
   const updateStatusInArray = (index, key, value) => {
